@@ -1,0 +1,84 @@
+# Refer to golangci-lint's example config file for more options and information:
+# https://github.com/golangci/golangci-lint/blob/master/.golangci.example.yml
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  # 允许多个并行golangci lint实例运行。
+  # 如果为false（默认）-golangci lint在启动时获取文件锁。
+  allow-parallel-runners: false
+
+linters:
+  disable-all: true
+  fast: false
+  enable:
+    - bodyclose
+    - deadcode
+    - dogsled
+    - durationcheck
+    - errcheck
+    - exportloopref
+    - govet
+    - gosimple
+    - gofmt
+    - goconst
+    - gomnd
+    - gocyclo
+    - ineffassign
+    - prealloc
+    - revive
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - unconvert
+    - varcheck
+    - whitespace
+    - wastedassign
+
+linters-settings:
+  govet:
+    check-shadowing: true
+
+  whitespace:
+    multi-func: true
+
+  gomnd:
+    checks:
+      - argument
+      - case
+      - condition
+      - operation
+      - return
+    ignored-numbers:
+      - '0666'
+      - '0755'
+    ignored-functions:
+      - 'math.*'
+      - 'http.StatusText'
+
+  goconst:
+    # Minimal length of string constant.
+    # Default: 3
+    min-len: 2
+    # Minimum occurrences of constant string count to trigger issue.
+    # Default: 3
+    min-occurrences: 10
+    # Ignore test files.
+    # Default: false
+    ignore-tests: true
+    # Look for existing constants matching the values.
+    # Default: true
+    match-constant: true
+    # Search also for duplicated numbers.
+    # Default: false
+    numbers: false
+    # Minimum value, only works with goconst.numbers
+    # Default: 3
+    min: 2
+    # Maximum value, only works with goconst.numbers
+    # Default: 3
+    max: 2
+    # Ignore when constant is not used as function argument.
+    # Default: true
+    ignore-calls: true

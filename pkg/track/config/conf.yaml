@@ -1,0 +1,5 @@
+##fc queue
+track:
+    name : "track-log.log"
+    path : "/path/to/runtime/logs/"
+    max_age : 30

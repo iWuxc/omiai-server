@@ -1,0 +1,8 @@
+endpoint: nacos.wxbjq.net.cn
+port: 80
+namespace_id: dc98a4ec-988f-4b54-862c-ee03db05092e
+data_id: omiai-server.yaml
+group: dev
+log_level: error
+access_key:
+secret_key:

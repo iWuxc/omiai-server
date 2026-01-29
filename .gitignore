@@ -1,0 +1,14 @@
+.DS_Store
+.idea/
+.vscode/
+runtime/
+.go-wit-export/
+*.log
+bin/
+data/
+coverage.out
+*.test
+*.out
+*.tmp
+*.swp
+.env
