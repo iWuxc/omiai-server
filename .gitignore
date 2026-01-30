@@ -13,5 +13,5 @@ coverage.out
 *.swp
 .env
 omiai-miniapp/
-config/config.yaml
+configs/config.yaml
 server
