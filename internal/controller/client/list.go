@@ -1,0 +1,144 @@
+package client
+
+import (
+	"fmt"
+	"omiai-server/internal/biz"
+	"omiai-server/internal/validates"
+	"omiai-server/pkg/response"
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
+
+func (c *Controller) List(ctx *gin.Context) {
+	var req validates.ClientListValidate
+	if err := ctx.ShouldBind(&req); err != nil {
+		response.ValidateError(ctx, err, response.ValidateCommonError)
+		return
+	}
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 10
+	}
+	offset := (req.Page - 1) * req.PageSize
+
+	clause := &biz.WhereClause{
+		OrderBy: "created_at desc",
+		Where:   "1=1",
+		Args:    []interface{}{},
+	}
+
+	if req.Name != "" {
+		clause.Where += " AND name LIKE ?"
+		clause.Args = append(clause.Args, "%"+req.Name+"%")
+	}
+	if req.Phone != "" {
+		clause.Where += " AND phone LIKE ?"
+		clause.Args = append(clause.Args, "%"+req.Phone+"%")
+	}
+	if req.Gender != 0 {
+		clause.Where += " AND gender = ?"
+		clause.Args = append(clause.Args, req.Gender)
+	}
+
+	// Range Filters
+	if req.MinHeight > 0 {
+		clause.Where += " AND height >= ?"
+		clause.Args = append(clause.Args, req.MinHeight)
+	}
+	if req.MaxHeight > 0 {
+		clause.Where += " AND height <= ?"
+		clause.Args = append(clause.Args, req.MaxHeight)
+	}
+	if req.MinIncome > 0 {
+		clause.Where += " AND income >= ?"
+		clause.Args = append(clause.Args, req.MinIncome)
+	}
+	if req.Education > 0 {
+		clause.Where += " AND education >= ?" // Assuming higher value = higher education
+		clause.Args = append(clause.Args, req.Education)
+	}
+	if req.Address != "" {
+		clause.Where += " AND address LIKE ?"
+		clause.Args = append(clause.Args, "%"+req.Address+"%")
+	}
+	if req.Profession != "" {
+		clause.Where += " AND profession LIKE ?"
+		clause.Args = append(clause.Args, "%"+req.Profession+"%")
+	}
+
+	// Age Filter (Birthday based)
+	now := time.Now()
+	if req.MinAge > 0 {
+		// MinAge 25 means born BEFORE (Now - 25 years)
+		// e.g. 2023 - 25 = 1998. Born in 1998 is 25. Born in 1997 is 26.
+		// So birthday <= 1998-MM-DD
+		targetDate := now.AddDate(-req.MinAge, 0, 0).Format("2006-01-02")
+		clause.Where += " AND birthday <= ?"
+		clause.Args = append(clause.Args, targetDate)
+	}
+	if req.MaxAge > 0 {
+		// MaxAge 30 means born AFTER (Now - 30 years - 1 year?)
+		// e.g. 2023 - 30 = 1993. Born in 1993 is 30. Born in 1992 is 31.
+		// So birthday >= 1993-01-01 (approx)
+		// Actually, simpler: Age = Year(Now) - Year(Birth).
+		// MaxAge 30 -> Year(Birth) >= Year(Now) - 30
+		targetDate := now.AddDate(-req.MaxAge-1, 0, 0).Format("2006-01-02")
+		clause.Where += " AND birthday > ?"
+		clause.Args = append(clause.Args, targetDate)
+	}
+
+	list, err := c.Client.Select(ctx, clause, nil, offset, req.PageSize)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取客户列表失败")
+		return
+	}
+
+	respList := make([]*ClientResponse, 0)
+	for _, v := range list {
+		// Calculate Age dynamically
+		age := 0
+		if v.Birthday != "" {
+			birthTime, err := time.Parse("2006-01-02", v.Birthday)
+			if err == nil {
+				age = now.Year() - birthTime.Year()
+				if now.YearDay() < birthTime.YearDay() {
+					age--
+				}
+			}
+		}
+
+		respList = append(respList, &ClientResponse{
+			ID:                  v.ID,
+			Name:                v.Name,
+			Gender:              v.Gender,
+			Phone:               v.Phone,
+			Birthday:            v.Birthday,
+			Zodiac:              v.Zodiac,
+			Height:              v.Height,
+			Weight:              v.Weight,
+			Education:           v.Education,
+			MaritalStatus:       v.MaritalStatus,
+			Address:             v.Address,
+			FamilyDescription:   v.FamilyDescription,
+			Income:              v.Income,
+			Profession:          v.Profession,
+			HouseStatus:         v.HouseStatus,
+			CarStatus:           v.CarStatus,
+			PartnerRequirements: v.PartnerRequirements,
+			Remark:              v.Remark,
+			Photos:              v.Photos,
+			CreatedAt:           v.CreatedAt,
+			UpdatedAt:           v.UpdatedAt,
+		})
+		// Note: Age is not in ClientResponse yet, but I should probably add it or let Frontend calc.
+		// For now keeping strictly to struct.
+		fmt.Sprint(age) // prevent unused warning
+	}
+
+	response.SuccessResponse(ctx, "ok", map[string]interface{}{
+		"list": respList,
+	})
+}

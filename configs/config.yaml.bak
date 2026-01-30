@@ -1,15 +1,15 @@
 # config
 debug: true
-cron: true
+cron: false
 env: dev
 
 domain:
-  h5: "https://aicloset-dev-h5.wxbjq.top"
+  h5: "https://www.omoai.com"
 
 server:
-  rpc_port: 9070
-  http_port: 9071
-  monitor_port: 9072
+  rpc_port: 10132
+  http_port: 10131
+  monitor_port: 10133
 
 database:
   debug: true
@@ -19,7 +19,7 @@ database:
     max_open_conn: 10
   default:
     driver: mysql
-    source: root:123456@tcp(127.0.0.1:3306)/omoai?charset=utf8mb4&parseTime=True&loc=Local
+    source: root:123456@tcp(127.0.0.1:3306)/omiai?charset=utf8mb4&parseTime=True&loc=Local
 
 cache:
   driver: redis
@@ -30,7 +30,7 @@ redis:
     url: redis://:123456@127.0.0.1:6379/1?dial_timeout=3&read_timeout=6s&max_retries=2
     host: r-2zecgwl3v7o30l1tcp.redis.rds.aliyuncs.com
     port: 6379
-    password: 123456
+    password: "123456"
 
 runtime:
   path: /Users/edy/apps/go/src/github.com/iwuxc/omiai-server/runtime/
@@ -55,6 +55,6 @@ track:
 cron_conf:
   host: 127.0.0.1
   port: 6379
-  password: 123456  # 这个密码不能 encode
+  password: "123456"  # 这个密码不能 encode
   db: 2 #这个库不能和其他服务的定时库一样
   cron_name: omiai-server-dev

@@ -1,0 +1,46 @@
+package biz_omiai
+
+import (
+	"context"
+	"omiai-server/internal/biz"
+	"time"
+)
+
+// Client 客户档案模型
+type Client struct {
+	ID                  uint64    `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	Name                string    `json:"name" gorm:"column:name;size:64;not null;comment:姓名"`
+	Gender              int8      `json:"gender" gorm:"column:gender;comment:性别 1男 2女"`
+	Phone               string    `json:"phone" gorm:"column:phone;size:20;index;comment:联系电话"`
+	Birthday            string    `json:"birthday" gorm:"column:birthday;size:20;comment:出生年月"` // 格式 YYYY-MM-DD
+	Zodiac              string    `json:"zodiac" gorm:"column:zodiac;size:10;comment:属相"`
+	Height              int       `json:"height" gorm:"column:height;comment:身高cm"`
+	Weight              int       `json:"weight" gorm:"column:weight;comment:体重kg"`
+	Education           int8      `json:"education" gorm:"column:education;comment:学历"` // 枚举值
+	MaritalStatus       int8      `json:"marital_status" gorm:"column:marital_status;comment:婚姻状况"`
+	Address             string    `json:"address" gorm:"column:address;size:255;comment:家庭住址"`
+	FamilyDescription   string    `json:"family_description" gorm:"column:family_description;type:text;comment:家庭成员描述"`
+	Income              int       `json:"income" gorm:"column:income;comment:月收入"`
+	Profession          string    `json:"profession" gorm:"column:profession;size:128;comment:具体工作"`
+	HouseStatus         int8      `json:"house_status" gorm:"column:house_status;comment:房产情况"`
+	CarStatus           int8      `json:"car_status" gorm:"column:car_status;comment:车辆情况"`
+	PartnerRequirements string    `json:"partner_requirements" gorm:"column:partner_requirements;type:text;comment:对另一半要求"`
+	Remark              string    `json:"remark" gorm:"column:remark;type:text;comment:红娘备注"`
+	Photos              string    `json:"photos" gorm:"column:photos;type:text;comment:照片URL列表(JSON)"`
+	CreatedAt           time.Time `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt           time.Time `json:"updated_at" gorm:"column:updated_at"`
+}
+
+// TableName 表名
+func (t *Client) TableName() string {
+	return "client"
+}
+
+// ClientInterface 定义数据层接口
+type ClientInterface interface {
+	Select(ctx context.Context, clause *biz.WhereClause, fields []string, offset, limit int) ([]*Client, error)
+	Create(ctx context.Context, client *Client) error
+	Update(ctx context.Context, client *Client) error
+	Delete(ctx context.Context, id uint64) error
+	Get(ctx context.Context, id uint64) (*Client, error)
+}

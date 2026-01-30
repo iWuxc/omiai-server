@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/iWuxc/go-wit/app"
 	banner2 "omiai-server/internal/controller/banner"
+	"omiai-server/internal/controller/client"
 	"omiai-server/internal/cron"
 	"omiai-server/internal/data"
 	"omiai-server/internal/data/omiai"
@@ -36,11 +37,14 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	bannerInterface := omiai.NewBannerRepo(db)
 	service := banner.NewService(redis)
 	controller := banner2.NewController(db, bannerInterface, service)
+	clientInterface := omiai.NewClientRepo(db)
+	clientController := client.NewController(db, clientInterface)
 	router := &server.Router{
 		Engine:           engine,
 		DB:               db,
 		Redis:            redis,
 		BannerController: controller,
+		ClientController: clientController,
 	}
 	v2 := server.NewHTTPServer(router)
 	userProductFinalizer := cron.NewUserProductFinalizer(db)

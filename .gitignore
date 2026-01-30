@@ -12,3 +12,6 @@ coverage.out
 *.tmp
 *.swp
 .env
+omiai-miniapp/
+config/config.yaml
+server
