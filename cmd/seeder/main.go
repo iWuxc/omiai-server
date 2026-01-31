@@ -6,22 +6,23 @@ import (
 	"time"
 
 	biz_omiai "omiai-server/internal/biz/omiai"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 // Config
-const DSN = "root:123456@tcp(127.0.0.1:3306)/omiai?charset=utf8mb4&parseTime=True&loc=Local"
+const DSN = "root:onex(#)666@tcp(127.0.0.1:3306)/omiai?charset=utf8mb4&parseTime=True&loc=Local"
 
 // Data Sources
 var (
-	lastNames = []string{"赵", "钱", "孙", "李", "周", "吴", "郑", "王", "冯", "陈", "褚", "卫", "蒋", "沈", "韩", "杨", "朱", "秦", "尤", "许", "何", "吕", "施", "张"}
-	firstNamesMale = []string{"伟", "强", "磊", "洋", "勇", "军", "杰", "涛", "超", "明", "刚", "平", "辉", "伟", "志强", "建国", "志明"}
+	lastNames        = []string{"赵", "钱", "孙", "李", "周", "吴", "郑", "王", "冯", "陈", "褚", "卫", "蒋", "沈", "韩", "杨", "朱", "秦", "尤", "许", "何", "吕", "施", "张"}
+	firstNamesMale   = []string{"伟", "强", "磊", "洋", "勇", "军", "杰", "涛", "超", "明", "刚", "平", "辉", "伟", "志强", "建国", "志明"}
 	firstNamesFemale = []string{"芳", "娜", "敏", "静", "秀", "娟", "英", "华", "慧", "巧", "美", "静", "丽", "霞", "燕", "琳", "雪"}
-	professions = []string{"互联网/IT", "金融/银行", "教育/教师", "医疗/医生", "公务员", "自由职业", "企业高管", "销售", "设计师", "律师"}
-	addresses = []string{"朝阳区", "海淀区", "西城区", "东城区", "丰台区", "通州区", "昌平区"}
-	zodiacs = []string{"鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"}
-	educations = []int8{3, 4, 3, 4, 3, 2, 5} // 2:大专 3:本科 4:硕士 5:博士
+	professions      = []string{"互联网/IT", "金融/银行", "教育/教师", "医疗/医生", "公务员", "自由职业", "企业高管", "销售", "设计师", "律师"}
+	addresses        = []string{"朝阳区", "海淀区", "西城区", "东城区", "丰台区", "通州区", "昌平区"}
+	zodiacs          = []string{"鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"}
+	educations       = []int8{3, 4, 3, 4, 3, 2, 5} // 2:大专 3:本科 4:硕士 5:博士
 )
 
 func main() {
@@ -31,14 +32,14 @@ func main() {
 	}
 
 	fmt.Println("Start seeding...")
-	
+
 	rand.Seed(time.Now().UnixNano())
 
 	// Generate 50 Clients
 	for i := 0; i < 50; i++ {
 		gender := int8(rand.Intn(2) + 1) // 1 or 2
 		name := generateName(gender)
-		
+
 		client := &biz_omiai.Client{
 			Name:              name,
 			Gender:            gender,

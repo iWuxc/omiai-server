@@ -19,7 +19,6 @@ require (
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v0.0.3
 	github.com/volcengine/volcengine-go-sdk v1.1.47
-	github.com/wxnacy/wgo v1.0.4
 	golang.org/x/time v0.3.0
 	gorm.io/driver/mysql v1.3.2
 	gorm.io/driver/sqlite v1.2.6
@@ -27,7 +26,6 @@ require (
 )
 
 require (
-	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/dcron-contrib/commons v0.0.2 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-kratos/kratos/v2 v2.7.3 // indirect
@@ -46,13 +44,11 @@ require (
 require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.63.92 // indirect
 	github.com/aliyun/aliyun-log-go-sdk v0.1.33 // indirect
-	github.com/aliyun/aliyun-oss-go-sdk v2.2.0+incompatible
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/disintegration/imaging v1.6.2
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-kit/kit v0.10.0 // indirect
@@ -100,7 +96,6 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/image v0.35.0 // indirect
 	golang.org/x/net v0.46.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
