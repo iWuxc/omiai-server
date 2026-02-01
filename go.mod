@@ -34,6 +34,7 @@ require (
 	github.com/dcron-contrib/commons v0.0.2 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-kratos/kratos/v2 v2.7.3 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

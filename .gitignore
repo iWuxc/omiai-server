@@ -14,3 +14,4 @@ coverage.out
 omiai-miniapp/
 configs/config.yaml
 server
+seeder

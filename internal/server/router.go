@@ -2,11 +2,13 @@ package server
 
 import (
 	"net/http"
+	"omiai-server/internal/controller/auth"
 	"omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/data"
+	"omiai-server/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/iWuxc/go-wit/redis"
@@ -17,6 +19,7 @@ type Router struct {
 	*gin.Engine
 	DB               *data.DB
 	Redis            *redis.Redis
+	AuthController   *auth.Controller
 	BannerController *banner.Controller
 	ClientController *client.Controller
 	CommonController *common.Controller
@@ -26,16 +29,28 @@ type Router struct {
 func (r *Router) Register() http.Handler {
 	g := r.Group("api")
 	{
-		//r.user_custom_brand(g.Group("user_custom_brand", middleware.Authorization(r.DB, r.Redis)))
-		r.banner(g.Group("banner"))
-		r.client(g.Group("client"))
-		r.common(g.Group("common"))
-		r.match(g.Group("match"))
+		r.auth(g.Group("auth"))
+
+		// 需要登录的接口
+		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis))
+		{
+			r.banner(authGroup.Group("banner"))
+			r.client(authGroup.Group("client"))
+			r.common(authGroup.Group("common"))
+			r.match(authGroup.Group("match"))
+			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
+		}
 	}
 	// Serve static files for uploads
 	r.Static("/uploads", "./runtime/uploads")
 
 	return r
+}
+
+func (r *Router) auth(g *gin.RouterGroup) {
+	g.POST("/send_sms", r.AuthController.SendSms)
+	g.POST("/login/h5", r.AuthController.H5Login)
+	g.POST("/login/wx", r.AuthController.WxLogin)
 }
 
 func (r *Router) common(g *gin.RouterGroup) {

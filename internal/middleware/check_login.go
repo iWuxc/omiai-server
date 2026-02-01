@@ -1,48 +1,42 @@
 package middleware
 
 import (
-	"fmt"
 	"omiai-server/internal/data"
+	"omiai-server/pkg/auth"
 	"omiai-server/pkg/response"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hashicorp/go-version"
-	"github.com/iWuxc/go-wit/log"
 	"github.com/iWuxc/go-wit/redis"
 )
 
-type CodeError struct {
-	Code     int    `json:"code"`
-	Msg      string `json:"msg"`
-	TokenKey string `json:"token_key"`
-}
-
 func Authorization(db *data.DB, redis *redis.Redis) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		v := c.Request.Header.Get("version")
-		// 创建版本对象
-		v1, err := version.NewVersion("1.1.0")
-		if err != nil {
-			fmt.Printf("Error parsing version: %v\n", err)
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "未登录")
+			c.Abort()
 			return
 		}
 
-		v2, err := version.NewVersion(v)
+		parts := strings.SplitN(authHeader, " ", 2)
+		if !(len(parts) == 2 && parts[0] == "Bearer") {
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "认证格式错误")
+			c.Abort()
+			return
+		}
+
+		claims, err := auth.ParseToken(parts[1])
 		if err != nil {
-			fmt.Printf("Error parsing version: %v\n", err)
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "登录已失效")
+			c.Abort()
 			return
 		}
-		var loginError *CodeError
-		// 版本比较
-		if v1.GreaterThan(v2) {
-			log.WithContext(c).Infof("checkLogin")
-		}
-		if loginError != nil {
-			response.MiddlewareErrorResponse(c, response.Code(loginError.Code), loginError.Msg)
-			return
-		}
+
+		// 存入上下文
+		c.Set("user_id", claims.UserID)
+		c.Set("role", claims.Role)
+
 		c.Next()
 	}
-
 }

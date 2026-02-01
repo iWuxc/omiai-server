@@ -32,7 +32,7 @@ func main() {
 	}
 
 	// Auto Migrate
-	db.AutoMigrate(&biz_omiai.Client{}, &biz_omiai.Banner{}, &biz_omiai.MatchRecord{}, &biz_omiai.FollowUpRecord{})
+	db.AutoMigrate(&biz_omiai.Client{}, &biz_omiai.Banner{}, &biz_omiai.MatchRecord{}, &biz_omiai.FollowUpRecord{}, &biz_omiai.User{})
 
 	fmt.Println("Start seeding...")
 
@@ -43,25 +43,35 @@ func main() {
 		gender := int8(rand.Intn(2) + 1) // 1 or 2
 		name := generateName(gender)
 
+		houseStatus := int8(rand.Intn(3) + 1)
+		houseAddress := ""
+		if houseStatus > 1 {
+			houseAddress = addresses[rand.Intn(len(addresses))] + "某某小区"
+		}
+
 		client := &biz_omiai.Client{
-			Name:              name,
-			Gender:            gender,
-			Phone:             fmt.Sprintf("13%d%08d", rand.Intn(10), rand.Intn(100000000)),
-			Birthday:          generateBirthday(),
-			Zodiac:            zodiacs[rand.Intn(len(zodiacs))],
-			Height:            generateHeight(gender),
-			Weight:            generateWeight(gender),
-			Education:         educations[rand.Intn(len(educations))],
-			MaritalStatus:     int8(rand.Intn(2) + 1), // 1:未婚 2:离异
-			Address:           addresses[rand.Intn(len(addresses))] + "某小区",
-			Income:            (rand.Intn(40) + 5) * 1000, // 5000 - 45000
-			Profession:        professions[rand.Intn(len(professions))],
-			HouseStatus:       int8(rand.Intn(2) + 1),
-			CarStatus:         int8(rand.Intn(2) + 1),
-			FamilyDescription: "父母退休，家庭和睦",
-			Remark:            "系统自动生成测试数据",
-			CreatedAt:         time.Now(),
-			UpdatedAt:         time.Now(),
+			Name:                name,
+			Gender:              gender,
+			Phone:               fmt.Sprintf("13%d%08d", rand.Intn(10), rand.Intn(100000000)),
+			Birthday:            generateBirthday(),
+			Age:                 20 + rand.Intn(15),
+			Zodiac:              zodiacs[rand.Intn(len(zodiacs))],
+			Height:              generateHeight(gender),
+			Weight:              generateWeight(gender),
+			Education:           educations[rand.Intn(len(educations))],
+			MaritalStatus:       int8(rand.Intn(2) + 1), // 1:未婚 2:离异
+			Address:             addresses[rand.Intn(len(addresses))] + "某小区",
+			Income:              (rand.Intn(40) + 5) * 1000, // 5000 - 45000
+			WorkUnit:            "某某公司",
+			Position:            professions[rand.Intn(len(professions))],
+			HouseStatus:         houseStatus,
+			HouseAddress:        houseAddress,
+			CarStatus:           int8(rand.Intn(2) + 1),
+			FamilyDescription:   "父母退休，家庭和睦",
+			PartnerRequirements: "年龄25-30，本科以上，身高160+",
+			Remark:              "系统自动生成测试数据",
+			CreatedAt:           time.Now(),
+			UpdatedAt:           time.Now(),
 		}
 
 		if err := db.Create(client).Error; err != nil {
@@ -113,6 +123,15 @@ func main() {
 	}
 
 	fmt.Println("All seeding completed!")
+
+	// Create a test admin user
+	admin := &biz_omiai.User{
+		Phone:    "13800138000",
+		Nickname: "管理员",
+		Role:     biz_omiai.RoleAdmin,
+	}
+	db.Where("phone = ?", admin.Phone).FirstOrCreate(admin)
+	fmt.Printf("Created test admin user: %s (%s)\n", admin.Nickname, admin.Phone)
 }
 
 func generateName(gender int8) string {

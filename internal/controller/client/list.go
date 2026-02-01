@@ -64,8 +64,8 @@ func (c *Controller) List(ctx *gin.Context) {
 		clause.Args = append(clause.Args, "%"+req.Address+"%")
 	}
 	if req.Profession != "" {
-		clause.Where += " AND profession LIKE ?"
-		clause.Args = append(clause.Args, "%"+req.Profession+"%")
+		clause.Where += " AND (work_unit LIKE ? OR position LIKE ?)"
+		clause.Args = append(clause.Args, "%"+req.Profession+"%", "%"+req.Profession+"%")
 	}
 
 	// Age Filter (Birthday based)
@@ -113,8 +113,10 @@ func (c *Controller) List(ctx *gin.Context) {
 			Address:             v.Address,
 			FamilyDescription:   v.FamilyDescription,
 			Income:              v.Income,
-			Profession:          v.Profession,
+			WorkUnit:            v.WorkUnit,
+			Position:            v.Position,
 			HouseStatus:         v.HouseStatus,
+			HouseAddress:        v.HouseAddress,
 			CarStatus:           v.CarStatus,
 			PartnerRequirements: v.PartnerRequirements,
 			Remark:              v.Remark,

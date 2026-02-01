@@ -2,6 +2,7 @@ package controller
 
 import (
 	"omiai-server/internal/conf"
+	"omiai-server/internal/controller/auth"
 	"omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
@@ -12,6 +13,7 @@ import (
 
 var ProviderController = wire.NewSet(
 	conf.GetConfig,
+	auth.NewController,
 	banner.NewController,
 	client.NewController,
 	common.NewController,

@@ -18,8 +18,10 @@ type ClientResponse struct {
 	Address             string    `json:"address"`
 	FamilyDescription   string    `json:"family_description"`
 	Income              int       `json:"income"`
-	Profession          string    `json:"profession"`
+	WorkUnit            string    `json:"work_unit"`
+	Position            string    `json:"position"`
 	HouseStatus         int8      `json:"house_status"`
+	HouseAddress        string    `json:"house_address"`
 	CarStatus           int8      `json:"car_status"`
 	PartnerRequirements string    `json:"partner_requirements"`
 	Remark              string    `json:"remark"`

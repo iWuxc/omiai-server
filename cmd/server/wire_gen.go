@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/iWuxc/go-wit/app"
 	"omiai-server/internal/conf"
+	"omiai-server/internal/controller/auth"
 	banner2 "omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
@@ -37,9 +38,11 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
+	userInterface := omiai.NewUserRepo(db)
+	controller := auth.NewController(db, userInterface)
 	bannerInterface := omiai.NewBannerRepo(db)
 	service := banner.NewService(redis)
-	controller := banner2.NewController(db, bannerInterface, service)
+	bannerController := banner2.NewController(db, bannerInterface, service)
 	clientInterface := omiai.NewClientRepo(db)
 	clientController := client.NewController(db, clientInterface)
 	config := conf.GetConfig()
@@ -55,7 +58,8 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		Engine:           engine,
 		DB:               db,
 		Redis:            redis,
-		BannerController: controller,
+		AuthController:   controller,
+		BannerController: bannerController,
 		ClientController: clientController,
 		CommonController: commonController,
 		MatchController:  matchController,
