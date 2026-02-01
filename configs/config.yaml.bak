@@ -19,25 +19,25 @@ database:
     max_open_conn: 10
   default:
     driver: mysql
-    source: root:123456@tcp(127.0.0.1:3306)/omiai?charset=utf8mb4&parseTime=True&loc=Local
+    source: root:onex(#)666@tcp(127.0.0.1:3306)/omiai?charset=utf8mb4&parseTime=True&loc=Local
 
 cache:
   driver: redis
-  url: redis://:123456@127.0.0.1:6379/1?dial_timeout=3&read_timeout=6s&max_retries=2
+  url: redis://:onex%28%23%29666@127.0.0.1:6379/1?dial_timeout=3&read_timeout=6s&max_retries=2
 
 redis:
   default:
-    url: redis://:123456@127.0.0.1:6379/1?dial_timeout=3&read_timeout=6s&max_retries=2
+    url: redis://:onex(#)666@127.0.0.1:6379/1?dial_timeout=3&read_timeout=6s&max_retries=2
     host: r-2zecgwl3v7o30l1tcp.redis.rds.aliyuncs.com
     port: 6379
-    password: "123456"
+    password: "onex(#)666"
 
 runtime:
-  path: /Users/edy/apps/go/src/github.com/iwuxc/omiai-server/runtime/
-  download: /Users/edy/apps/go/src/github.com/iwuxc/omiai-server/runtime/download/
+  path: /Users/wuxiaochen/apps/go/src/github.com/iWuxc/omiai-server/runtime/
+  download: /Users/wuxiaochen/apps/go/src/github.com/iWuxc/omiai-serverruntime/download/
 
 log:
-  path: /Users/edy/apps/go/src/github.com/iwuxc/omiai-server/runtime/logs/           # 本地日志路径 1
+  path: /Users/wuxiaochen/apps/go/src/github.com/iWuxc/omiai-server/runtime/logs/           # 本地日志路径 1
   level: debug                  # 日志级别 [panic, fatal, error, warn, info, debug, trace]
   max_age: 30                  # 日志最大保留时长：100天
 
@@ -49,12 +49,26 @@ queue:
   concurrency: 20
 
 track:
-  path: /Users/edy/apps/go/src/github.com/iwuxc/omiai-server/runtime/logs/           # 本地日志路径
+  path: /Users/wuxiaochen/apps/go/src/github.com/iWuxc/omiai-server/runtime/logs/           # 本地日志路径
   max_age: 1                  # 日志最大保留时长：100天
+
+storage:
+  driver: local # local, oss, cos
+  oss:
+    endpoint: "oss-cn-hangzhou.aliyuncs.com"
+    access_key_id: "your_access_key_id"
+    access_key_secret: "your_access_key_secret"
+    bucket_name: "your_bucket_name"
+    domain: "https://your_bucket_name.oss-cn-hangzhou.aliyuncs.com"
+  cos:
+    bucket_url: "https://your_bucket-1250000000.cos.ap-guangzhou.myqcloud.com"
+    region: "ap-guangzhou"
+    secret_id: "your_secret_id"
+    secret_key: "your_secret_key"
 
 cron_conf:
   host: 127.0.0.1
   port: 6379
-  password: "123456"  # 这个密码不能 encode
+  password: "onex(#)666"  # 这个密码不能 encode
   db: 2 #这个库不能和其他服务的定时库一样
   cron_name: omiai-server-dev
