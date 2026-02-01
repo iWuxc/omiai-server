@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"omiai-server/internal/biz"
 	"omiai-server/internal/validates"
 	"omiai-server/pkg/response"
@@ -98,24 +97,14 @@ func (c *Controller) List(ctx *gin.Context) {
 
 	respList := make([]*ClientResponse, 0)
 	for _, v := range list {
-		// Calculate Age dynamically
-		age := 0
-		if v.Birthday != "" {
-			birthTime, err := time.Parse("2006-01-02", v.Birthday)
-			if err == nil {
-				age = now.Year() - birthTime.Year()
-				if now.YearDay() < birthTime.YearDay() {
-					age--
-				}
-			}
-		}
-
 		respList = append(respList, &ClientResponse{
 			ID:                  v.ID,
 			Name:                v.Name,
 			Gender:              v.Gender,
 			Phone:               v.Phone,
 			Birthday:            v.Birthday,
+			Age:                 CalculateAge(v.Birthday),
+			Avatar:              "https://api.dicebear.com/7.x/avataaars/svg?seed=" + v.Name, // Mock avatar
 			Zodiac:              v.Zodiac,
 			Height:              v.Height,
 			Weight:              v.Weight,
@@ -133,9 +122,6 @@ func (c *Controller) List(ctx *gin.Context) {
 			CreatedAt:           v.CreatedAt,
 			UpdatedAt:           v.UpdatedAt,
 		})
-		// Note: Age is not in ClientResponse yet, but I should probably add it or let Frontend calc.
-		// For now keeping strictly to struct.
-		fmt.Sprint(age) // prevent unused warning
 	}
 
 	response.SuccessResponse(ctx, "ok", map[string]interface{}{

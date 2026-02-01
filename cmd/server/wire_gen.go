@@ -9,8 +9,11 @@ package main
 import (
 	"context"
 	"github.com/iWuxc/go-wit/app"
+	"omiai-server/internal/conf"
 	banner2 "omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
+	"omiai-server/internal/controller/common"
+	"omiai-server/internal/controller/match"
 	"omiai-server/internal/cron"
 	"omiai-server/internal/data"
 	"omiai-server/internal/data/omiai"
@@ -39,12 +42,23 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	controller := banner2.NewController(db, bannerInterface, service)
 	clientInterface := omiai.NewClientRepo(db)
 	clientController := client.NewController(db, clientInterface)
+	config := conf.GetConfig()
+	driver, err := data.NewStorage(config)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	commonController := common.NewController(driver)
+	matchInterface := omiai.NewMatchRepo(db)
+	matchController := match.NewController(db, matchInterface, clientInterface)
 	router := &server.Router{
 		Engine:           engine,
 		DB:               db,
 		Redis:            redis,
 		BannerController: controller,
 		ClientController: clientController,
+		CommonController: commonController,
+		MatchController:  matchController,
 	}
 	v2 := server.NewHTTPServer(router)
 	userProductFinalizer := cron.NewUserProductFinalizer(db)

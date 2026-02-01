@@ -31,4 +31,7 @@ func (t *Banner) TableName() string {
 type BannerInterface interface {
 	Select(ctx context.Context, clause *biz.WhereClause, fields []string, offset, limit int) ([]*Banner, error)
 	Create(ctx context.Context, banner *Banner) error
+	Update(ctx context.Context, banner *Banner) error
+	Delete(ctx context.Context, id uint64) error
+	Get(ctx context.Context, id uint64) (*Banner, error)
 }

@@ -13,6 +13,7 @@ type Client struct {
 	Gender              int8      `json:"gender" gorm:"column:gender;comment:性别 1男 2女"`
 	Phone               string    `json:"phone" gorm:"column:phone;size:20;index;comment:联系电话"`
 	Birthday            string    `json:"birthday" gorm:"column:birthday;size:20;comment:出生年月"` // 格式 YYYY-MM-DD
+	Avatar              string    `json:"avatar" gorm:"column:avatar;size:255;comment:头像URL"`
 	Zodiac              string    `json:"zodiac" gorm:"column:zodiac;size:10;comment:属相"`
 	Height              int       `json:"height" gorm:"column:height;comment:身高cm"`
 	Weight              int       `json:"weight" gorm:"column:weight;comment:体重kg"`
@@ -24,6 +25,7 @@ type Client struct {
 	Profession          string    `json:"profession" gorm:"column:profession;size:128;comment:具体工作"`
 	HouseStatus         int8      `json:"house_status" gorm:"column:house_status;comment:房产情况"`
 	CarStatus           int8      `json:"car_status" gorm:"column:car_status;comment:车辆情况"`
+	Status              int8      `json:"status" gorm:"column:status;default:1;comment:状态 1单身 2匹配中 3已匹配 4停止服务"`
 	PartnerRequirements string    `json:"partner_requirements" gorm:"column:partner_requirements;type:text;comment:对另一半要求"`
 	Remark              string    `json:"remark" gorm:"column:remark;type:text;comment:红娘备注"`
 	Photos              string    `json:"photos" gorm:"column:photos;type:text;comment:照片URL列表(JSON)"`
@@ -43,4 +45,5 @@ type ClientInterface interface {
 	Update(ctx context.Context, client *Client) error
 	Delete(ctx context.Context, id uint64) error
 	Get(ctx context.Context, id uint64) (*Client, error)
+	Stats(ctx context.Context) (map[string]int64, error)
 }

@@ -33,7 +33,29 @@ type Config struct {
 	Redis    *Redis            `json:"redis"`
 	Queue    *Queue            `json:"queue"`
 	Track    track.ManagerConf `json:"track"`
+	Storage  *Storage          `json:"storage"`
 	CronConf *Cron             `json:"cron_conf" mapstructure:"cron_conf"`
+}
+
+type Storage struct {
+	Driver string `json:"driver"` // local, oss, cos
+	OSS    OSS    `json:"oss"`
+	COS    COS    `json:"cos"`
+}
+
+type OSS struct {
+	Endpoint        string `json:"endpoint"`
+	AccessKeyID     string `json:"access_key_id" mapstructure:"access_key_id"`
+	AccessKeySecret string `json:"access_key_secret" mapstructure:"access_key_secret"`
+	BucketName      string `json:"bucket_name" mapstructure:"bucket_name"`
+	Domain          string `json:"domain"`
+}
+
+type COS struct {
+	BucketURL string `json:"bucket_url" mapstructure:"bucket_url"`
+	Region    string `json:"region"`
+	SecretID  string `json:"secret_id" mapstructure:"secret_id"`
+	SecretKey string `json:"secret_key" mapstructure:"secret_key"`
 }
 
 type Cron struct {

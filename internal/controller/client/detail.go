@@ -30,6 +30,8 @@ func (c *Controller) Detail(ctx *gin.Context) {
 		Gender:              client.Gender,
 		Phone:               client.Phone,
 		Birthday:            client.Birthday,
+		Age:                 CalculateAge(client.Birthday),
+		Avatar:              "https://api.dicebear.com/7.x/avataaars/svg?seed=" + client.Name,
 		Zodiac:              client.Zodiac,
 		Height:              client.Height,
 		Weight:              client.Weight,

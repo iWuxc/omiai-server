@@ -36,6 +36,7 @@ func (c *Controller) List(ctx *gin.Context) {
 	bannerResponseList := make([]*BannerResponse, 0)
 	for _, banner := range bannerList {
 		bannerResponseList = append(bannerResponseList, &BannerResponse{
+			ID:       banner.ID,
 			Title:    banner.Title,
 			ImageURL: banner.ImageURL,
 			LinkUrl:  banner.LinkUrl,

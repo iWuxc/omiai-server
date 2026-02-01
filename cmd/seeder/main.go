@@ -31,6 +31,9 @@ func main() {
 		panic("failed to connect database")
 	}
 
+	// Auto Migrate
+	db.AutoMigrate(&biz_omiai.Client{}, &biz_omiai.Banner{}, &biz_omiai.MatchRecord{}, &biz_omiai.FollowUpRecord{})
+
 	fmt.Println("Start seeding...")
 
 	rand.Seed(time.Now().UnixNano())
@@ -69,6 +72,47 @@ func main() {
 	}
 
 	fmt.Println("Seeding completed!")
+
+	// Generate 3 Banners
+	banners := []*biz_omiai.Banner{
+		{
+			Title:     "春季相亲大会",
+			ImageURL:  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1000",
+			SortOrder: 1,
+			Status:    biz_omiai.BannerStatusEnable,
+			LinkUrl:   "/pages/activity/detail?id=1",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		{
+			Title:     "精英男士专场",
+			ImageURL:  "https://images.unsplash.com/photo-1516589174184-c68526673fd0?auto=format&fit=crop&q=80&w=1000",
+			SortOrder: 2,
+			Status:    biz_omiai.BannerStatusEnable,
+			LinkUrl:   "/pages/activity/detail?id=2",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		{
+			Title:     "牵手成功案例分享",
+			ImageURL:  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000",
+			SortOrder: 3,
+			Status:    biz_omiai.BannerStatusEnable,
+			LinkUrl:   "/pages/activity/detail?id=3",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+	}
+
+	for _, b := range banners {
+		if err := db.Create(b).Error; err != nil {
+			fmt.Printf("Failed to create banner %s: %v\n", b.Title, err)
+		} else {
+			fmt.Printf("Created banner: %s (ID: %d)\n", b.Title, b.ID)
+		}
+	}
+
+	fmt.Println("All seeding completed!")
 }
 
 func generateName(gender int8) string {

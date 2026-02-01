@@ -5,6 +5,7 @@ type ClientCreateValidate struct {
 	Gender              int8   `json:"gender" binding:"required,oneof=1 2"`
 	Phone               string `json:"phone" binding:"required"`
 	Birthday            string `json:"birthday" binding:"required"`
+	Avatar              string `json:"avatar"`
 	Zodiac              string `json:"zodiac"`
 	Height              int    `json:"height"`
 	Weight              int    `json:"weight"`
@@ -27,6 +28,7 @@ type ClientUpdateValidate struct {
 	Gender              int8   `json:"gender"`
 	Phone               string `json:"phone"`
 	Birthday            string `json:"birthday"`
+	Avatar              string `json:"avatar"`
 	Zodiac              string `json:"zodiac"`
 	Height              int    `json:"height"`
 	Weight              int    `json:"weight"`

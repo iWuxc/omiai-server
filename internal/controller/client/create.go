@@ -6,20 +6,24 @@ import (
 	"omiai-server/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iWuxc/go-wit/log"
 )
 
 func (c *Controller) Create(ctx *gin.Context) {
 	var req validates.ClientCreateValidate
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Errorf("Client Create validation failed: %v", err)
 		response.ValidateError(ctx, err, response.ValidateCommonError)
 		return
 	}
 
+	log.Infof("Creating client: %s, gender: %d", req.Name, req.Gender)
 	client := &biz_omiai.Client{
 		Name:                req.Name,
 		Gender:              req.Gender,
 		Phone:               req.Phone,
 		Birthday:            req.Birthday,
+		Avatar:              req.Avatar,
 		Zodiac:              req.Zodiac,
 		Height:              req.Height,
 		Weight:              req.Weight,

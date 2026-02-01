@@ -8,6 +8,8 @@ type ClientResponse struct {
 	Gender              int8      `json:"gender"`
 	Phone               string    `json:"phone"`
 	Birthday            string    `json:"birthday"`
+	Age                 int       `json:"age"`
+	Avatar              string    `json:"avatar"`
 	Zodiac              string    `json:"zodiac"`
 	Height              int       `json:"height"`
 	Weight              int       `json:"weight"`
@@ -24,4 +26,20 @@ type ClientResponse struct {
 	Photos              string    `json:"photos"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
+}
+
+func CalculateAge(birthday string) int {
+	if birthday == "" {
+		return 0
+	}
+	birthTime, err := time.Parse("2006-01-02", birthday)
+	if err != nil {
+		return 0
+	}
+	now := time.Now()
+	age := now.Year() - birthTime.Year()
+	if now.YearDay() < birthTime.YearDay() {
+		age--
+	}
+	return age
 }

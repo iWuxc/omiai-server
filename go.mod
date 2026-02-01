@@ -3,6 +3,7 @@ module omiai-server
 go 1.25
 
 require (
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/dcron-contrib/redisdriver v0.0.1
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.10.0
@@ -18,6 +19,8 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v0.0.3
+	github.com/stretchr/testify v1.10.0
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.72
 	github.com/volcengine/volcengine-go-sdk v1.1.47
 	golang.org/x/time v0.3.0
 	gorm.io/driver/mysql v1.3.2
@@ -26,16 +29,20 @@ require (
 )
 
 require (
+	github.com/clbanning/mxj v1.8.4 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dcron-contrib/commons v0.0.2 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-kratos/kratos/v2 v2.7.3 // indirect
 	github.com/golang/mock v1.6.0 // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/mozillazg/go-httpheader v0.2.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/volcengine/volc-sdk-golang v1.0.23 // indirect
 	golang.org/x/crypto v0.43.0 // indirect
 	google.golang.org/grpc v1.76.0 // indirect
