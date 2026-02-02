@@ -44,4 +44,5 @@ const (
 	DBInsertCommonError                           // 40011 DB添加错误
 	DBUpdateCommonError                           // 40012 DB更新错误
 	DBDeleteCommonError                           // 40013 DB删除错误
+	AuthCommonError                               // 40014 权限错误
 )

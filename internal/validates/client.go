@@ -15,8 +15,7 @@ type ClientCreateValidate struct {
 	Address             string `json:"address" binding:"required"`
 	FamilyDescription   string `json:"family_description" binding:"required"`
 	Income              int    `json:"income" binding:"required"`
-	WorkUnit            string `json:"work_unit" binding:"required"`
-	Position            string `json:"position" binding:"required"`
+	Profession          string `json:"profession" binding:"required"`
 	HouseStatus         int8   `json:"house_status" binding:"required"`
 	HouseAddress        string `json:"house_address"`
 	CarStatus           int8   `json:"car_status" binding:"required"`
@@ -41,8 +40,7 @@ type ClientUpdateValidate struct {
 	Address             string `json:"address"`
 	FamilyDescription   string `json:"family_description"`
 	Income              int    `json:"income"`
-	WorkUnit            string `json:"work_unit"`
-	Position            string `json:"position"`
+	Profession          string `json:"profession"`
 	HouseStatus         int8   `json:"house_status"`
 	HouseAddress        string `json:"house_address"`
 	CarStatus           int8   `json:"car_status"`
@@ -64,6 +62,14 @@ type ClientListValidate struct {
 	Education  int8   `json:"education" form:"education"`
 	Address    string `json:"address" form:"address"`
 	Profession string `json:"profession" form:"profession"`
+	// Phase 1 新增字段
+	Scope         string `json:"scope" form:"scope"`                   // my | public
+	Status        int8   `json:"status" form:"status"`                 // 1单身 2匹配中...
+	Tags          string `json:"tags" form:"tags"`                     // 标签搜索
+	IsPublic      *bool  `json:"is_public" form:"is_public"`           // 用于管理员管理
+	MaritalStatus int8   `json:"marital_status" form:"marital_status"` // 婚姻状况
+	HouseStatus   int8   `json:"house_status" form:"house_status"`     // 房产情况
+	CarStatus     int8   `json:"car_status" form:"car_status"`         // 车辆情况
 }
 
 type ClientDetailValidate struct {

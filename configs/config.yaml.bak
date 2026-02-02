@@ -72,3 +72,7 @@ cron_conf:
   password: "onex(#)666"  # 这个密码不能 encode
   db: 2 #这个库不能和其他服务的定时库一样
   cron_name: omiai-server-dev
+
+zhipuai:
+  api_key: "" # 您的 GLM API Key
+  model: "glm-4-flash"

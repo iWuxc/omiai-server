@@ -79,5 +79,12 @@ func (r *Router) client(g *gin.RouterGroup) {
 	g.POST("/create", r.ClientController.Create)
 	g.GET("/list", r.ClientController.List)
 	g.GET("/detail/:id", r.ClientController.Detail)
-	g.GET("/match/:id", r.ClientController.Match)
+	g.GET("/match/:id", r.ClientController.MatchV2) // Upgrade to V2
+	// Phase 1: Claim/Release (Hidden for Single Mode but kept for compatibility)
+	g.POST("/claim", r.ClientController.Claim)
+	g.POST("/release", r.ClientController.Release)
+
+	// Import
+	g.POST("/import/analyze", r.ClientController.ImportAnalyze)
+	g.POST("/import/batch", r.ClientController.ImportBatch)
 }

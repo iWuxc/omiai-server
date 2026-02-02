@@ -35,6 +35,12 @@ type Config struct {
 	Track    track.ManagerConf `json:"track"`
 	Storage  *Storage          `json:"storage"`
 	CronConf *Cron             `json:"cron_conf" mapstructure:"cron_conf"`
+	ZhipuAI  *ZhipuAI          `json:"zhipuai" mapstructure:"zhipuai"`
+}
+
+type ZhipuAI struct {
+	APIKey string `json:"api_key" mapstructure:"api_key"`
+	Model  string `json:"model" mapstructure:"model"`
 }
 
 type Storage struct {

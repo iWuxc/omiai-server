@@ -18,14 +18,16 @@ type ClientResponse struct {
 	Address             string    `json:"address"`
 	FamilyDescription   string    `json:"family_description"`
 	Income              int       `json:"income"`
-	WorkUnit            string    `json:"work_unit"`
-	Position            string    `json:"position"`
+	Profession          string    `json:"profession"`
 	HouseStatus         int8      `json:"house_status"`
 	HouseAddress        string    `json:"house_address"`
 	CarStatus           int8      `json:"car_status"`
 	PartnerRequirements string    `json:"partner_requirements"`
 	Remark              string    `json:"remark"`
 	Photos              string    `json:"photos"`
+	ManagerID           uint64    `json:"manager_id"`
+	IsPublic            bool      `json:"is_public"`
+	Tags                string    `json:"tags"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 }

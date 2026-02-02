@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 本地dcoker
+ Source Server         : 本地docker
  Source Server Type    : MySQL
- Source Server Version : 110202 (11.2.2-MariaDB-1:11.2.2+maria~ubu2204)
+ Source Server Version : 80034 (8.0.34)
  Source Host           : 127.0.0.1:3306
  Source Schema         : omiai
 
  Target Server Type    : MySQL
- Target Server Version : 110202 (11.2.2-MariaDB-1:11.2.2+maria~ubu2204)
+ Target Server Version : 80034 (8.0.34)
  File Encoding         : 65001
 
- Date: 01/02/2026 19:55:37
+ Date: 02/02/2026 16:31:05
 */
 
 SET NAMES utf8mb4;
@@ -22,12 +22,12 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `banner`;
 CREATE TABLE `banner` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `title` longtext DEFAULT NULL,
-  `image_url` longtext DEFAULT NULL,
-  `sort_order` bigint(20) unsigned DEFAULT NULL,
-  `status` tinyint(4) DEFAULT NULL,
-  `link_url` longtext DEFAULT NULL,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` longtext COLLATE utf8mb4_general_ci,
+  `image_url` longtext COLLATE utf8mb4_general_ci,
+  `sort_order` bigint unsigned DEFAULT NULL,
+  `status` tinyint DEFAULT NULL,
+  `link_url` longtext COLLATE utf8mb4_general_ci,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -62,37 +62,37 @@ COMMIT;
 -- ----------------------------
 DROP TABLE IF EXISTS `client`;
 CREATE TABLE `client` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `name` varchar(64) NOT NULL COMMENT '姓名',
-  `gender` tinyint(4) DEFAULT NULL COMMENT '性别 1男 2女',
-  `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
-  `birthday` varchar(20) DEFAULT NULL COMMENT '出生年月',
-  `zodiac` varchar(10) DEFAULT NULL COMMENT '属相',
-  `height` bigint(20) DEFAULT NULL COMMENT '身高cm',
-  `weight` bigint(20) DEFAULT NULL COMMENT '体重kg',
-  `education` tinyint(4) DEFAULT NULL COMMENT '学历',
-  `marital_status` tinyint(4) DEFAULT NULL COMMENT '婚姻状况 1未婚 2已婚 3离异 4丧偶',
-  `address` varchar(255) DEFAULT NULL COMMENT '家庭住址',
-  `family_description` text DEFAULT NULL COMMENT '家庭成员描述',
-  `income` bigint(20) DEFAULT NULL COMMENT '月收入',
-  `profession` varchar(128) DEFAULT NULL COMMENT '具体工作',
-  `house_status` tinyint(4) DEFAULT NULL COMMENT '房产情况 1无房 2已购房 3贷款购房',
-  `car_status` tinyint(4) DEFAULT NULL COMMENT '车辆情况 1无车 2有车',
-  `partner_requirements` text DEFAULT NULL COMMENT '对另一半要求(JSON)',
-  `remark` text DEFAULT NULL COMMENT '红娘备注',
-  `photos` text DEFAULT NULL COMMENT '照片URL列表(JSON)',
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `name` varchar(64) COLLATE utf8mb4_general_ci NOT NULL COMMENT '姓名',
+  `gender` tinyint DEFAULT NULL COMMENT '性别 1男 2女',
+  `phone` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '联系电话',
+  `birthday` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '出生年月',
+  `zodiac` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '属相',
+  `height` bigint DEFAULT NULL COMMENT '身高cm',
+  `weight` bigint DEFAULT NULL COMMENT '体重kg',
+  `education` tinyint DEFAULT NULL COMMENT '学历',
+  `marital_status` tinyint DEFAULT NULL COMMENT '婚姻状况 1未婚 2已婚 3离异 4丧偶',
+  `address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '家庭住址',
+  `family_description` text COLLATE utf8mb4_general_ci COMMENT '家庭成员描述',
+  `income` bigint DEFAULT NULL COMMENT '月收入',
+  `profession` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '具体工作',
+  `house_status` tinyint DEFAULT NULL COMMENT '房产情况 1无房 2已购房 3贷款购房',
+  `car_status` tinyint DEFAULT NULL COMMENT '车辆情况 1无车 2有车',
+  `partner_requirements` text COLLATE utf8mb4_general_ci COMMENT '对另一半要求(JSON)',
+  `remark` text COLLATE utf8mb4_general_ci COMMENT '红娘备注',
+  `photos` text COLLATE utf8mb4_general_ci COMMENT '照片URL列表(JSON)',
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL,
-  `avatar` varchar(255) DEFAULT NULL COMMENT '头像URL',
-  `status` tinyint(4) DEFAULT 1 COMMENT '状态 1单身 2匹配中 3已匹配 4停止服务',
-  `age` bigint(20) DEFAULT NULL COMMENT '年龄',
-  `work_unit` varchar(255) DEFAULT NULL COMMENT '工作单位',
-  `position` varchar(128) DEFAULT NULL COMMENT '职位',
-  `house_address` varchar(255) DEFAULT NULL COMMENT '买房地址',
+  `avatar` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '头像URL',
+  `status` tinyint DEFAULT '1' COMMENT '状态 1单身 2匹配中 3已匹配 4停止服务',
+  `age` bigint DEFAULT NULL COMMENT '年龄',
+  `work_unit` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '工作单位',
+  `position` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '职位',
+  `house_address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '买房地址',
   PRIMARY KEY (`id`),
   KEY `idx_phone` (`phone`),
   KEY `idx_client_phone` (`phone`)
-) ENGINE=InnoDB AUTO_INCREMENT=351 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
+) ENGINE=InnoDB AUTO_INCREMENT=354 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
 
 -- ----------------------------
 -- Records of client
@@ -448,6 +448,8 @@ INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `he
 INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`) VALUES (348, '李巧', 2, '13916932307', '1997-02-12', '兔', 161, 48, 3, 1, '海淀区某小区', '父母退休，家庭和睦', 42000, NULL, 1, 2, '年龄25-30，本科以上，身高160+', '系统自动生成测试数据', '', '2026-02-01 19:25:52.591', '2026-02-01 19:25:52.591', '', 1, 32, '某某公司', '互联网/IT', '');
 INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`) VALUES (349, '张平', 1, '13263286946', '1996-09-19', '龙', 172, 65, 3, 1, '丰台区某小区', '父母退休，家庭和睦', 37000, NULL, 2, 2, '年龄25-30，本科以上，身高160+', '系统自动生成测试数据', '', '2026-02-01 19:25:52.591', '2026-02-01 19:25:52.591', '', 1, 34, '某某公司', '互联网/IT', '西城区某某小区');
 INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`) VALUES (350, '吕伟', 1, '13489877102', '1999-09-09', '猪', 180, 71, 3, 1, '昌平区某小区', '父母退休，家庭和睦', 9000, NULL, 3, 2, '年龄25-30，本科以上，身高160+', '系统自动生成测试数据', '', '2026-02-01 19:25:52.592', '2026-02-01 19:25:52.592', '', 1, 30, '某某公司', '教育/教师', '西城区某某小区');
+INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`) VALUES (352, '武晓晨', 1, '18612571940', '1993-03-04', '', 176, 75, 3, 1, '北水泉镇1村', '', 20000, '程序员', 2, 1, '温柔贤惠，在北京上班，能够一努力奋斗，务实一点，我不是那种舔狗z', '批量导入数据', '', '2026-02-02 16:21:04.004', '2026-02-02 16:21:04.004', '', 1, 0, NULL, NULL, '');
+INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`) VALUES (353, '史晓璐', 2, '18612571941', '1993-03-04', '', 176, 75, 3, 1, '北水泉镇2村', '', 20000, '程序员', 2, 1, '温柔贤惠，在北京上班，能够一努力奋斗，务实一点，我不是那种舔狗z', '批量导入数据', '', '2026-02-02 16:21:04.027', '2026-02-02 16:21:04.027', '', 1, 0, NULL, NULL, '');
 COMMIT;
 
 -- ----------------------------
@@ -455,14 +457,14 @@ COMMIT;
 -- ----------------------------
 DROP TABLE IF EXISTS `follow_up_record`;
 CREATE TABLE `follow_up_record` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `match_record_id` bigint(20) unsigned DEFAULT NULL COMMENT '匹配记录ID',
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `match_record_id` bigint unsigned DEFAULT NULL COMMENT '匹配记录ID',
   `follow_up_date` datetime(3) DEFAULT NULL COMMENT '回访时间',
-  `method` varchar(32) DEFAULT NULL COMMENT '回访方式(电话/面谈/线上)',
-  `content` text DEFAULT NULL COMMENT '回访内容',
-  `feedback` text DEFAULT NULL COMMENT '客户反馈',
-  `satisfaction` tinyint(4) DEFAULT NULL COMMENT '满意度 1-5',
-  `attachments` text DEFAULT NULL COMMENT '附件列表(JSON)',
+  `method` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '回访方式(电话/面谈/线上)',
+  `content` text COLLATE utf8mb4_general_ci COMMENT '回访内容',
+  `feedback` text COLLATE utf8mb4_general_ci COMMENT '客户反馈',
+  `satisfaction` tinyint DEFAULT NULL COMMENT '满意度 1-5',
+  `attachments` text COLLATE utf8mb4_general_ci COMMENT '附件列表(JSON)',
   `next_follow_up_at` datetime(3) DEFAULT NULL COMMENT '下次回访提醒时间',
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL,
@@ -481,13 +483,13 @@ COMMIT;
 -- ----------------------------
 DROP TABLE IF EXISTS `match_record`;
 CREATE TABLE `match_record` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `male_client_id` bigint(20) unsigned DEFAULT NULL COMMENT '男方ID',
-  `female_client_id` bigint(20) unsigned DEFAULT NULL COMMENT '女方ID',
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `male_client_id` bigint unsigned DEFAULT NULL COMMENT '男方ID',
+  `female_client_id` bigint unsigned DEFAULT NULL COMMENT '女方ID',
   `match_date` datetime(3) DEFAULT NULL COMMENT '匹配时间',
-  `match_score` bigint(20) DEFAULT NULL COMMENT '匹配得分',
-  `status` tinyint(4) DEFAULT 1 COMMENT '状态 1已匹配 2已分手 3已结婚',
-  `remark` text DEFAULT NULL COMMENT '备注',
+  `match_score` bigint DEFAULT NULL COMMENT '匹配得分',
+  `status` tinyint DEFAULT '1' COMMENT '状态 1已匹配 2已分手 3已结婚',
+  `remark` text COLLATE utf8mb4_general_ci COMMENT '备注',
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -508,12 +510,12 @@ COMMIT;
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `phone` varchar(20) DEFAULT NULL COMMENT '手机号',
-  `nickname` varchar(64) DEFAULT NULL COMMENT '昵称',
-  `avatar` varchar(255) DEFAULT NULL COMMENT '头像',
-  `role` varchar(20) DEFAULT 'operator' COMMENT '角色 admin/operator',
-  `wx_openid` varchar(128) DEFAULT NULL COMMENT '微信OpenID',
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `phone` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '手机号',
+  `nickname` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '昵称',
+  `avatar` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '头像',
+  `role` varchar(20) COLLATE utf8mb4_general_ci DEFAULT 'operator' COMMENT '角色 admin/operator',
+  `wx_openid` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '微信OpenID',
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL,
   PRIMARY KEY (`id`),
