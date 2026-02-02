@@ -25,11 +25,15 @@ var AllowedExtensions = map[string]bool{
 }
 
 func (c *Controller) Upload(ctx *gin.Context) {
+	log.Infof("Start processing upload request")
 	file, err := ctx.FormFile("file")
 	if err != nil {
+		log.Errorf("Get form file failed: %v", err)
 		response.ErrorResponse(ctx, response.ParamsCommonError, "上传文件不能为空")
 		return
 	}
+
+	log.Infof("Receiving file: %s, size: %d", file.Filename, file.Size)
 
 	// 1. Validate File Size
 	if file.Size > MaxUploadSize {

@@ -7,9 +7,9 @@ require (
 	github.com/dcron-contrib/redisdriver v0.0.1
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.10.0
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.5.0
-	github.com/hashicorp/go-version v1.2.0
 	github.com/iWuxc/go-wit v0.0.0-20260129030325-b200cc169ef6
 	github.com/libi/dcron v0.6.0
 	github.com/mssola/user_agent v0.6.0
@@ -34,7 +34,6 @@ require (
 	github.com/dcron-contrib/commons v0.0.2 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-kratos/kratos/v2 v2.7.3 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
