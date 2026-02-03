@@ -36,18 +36,27 @@ jobs:
             type=raw,value=latest
             type=sha,format=short
 
+      - name: Lowercase Image Name
+        id: image_name
+        run: |
+          echo "IMAGE_LOWER=$(echo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.IMAGE_LOWER }}:latest
           labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Set Lowercase Image Name
+        run: |
+          echo "IMAGE_LOWER=$(echo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Deploy to Lighthouse via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -67,7 +76,7 @@ jobs:
             version: '3.8'
             services:
               server:
-                image: ghcr.io/${{ github.repository }}:latest
+                image: ${{ env.IMAGE_LOWER }}:latest
                 container_name: omiai-server
                 restart: always
                 ports:
@@ -151,7 +160,7 @@ jobs:
             EOF
             
             # 拉取最新镜像
-            docker pull ghcr.io/${{ github.repository }}:latest
+            docker pull ${{ env.IMAGE_LOWER }}:latest
             
             # 启动服务
             cd deploy
