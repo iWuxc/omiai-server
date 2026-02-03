@@ -1,15 +1,53 @@
-FROM isheji-registry-vpc.cn-beijing.cr.aliyuncs.com/huaxia/golang:1.25.4
+# Build Stage
+FROM golang:alpine AS builder
 
-ENV APP_HOME=/app
-ENV TZ=Asia/Shanghai
+# 设置环境变量
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64 \
+    GOPROXY=https://goproxy.cn,direct
 
-WORKDIR $APP_HOME
+# 设置工作目录
+WORKDIR /build
 
-COPY . /app
+# 复制 go.mod 和 go.sum 并下载依赖
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN  make build
+# 复制源代码
+COPY . .
 
-RUN  mv /app/configs/config.yaml.bak /app/configs/config.yaml
-RUN  mv /app/configs/nacos.yaml.bak /app/configs/nacos.yaml
+# 构建应用
+# 假设入口在 cmd/server/main.go
+RUN go build -ldflags="-s -w" -o server cmd/server/main.go
 
-CMD ["sh", "-c", "/app/bin/server -conf=/app/configs"]
+# Run Stage
+FROM alpine:latest
+
+# 安装基础工具和 timezone
+RUN apk --no-cache add ca-certificates tzdata gettext \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone
+
+# 设置工作目录
+WORKDIR /app
+
+# 从构建阶段复制二进制文件
+COPY --from=builder /build/server /app/bin/server
+
+# 复制配置文件模板和启动脚本
+COPY configs/config.template.yaml /app/configs/config.template.yaml
+COPY scripts/entrypoint.sh /app/bin/entrypoint.sh
+
+# 创建日志和运行时目录
+RUN mkdir -p /app/runtime/logs && chmod +x /app/bin/entrypoint.sh
+
+# 暴露端口
+EXPOSE 10131 10132 10133
+
+# 设置入口点
+ENTRYPOINT ["/app/bin/entrypoint.sh"]
+
+# 默认命令
+CMD ["/app/bin/server", "-conf", "/app/configs"]

@@ -1,0 +1,160 @@
+name: Deploy to Lighthouse
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Lighthouse via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # 登录 GHCR
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # 创建部署目录
+            mkdir -p /data/omiai-server/deploy
+            cd /data/omiai-server
+            
+            # 创建或更新 docker-compose.prod.yml
+            cat > deploy/docker-compose.prod.yml <<EOF
+            version: '3.8'
+            services:
+              server:
+                image: ghcr.io/${{ github.repository }}:latest
+                container_name: omiai-server
+                restart: always
+                ports:
+                  - "10131:10131"
+                  - "10132:10132"
+                  - "10133:10133"
+                environment:
+                  - APP_ENV=prod
+                  - TZ=Asia/Shanghai
+                  - DB_HOST=mysql
+                  - DB_PORT=3306
+                  - DB_USER=root
+                  - DB_PASSWORD=\${DB_PASSWORD}
+                  - DB_NAME=omiai
+                  - REDIS_HOST=redis
+                  - REDIS_PORT=6379
+                  - REDIS_PASSWORD=\${REDIS_PASSWORD}
+                  - ZHIPUAI_API_KEY=\${ZHIPUAI_API_KEY}
+                  - DOMAIN_H5=\${DOMAIN_H5}
+                depends_on:
+                  - mysql
+                  - redis
+                volumes:
+                  - ./runtime/logs:/app/runtime/logs
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
+            
+              mysql:
+                image: mysql:8.0
+                container_name: omiai-mysql
+                restart: always
+                environment:
+                  MYSQL_ROOT_PASSWORD: \${DB_PASSWORD}
+                  MYSQL_DATABASE: omiai
+                ports:
+                  - "3306:3306"
+                volumes:
+                  - mysql_data:/var/lib/mysql
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
+            
+              redis:
+                image: redis:6.2
+                container_name: omiai-redis
+                restart: always
+                command: redis-server --requirepass \${REDIS_PASSWORD}
+                ports:
+                  - "6379:6379"
+                volumes:
+                  - redis_data:/data
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
+            
+            volumes:
+              mysql_data:
+              redis_data:
+            EOF
+            
+            # 创建 .env 文件 (从 GitHub Secrets 获取)
+            cat > deploy/.env <<EOF
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_PORT=${{ secrets.REDIS_PORT }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            ZHIPUAI_API_KEY=${{ secrets.ZHIPUAI_API_KEY }}
+            DOMAIN_H5=${{ secrets.DOMAIN_H5 }}
+            EOF
+            
+            # 拉取最新镜像
+            docker pull ghcr.io/${{ github.repository }}:latest
+            
+            # 启动服务
+            cd deploy
+            docker compose -f docker-compose.prod.yml up -d
+            
+            # 清理旧镜像
+            docker image prune -f
