@@ -56,8 +56,13 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Frontend Repository
         uses: actions/checkout@v3
+        with:
+          repository: iWuxc/omiai-miniapp # 替换为您实际的前端仓库名称
+          path: omiai-miniapp            # 检出到当前工作区的 omiai-miniapp 目录
+          # 如果是私有仓库，需要配置 token
+          # token: ${{ secrets.GH_PAT }} 
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2
@@ -74,7 +79,7 @@ jobs:
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./omiai-miniapp
+          context: ./omiai-miniapp  # 现在这个目录存在了
           push: true
           tags: ${{ env.IMAGE_LOWER }}-web:latest
           build-args: |
