@@ -19,8 +19,8 @@ RUN go mod download
 COPY . .
 
 # 构建应用
-# 假设入口在 cmd/server/main.go
-RUN go build -ldflags="-s -w" -o server cmd/server/main.go
+# 使用包路径 ./cmd/server 以包含目录下所有文件(main.go, wire_gen.go, unix_panic.go等)
+RUN go build -ldflags="-s -w" -o server ./cmd/server
 
 # Run Stage
 FROM alpine:latest
