@@ -10,7 +10,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  build-and-push-backend:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -49,8 +49,41 @@ jobs:
           tags: ${{ env.IMAGE_LOWER }}:latest
           labels: ${{ steps.meta.outputs.labels }}
 
+  build-and-push-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lowercase Image Name
+        id: image_name
+        run: |
+          echo "IMAGE_LOWER=$(echo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Build and push Frontend Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./omiai-miniapp
+          push: true
+          tags: ${{ env.IMAGE_LOWER }}-web:latest
+          build-args: |
+            VITE_API_BASE_URL=https://www.omiai.cn/api
+            VITE_H5_DOMAIN=https://www.omiai.cn/#
+            VITE_ASSETS_URL=https://www.omiai.cn
+
   deploy:
-    needs: build-and-push
+    needs: [build-and-push-backend, build-and-push-frontend]
     runs-on: ubuntu-latest
     steps:
       - name: Set Lowercase Image Name
@@ -93,7 +126,7 @@ jobs:
                 environment:
                   - APP_ENV=prod
                   - DEBUG=false
-                  - ENABLE_CRON=false
+                  - ENABLE_CRON=true
                   - LOG_LEVEL=info
                   - STORAGE_DRIVER=local
                   - TZ=Asia/Shanghai
@@ -129,6 +162,18 @@ jobs:
                     max-size: "10m"
                     max-file: "3"
             
+              frontend:
+                image: ${{ env.IMAGE_LOWER }}-web:latest
+                container_name: omiai-frontend
+                restart: always
+                ports:
+                  - "10080:80"
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
+
               mysql:
                 image: mysql:8.0
                 container_name: omiai-mysql
@@ -183,6 +228,7 @@ jobs:
             
             # 拉取最新镜像
             docker pull ${{ env.IMAGE_LOWER }}:latest
+            docker pull ${{ env.IMAGE_LOWER }}-web:latest
             
             # 启动服务
             cd deploy

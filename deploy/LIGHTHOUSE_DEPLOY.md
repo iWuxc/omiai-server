@@ -6,9 +6,11 @@
 
 *   **OS**: OpenCloudOS 8 (TencentOS 衍生版，兼容 CentOS 8)
 *   **容器引擎**: Docker 26 + Docker Compose
-*   **网关**: Nginx (反向代理 / SSL / 静态资源托管)
-*   **CI/CD**: GitHub Actions
+*   **网关**: Nginx (宿主机反向代理 -> 容器)
+*   **CI/CD**: GitHub Actions (前后端一体化构建部署)
 *   **镜像仓库**: GitHub Container Registry (ghcr.io)
+*   **前端服务**: Nginx 容器 (端口 10080)
+*   **后端服务**: Go Server 容器 (端口 10131)
 
 ## 2. 服务器初始化
 
@@ -60,7 +62,13 @@ sudo ./deploy/setup_lighthouse.sh
 cp deploy/nginx/omiai.conf /etc/nginx/conf.d/omiai.conf
 # 修改 server_name 为您的实际域名
 vim /etc/nginx/conf.d/omiai.conf
+# 重载配置
+nginx -s reload
 ```
+
+此配置已包含：
+- `/api/` -> 转发给后端容器 (10131)
+- `/` -> 转发给前端容器 (10080)
 
 ### 4.2 申请 SSL 证书 (Certbot)
 
