@@ -20,7 +20,8 @@ COPY . .
 
 # 构建应用
 # 使用包路径 ./cmd/server 以包含目录下所有文件(main.go, wire_gen.go, unix_panic.go等)
-RUN go build -ldflags="-s -w" -o server ./cmd/server
+# 添加 -mod=mod 以忽略可能存在的 vendor 目录，强制使用 module 模式
+RUN go build -mod=mod -ldflags="-s -w" -o server ./cmd/server
 
 # Run Stage
 FROM alpine:latest
