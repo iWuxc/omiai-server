@@ -93,7 +93,7 @@ jobs:
                 environment:
                   - APP_ENV=prod
                   - DEBUG=false
-                  - ENABLE_CRON=true
+                  - ENABLE_CRON=false
                   - LOG_LEVEL=info
                   - STORAGE_DRIVER=local
                   - TZ=Asia/Shanghai
