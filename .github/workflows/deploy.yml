@@ -3,6 +3,8 @@ name: Deploy to Lighthouse
 on:
   push:
     branches: [ "main" ]
+  repository_dispatch:
+    types: [frontend-update]
   workflow_dispatch:
 
 env:
