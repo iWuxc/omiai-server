@@ -1,0 +1,80 @@
+# config template for deployment
+debug: ${DEBUG:-false}
+cron: ${ENABLE_CRON:-true}
+env: ${APP_ENV:-prod}
+
+domain:
+  h5: "${DOMAIN_H5:-https://www.omoai.cn}"
+
+server:
+  rpc_port: 10132
+  http_port: 10131
+  monitor_port: 10133
+
+database:
+  debug: ${DB_DEBUG:-false}
+  db_conf:
+    conn_max_life_time: 60
+    max_idle_conn: 60
+    max_open_conn: 10
+  default:
+    driver: mysql
+    source: "${DB_USER:-root}:${DB_PASSWORD}@tcp(${DB_HOST:-127.0.0.1}:${DB_PORT:-3306})/${DB_NAME:-omiai}?charset=utf8mb4&parseTime=True&loc=Local"
+
+cache:
+  driver: redis
+  url: "redis://:${REDIS_PASSWORD}@${REDIS_HOST:-127.0.0.1}:${REDIS_PORT:-6379}/${REDIS_DB:-1}?dial_timeout=3&read_timeout=6s&max_retries=2"
+
+redis:
+  default:
+    url: "redis://:${REDIS_PASSWORD}@${REDIS_HOST:-127.0.0.1}:${REDIS_PORT:-6379}/${REDIS_DB:-1}?dial_timeout=3&read_timeout=6s&max_retries=2"
+    host: ${REDIS_HOST:-127.0.0.1}
+    port: ${REDIS_PORT:-6379}
+    password: "${REDIS_PASSWORD}"
+  download:
+    url: "redis://:${REDIS_PASSWORD}@${REDIS_HOST:-127.0.0.1}:${REDIS_PORT:-6379}/${REDIS_DB:-1}?dial_timeout=3&read_timeout=6s&max_retries=2"
+
+runtime:
+  path: /app/runtime/
+  download: /app/runtime/download/
+
+log:
+  path: /app/runtime/logs/
+  level: ${LOG_LEVEL:-info}
+  max_age: 30
+  rotation_time_hour: 24
+
+queue:
+  retry: 2
+  timeout: 600
+  retention: 86400
+  concurrency: 20
+
+track:
+  path: /app/runtime/logs/
+  max_age: 1
+
+storage:
+  driver: ${STORAGE_DRIVER:-local} # local, oss, cos
+  oss:
+    endpoint: "${OSS_ENDPOINT}"
+    access_key_id: "${OSS_ACCESS_KEY_ID}"
+    access_key_secret: "${OSS_ACCESS_KEY_SECRET}"
+    bucket_name: "${OSS_BUCKET_NAME}"
+    domain: "${OSS_DOMAIN}"
+  cos:
+    bucket_url: "${COS_BUCKET_URL}"
+    region: "${COS_REGION}"
+    secret_id: "${COS_SECRET_ID}"
+    secret_key: "${COS_SECRET_KEY}"
+
+cron_conf:
+  host: ${REDIS_HOST:-127.0.0.1}
+  port: ${REDIS_PORT:-6379}
+  password: "${REDIS_PASSWORD}"
+  db: 2
+  cron_name: omiai-server-cron
+
+zhipuai:
+  api_key: "${ZHIPUAI_API_KEY}"
+  model: "${ZHIPUAI_MODEL:-glm-4-flash}"
