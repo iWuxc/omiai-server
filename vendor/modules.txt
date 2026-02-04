@@ -47,6 +47,9 @@ github.com/dcron-contrib/redisdriver
 # github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
 ## explicit
 github.com/dgryski/go-rendezvous
+# github.com/disintegration/imaging v1.6.2
+## explicit
+github.com/disintegration/imaging
 # github.com/fsnotify/fsnotify v1.6.0
 ## explicit; go 1.16
 github.com/fsnotify/fsnotify
@@ -362,45 +365,8 @@ github.com/tencentyun/cos-go-sdk-v5
 github.com/ugorji/go/codec
 # github.com/volcengine/volc-sdk-golang v1.0.23
 ## explicit; go 1.14
-github.com/volcengine/volc-sdk-golang/base
-github.com/volcengine/volc-sdk-golang/service/sts
 # github.com/volcengine/volcengine-go-sdk v1.1.47
 ## explicit; go 1.14
-github.com/volcengine/volcengine-go-sdk/internal/ini
-github.com/volcengine/volcengine-go-sdk/internal/sdkio
-github.com/volcengine/volcengine-go-sdk/internal/sdkmath
-github.com/volcengine/volcengine-go-sdk/internal/sdkrand
-github.com/volcengine/volcengine-go-sdk/internal/shareddefaults
-github.com/volcengine/volcengine-go-sdk/private/protocol
-github.com/volcengine/volcengine-go-sdk/private/protocol/json/jsonutil
-github.com/volcengine/volcengine-go-sdk/private/protocol/query/queryutil
-github.com/volcengine/volcengine-go-sdk/service/ark
-github.com/volcengine/volcengine-go-sdk/service/arkruntime
-github.com/volcengine/volcengine-go-sdk/service/arkruntime/model
-github.com/volcengine/volcengine-go-sdk/service/arkruntime/model/responses
-github.com/volcengine/volcengine-go-sdk/service/arkruntime/pkg/apiform
-github.com/volcengine/volcengine-go-sdk/service/arkruntime/pkg/apiquery
-github.com/volcengine/volcengine-go-sdk/service/arkruntime/pkg/param
-github.com/volcengine/volcengine-go-sdk/service/arkruntime/utils
-github.com/volcengine/volcengine-go-sdk/volcengine
-github.com/volcengine/volcengine-go-sdk/volcengine/client
-github.com/volcengine/volcengine-go-sdk/volcengine/client/metadata
-github.com/volcengine/volcengine-go-sdk/volcengine/corehandlers
-github.com/volcengine/volcengine-go-sdk/volcengine/credentials
-github.com/volcengine/volcengine-go-sdk/volcengine/credentials/endpointcreds
-github.com/volcengine/volcengine-go-sdk/volcengine/credentials/processcreds
-github.com/volcengine/volcengine-go-sdk/volcengine/custom
-github.com/volcengine/volcengine-go-sdk/volcengine/defaults
-github.com/volcengine/volcengine-go-sdk/volcengine/endpoints
-github.com/volcengine/volcengine-go-sdk/volcengine/request
-github.com/volcengine/volcengine-go-sdk/volcengine/response
-github.com/volcengine/volcengine-go-sdk/volcengine/session
-github.com/volcengine/volcengine-go-sdk/volcengine/signer/volc
-github.com/volcengine/volcengine-go-sdk/volcengine/special
-github.com/volcengine/volcengine-go-sdk/volcengine/volcenginebody
-github.com/volcengine/volcengine-go-sdk/volcengine/volcengineerr
-github.com/volcengine/volcengine-go-sdk/volcengine/volcenginequery
-github.com/volcengine/volcengine-go-sdk/volcengine/volcengineutil
 # go.uber.org/atomic v1.9.0
 ## explicit; go 1.13
 go.uber.org/atomic
@@ -420,6 +386,12 @@ go.uber.org/zap/zapcore
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/sha3
+# golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8
+## explicit; go 1.12
+golang.org/x/image/bmp
+golang.org/x/image/ccitt
+golang.org/x/image/tiff
+golang.org/x/image/tiff/lzw
 # golang.org/x/net v0.46.0
 ## explicit; go 1.24.0
 golang.org/x/net/context

@@ -31,8 +31,12 @@ func NewOSS(endpoint, accessKeyID, accessKeySecret, bucketName, domain string) (
 	}, nil
 }
 
-func (o *OSS) Put(ctx context.Context, key string, r io.Reader) (string, error) {
-	err := o.Bucket.PutObject(key, r)
+func (o *OSS) Put(ctx context.Context, key string, r io.Reader, contentType string) (string, error) {
+	opts := []oss.Option{}
+	if contentType != "" {
+		opts = append(opts, oss.ContentType(contentType))
+	}
+	err := o.Bucket.PutObject(key, r, opts...)
 	if err != nil {
 		return "", err
 	}

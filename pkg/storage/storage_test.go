@@ -20,7 +20,7 @@ func TestLocalDriver(t *testing.T) {
 	r := strings.NewReader(content)
 	key := "test.txt"
 
-	url, err := d.Put(ctx, key, r)
+	url, err := d.Put(ctx, key, r, "text/plain")
 	assert.NoError(t, err)
 	assert.Equal(t, "http://localhost/test.txt", url)
 

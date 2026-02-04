@@ -2,6 +2,9 @@ package common
 
 import (
 	"fmt"
+	"io"
+	"mime"
+	"omiai-server/pkg/imgutil"
 	"omiai-server/pkg/response"
 	"path/filepath"
 	"strings"
@@ -22,6 +25,42 @@ var AllowedExtensions = map[string]bool{
 	".png":  true,
 	".gif":  true,
 	".webp": true,
+}
+
+var ImageExtensions = map[string]bool{
+	".jpg":  true,
+	".jpeg": true,
+	".png":  true,
+	".gif":  true,
+	".webp": true,
+}
+
+// GetContentType 根据文件扩展名获取 Content-Type
+func GetContentType(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+	contentType := mime.TypeByExtension(ext)
+	if contentType == "" {
+		// 默认 Content-Type
+		switch ext {
+		case ".jpg", ".jpeg":
+			contentType = "image/jpeg"
+		case ".png":
+			contentType = "image/png"
+		case ".gif":
+			contentType = "image/gif"
+		case ".webp":
+			contentType = "image/webp"
+		default:
+			contentType = "application/octet-stream"
+		}
+	}
+	return contentType
+}
+
+// IsImageFile 判断是否为图片文件
+func IsImageFile(filename string) bool {
+	ext := strings.ToLower(filepath.Ext(filename))
+	return ImageExtensions[ext]
 }
 
 func (c *Controller) Upload(ctx *gin.Context) {
@@ -57,18 +96,46 @@ func (c *Controller) Upload(ctx *gin.Context) {
 	}
 	defer src.Close()
 
-	// 4. Generate New Filename/Key
-	key := fmt.Sprintf("uploads/%s/%s%s", time.Now().Format("20060102"), uuid.New().String(), ext)
+	// 4. Process Image if it's an image file
+	var uploadReader io.Reader = src
+	var finalExt = ext
+	var contentType string
 
-	// 5. Save File via Storage Driver
-	url, err := c.storage.Put(ctx, key, src)
+	if IsImageFile(file.Filename) {
+		log.Infof("Processing image: %s", file.Filename)
+		
+		// 处理图片（统一输出 PNG）
+		result, err := imgutil.ProcessUpload(src, file)
+		if err != nil {
+			log.Errorf("Image processing failed: %v", err)
+			response.ErrorResponse(ctx, response.FuncCommonError, "图片处理失败: "+err.Error())
+			return
+		}
+
+		log.Infof("Image processed: %d bytes -> %d bytes, dimensions: %dx%d",
+			result.OriginSize, result.FinalSize, result.Width, result.Height)
+
+		uploadReader = result.Data
+		finalExt = ".png"
+		contentType = "image/png"
+	} else {
+		contentType = GetContentType(file.Filename)
+	}
+
+	// 5. Generate New Filename/Key (强制使用 .png 后缀)
+	key := fmt.Sprintf("uploads/%s/%s%s", time.Now().Format("20060102"), uuid.New().String(), finalExt)
+
+	log.Infof("Uploading file: %s, Content-Type: %s", key, contentType)
+
+	// 6. Save File via Storage Driver
+	url, err := c.storage.Put(ctx, key, uploadReader, contentType)
 	if err != nil {
 		log.Errorf("Storage put failed: %v", err)
 		response.ErrorResponse(ctx, response.FuncCommonError, "文件保存失败")
 		return
 	}
 
-	// 6. Return URL
+	// 7. Return URL
 	response.SuccessResponse(ctx, "上传成功", map[string]string{
 		"url": url,
 	})

@@ -32,6 +32,7 @@ require (
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dcron-contrib/commons v0.0.2 // indirect
+	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-kratos/kratos/v2 v2.7.3 // indirect
 	github.com/golang/mock v1.6.0 // indirect
@@ -45,6 +46,7 @@ require (
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/volcengine/volc-sdk-golang v1.0.23 // indirect
 	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	google.golang.org/grpc v1.76.0 // indirect
 )
 

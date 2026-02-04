@@ -17,7 +17,7 @@ func NewLocal(root, url string) *Local {
 	return &Local{Root: root, Url: url}
 }
 
-func (l *Local) Put(ctx context.Context, key string, r io.Reader) (string, error) {
+func (l *Local) Put(ctx context.Context, key string, r io.Reader, contentType string) (string, error) {
 	path := filepath.Join(l.Root, key)
 	dir := filepath.Dir(path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {

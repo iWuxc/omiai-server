@@ -54,12 +54,15 @@ func (c *ClientRepo) Get(ctx context.Context, id uint64) (*biz_omiai.Client, err
 
 func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
+	
+	// 客户总数
 	var total int64
 	if err := c.db.WithContext(ctx).Model(c.m).Count(&total).Error; err != nil {
 		return nil, err
 	}
 	stats["total"] = total
 
+	// 今日新增
 	var today int64
 	now := time.Now()
 	todayStartObj := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
@@ -68,8 +71,19 @@ func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 	}
 	stats["today"] = today
 
-	// Pending matches: customers with no matched records or specific status
-	// For now, let's just mock one more stat
-	stats["pending"] = 5 // Mock for now as requested
+	// 单身待匹配客户
+	var pending int64
+	if err := c.db.WithContext(ctx).Model(c.m).Where("status = ?", biz_omiai.ClientStatusSingle).Count(&pending).Error; err != nil {
+		return nil, err
+	}
+	stats["pending"] = pending
+	
+	// 已匹配客户数
+	var matched int64
+	if err := c.db.WithContext(ctx).Model(c.m).Where("status = ?", biz_omiai.ClientStatusMatched).Count(&matched).Error; err != nil {
+		return nil, err
+	}
+	stats["matched"] = matched
+
 	return stats, nil
 }

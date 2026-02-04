@@ -7,6 +7,6 @@ import (
 
 // Driver defines the interface for storage drivers
 type Driver interface {
-	Put(ctx context.Context, key string, r io.Reader) (string, error)
+	Put(ctx context.Context, key string, r io.Reader, contentType string) (string, error)
 	Delete(ctx context.Context, key string) error
 }

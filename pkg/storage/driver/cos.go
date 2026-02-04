@@ -25,8 +25,13 @@ func NewCOS(bucketURL, region, secretID, secretKey string) *COS {
 	return &COS{client: client}
 }
 
-func (c *COS) Put(ctx context.Context, key string, r io.Reader) (string, error) {
-	_, err := c.client.Object.Put(ctx, key, r, nil)
+func (c *COS) Put(ctx context.Context, key string, r io.Reader, contentType string) (string, error) {
+	opts := &cos.ObjectPutOptions{
+		ObjectPutHeaderOptions: &cos.ObjectPutHeaderOptions{
+			ContentType: contentType,
+		},
+	}
+	_, err := c.client.Object.Put(ctx, key, r, opts)
 	if err != nil {
 		return "", err
 	}
