@@ -73,7 +73,7 @@ func (c *Controller) H5Login(ctx *gin.Context) {
 
 	// 1. 验证码校验
 	// 特殊处理测试账号
-	if !(req.Phone == "13800138000" && req.Code == "123456") {
+	if !(req.Phone == "18612571940" && req.Code == "123456") {
 		codeKey := fmt.Sprintf("sms:code:%s", req.Phone)
 		savedCode := c.Redis.GetClient().Get(ctx, codeKey).Val()
 		if savedCode == "" || savedCode != req.Code {
