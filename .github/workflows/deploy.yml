@@ -81,13 +81,13 @@ jobs:
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./omiai-miniapp
+          context: ./omiai-miniapp  # 现在这个目录存在了
           push: true
           tags: ${{ env.IMAGE_LOWER }}-web:latest
           build-args: |
-            VITE_API_BASE_URL=http://www.omiai.cn/api
-            VITE_H5_DOMAIN=http://www.omiai.cn/#
-            VITE_ASSETS_URL=http://www.omiai.cn
+            VITE_API_BASE_URL=https://www.omiai.cn/api
+            VITE_H5_DOMAIN=https://www.omiai.cn/#
+            VITE_ASSETS_URL=https://www.omiai.cn
 
   deploy:
     needs: [build-and-push-backend, build-and-push-frontend]
@@ -149,18 +149,15 @@ jobs:
                   - ZHIPUAI_API_KEY=\${ZHIPUAI_API_KEY}
                   - ZHIPUAI_MODEL=glm-4-flash
                   - DOMAIN_H5=\${DOMAIN_H5}
-                  - STORAGE_DRIVER=\${STORAGE_DRIVER}
-                  # COS (Tencent Cloud Object Storage)
-                  - COS_BUCKET_URL=\${COS_BUCKET_URL}
-                  - COS_REGION=\${COS_REGION}
-                  - COS_SECRET_ID=\${COS_SECRET_ID}
-                  - COS_SECRET_KEY=\${COS_SECRET_KEY}
-                  # OSS (Aliyun Object Storage)
-                  - OSS_ENDPOINT=\${OSS_ENDPOINT}
-                  - OSS_ACCESS_KEY_ID=\${OSS_ACCESS_KEY_ID}
-                  - OSS_ACCESS_KEY_SECRET=\${OSS_ACCESS_KEY_SECRET}
-                  - OSS_BUCKET_NAME=\${OSS_BUCKET_NAME}
-                  - OSS_DOMAIN=\${OSS_DOMAIN}
+                  - OSS_ENDPOINT=
+                  - OSS_ACCESS_KEY_ID=
+                  - OSS_ACCESS_KEY_SECRET=
+                  - OSS_BUCKET_NAME=
+                  - OSS_DOMAIN=
+                  - COS_BUCKET_URL=
+                  - COS_REGION=
+                  - COS_SECRET_ID=
+                  - COS_SECRET_KEY=
                 depends_on:
                   - mysql
                   - redis
@@ -234,19 +231,6 @@ jobs:
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             ZHIPUAI_API_KEY=${{ secrets.ZHIPUAI_API_KEY }}
             DOMAIN_H5=${{ secrets.DOMAIN_H5 }}
-            # COS (Tencent Cloud Object Storage)
-            COS_BUCKET_URL=${{ secrets.COS_BUCKET_URL }}
-            COS_REGION=${{ secrets.COS_REGION }}
-            COS_SECRET_ID=${{ secrets.COS_SECRET_ID }}
-            COS_SECRET_KEY=${{ secrets.COS_SECRET_KEY }}
-            # OSS (Aliyun Object Storage) - 可选
-            OSS_ENDPOINT=${{ secrets.OSS_ENDPOINT }}
-            OSS_ACCESS_KEY_ID=${{ secrets.OSS_ACCESS_KEY_ID }}
-            OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
-            OSS_BUCKET_NAME=${{ secrets.OSS_BUCKET_NAME }}
-            OSS_DOMAIN=${{ secrets.OSS_DOMAIN }}
-            # Storage Driver (cos/oss/local)
-            STORAGE_DRIVER=${{ secrets.STORAGE_DRIVER || 'local' }}
             EOF
             
             # 拉取最新镜像

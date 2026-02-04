@@ -31,7 +31,7 @@ func (c *Controller) Detail(ctx *gin.Context) {
 		Phone:               client.Phone,
 		Birthday:            client.Birthday,
 		Age:                 CalculateAge(client.Birthday),
-		Avatar:              "https://api.dicebear.com/7.x/avataaars/svg?seed=" + client.Name,
+		Avatar:              client.Avatar,
 		Zodiac:              client.Zodiac,
 		Height:              client.Height,
 		Weight:              client.Weight,
@@ -49,6 +49,10 @@ func (c *Controller) Detail(ctx *gin.Context) {
 		Photos:              client.Photos,
 		CreatedAt:           client.CreatedAt,
 		UpdatedAt:           client.UpdatedAt,
+	}
+
+	if resp.Avatar == "" {
+		resp.Avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + resp.Name
 	}
 
 	response.SuccessResponse(ctx, "ok", resp)

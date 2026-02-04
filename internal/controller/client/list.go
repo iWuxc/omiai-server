@@ -138,14 +138,14 @@ func (c *Controller) List(ctx *gin.Context) {
 
 	respList := make([]*ClientResponse, 0)
 	for _, v := range list {
-		respList = append(respList, &ClientResponse{
+		client := &ClientResponse{
 			ID:                  v.ID,
 			Name:                v.Name,
 			Gender:              v.Gender,
 			Phone:               v.Phone,
 			Birthday:            v.Birthday,
 			Age:                 CalculateAge(v.Birthday),
-			Avatar:              "https://api.dicebear.com/7.x/avataaars/svg?seed=" + v.Name, // Mock avatar
+			Avatar:              v.Avatar, // Mock avatar
 			Zodiac:              v.Zodiac,
 			Height:              v.Height,
 			Weight:              v.Weight,
@@ -167,7 +167,11 @@ func (c *Controller) List(ctx *gin.Context) {
 			Tags:      v.Tags,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
-		})
+		}
+		if v.Avatar == "" {
+			client.Avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + v.Name
+		}
+		respList = append(respList, client)
 	}
 
 	response.SuccessResponse(ctx, "ok", map[string]interface{}{
