@@ -24,7 +24,7 @@ func (c *Controller) Claim(ctx *gin.Context) {
 		return
 	}
 
-	client, err := c.Client.Get(ctx, req.ClientID)
+	client, err := c.client.Get(ctx, req.ClientID)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "客户不存在")
 		return
@@ -38,7 +38,7 @@ func (c *Controller) Claim(ctx *gin.Context) {
 	// 执行认领：更新 manager_id 并设为非公海
 	client.ManagerID = currentUserID
 	client.IsPublic = false
-	if err := c.Client.Update(ctx, client); err != nil {
+	if err := c.client.Update(ctx, client); err != nil {
 		response.ErrorResponse(ctx, response.DBUpdateCommonError, "认领失败")
 		return
 	}
@@ -56,7 +56,7 @@ func (c *Controller) Release(ctx *gin.Context) {
 
 	currentUserID := ctx.GetUint64("current_user_id")
 
-	client, err := c.Client.Get(ctx, req.ClientID)
+	client, err := c.client.Get(ctx, req.ClientID)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "客户不存在")
 		return
@@ -72,7 +72,7 @@ func (c *Controller) Release(ctx *gin.Context) {
 	// 执行释放：manager_id=0, is_public=true
 	client.ManagerID = 0
 	client.IsPublic = true
-	if err := c.Client.Update(ctx, client); err != nil {
+	if err := c.client.Update(ctx, client); err != nil {
 		response.ErrorResponse(ctx, response.DBUpdateCommonError, "释放失败")
 		return
 	}

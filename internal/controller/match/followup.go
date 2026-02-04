@@ -33,7 +33,7 @@ func (c *Controller) CreateFollowUp(ctx *gin.Context) {
 		NextFollowUpAt: req.NextFollowUpAt,
 	}
 
-	if err := c.Match.CreateFollowUp(ctx, record); err != nil {
+	if err := c.match.CreateFollowUp(ctx, record); err != nil {
 		response.ErrorResponse(ctx, response.DBInsertCommonError, "保存回访记录失败")
 		return
 	}
@@ -52,7 +52,7 @@ func (c *Controller) ListFollowUps(ctx *gin.Context) {
 	var id uint64
 	fmt.Sscanf(idStr, "%d", &id)
 
-	list, err := c.Match.SelectFollowUps(ctx, id)
+	list, err := c.match.SelectFollowUps(ctx, id)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "查询失败")
 		return
@@ -62,7 +62,7 @@ func (c *Controller) ListFollowUps(ctx *gin.Context) {
 }
 
 func (c *Controller) GetReminders(ctx *gin.Context) {
-	list, err := c.Match.GetReminders(ctx)
+	list, err := c.match.GetReminders(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "查询失败")
 		return

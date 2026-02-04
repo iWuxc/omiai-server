@@ -41,7 +41,7 @@ func (c *Controller) Create(ctx *gin.Context) {
 		Photos:              req.Photos,
 	}
 
-	if err := c.Client.Create(ctx, client); err != nil {
+	if err := c.client.Create(ctx, client); err != nil {
 		response.ErrorResponse(ctx, response.DBInsertCommonError, "创建客户档案失败")
 		return
 	}

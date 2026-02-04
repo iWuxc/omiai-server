@@ -7,10 +7,10 @@ import (
 
 type Controller struct {
 	db     *data.DB
-	Match  biz_omiai.MatchInterface
-	Client biz_omiai.ClientInterface
+	match  biz_omiai.MatchInterface
+	client biz_omiai.ClientInterface
 }
 
 func NewController(db *data.DB, match biz_omiai.MatchInterface, client biz_omiai.ClientInterface) *Controller {
-	return &Controller{db: db, Match: match, Client: client}
+	return &Controller{db: db, match: match, client: client}
 }

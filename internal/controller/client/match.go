@@ -22,7 +22,7 @@ func (c *Controller) Match(ctx *gin.Context) {
 	log.Infof("Smart Match requested for client ID: %d", req.ID)
 
 	// 1. Get the Source Client
-	client, err := c.Client.Get(ctx, req.ID)
+	client, err := c.client.Get(ctx, req.ID)
 	if err != nil || client == nil {
 		log.Errorf("Client not found: %d", req.ID)
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "客户不存在")
@@ -63,8 +63,8 @@ func (c *Controller) Match(ctx *gin.Context) {
 	}
 
 	log.Infof("Matching clause: %s, args: %v", clause.Where, clause.Args)
-	
-	list, err := c.Client.Select(ctx, clause, nil, 0, 20)
+
+	list, err := c.client.Select(ctx, clause, nil, 0, 20)
 	if err != nil {
 		log.Errorf("Select candidates failed: %v", err)
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "匹配失败")

@@ -14,14 +14,14 @@ import (
 
 // PartnerRequirements defines the structure of the JSON field
 type PartnerRequirements struct {
-	MinAge       int    `json:"min_age"`
-	MaxAge       int    `json:"max_age"`
-	MinHeight    int    `json:"min_height"`
-	MaxHeight    int    `json:"max_height"`
-	MinIncome    int    `json:"min_income"`
-	Education    int8   `json:"education"`
+	MinAge        int    `json:"min_age"`
+	MaxAge        int    `json:"max_age"`
+	MinHeight     int    `json:"min_height"`
+	MaxHeight     int    `json:"max_height"`
+	MinIncome     int    `json:"min_income"`
+	Education     int8   `json:"education"`
 	MaritalStatus []int8 `json:"marital_status"` // Allow multiple: [1, 3] (Unmarried, Divorced)
-	HouseStatus  int8   `json:"house_status"`   // Minimum requirement
+	HouseStatus   int8   `json:"house_status"`   // Minimum requirement
 }
 
 // ScoredCandidate wraps the client with a match score
@@ -41,7 +41,7 @@ func (c *Controller) MatchV2(ctx *gin.Context) {
 	}
 
 	// 1. Get Source Client
-	source, err := c.Client.Get(ctx, req.ID)
+	source, err := c.client.Get(ctx, req.ID)
 	if err != nil || source == nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "客户档案不存在")
 		return
@@ -53,22 +53,28 @@ func (c *Controller) MatchV2(ctx *gin.Context) {
 		_ = json.Unmarshal([]byte(source.PartnerRequirements), &reqs)
 	}
 	// Set defaults if empty
-	if reqs.MinAge == 0 { reqs.MinAge = 18 }
-	if reqs.MaxAge == 0 { reqs.MaxAge = 99 }
-	
+	if reqs.MinAge == 0 {
+		reqs.MinAge = 18
+	}
+	if reqs.MaxAge == 0 {
+		reqs.MaxAge = 99
+	}
+
 	// 3. Build SQL Query (Hard Filters)
 	// We only filter by Gender and Status initially to get a candidate pool
 	// Detailed filtering happens in memory for better flexibility and scoring
 	targetGender := 1
-	if source.Gender == 1 { targetGender = 2 }
+	if source.Gender == 1 {
+		targetGender = 2
+	}
 
 	clause := &biz.WhereClause{
 		Where: "gender = ? AND status = 1", // Only single candidates
 		Args:  []interface{}{targetGender},
 	}
-	
+
 	// Fetch candidates (limit 100 for performance, then score them)
-	candidates, err := c.Client.Select(ctx, clause, nil, 0, 100)
+	candidates, err := c.client.Select(ctx, clause, nil, 0, 100)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "匹配库查询失败")
 		return
@@ -86,7 +92,7 @@ func (c *Controller) MatchV2(ctx *gin.Context) {
 		targetAge := CalculateAge(target.Birthday)
 
 		// --- Hard Filter Check (Based on Source's Requirements) ---
-		
+
 		// Age Check
 		if targetAge < reqs.MinAge || targetAge > reqs.MaxAge {
 			// If strict, set isHardPass = false. For now, we penalize heavily instead of hiding
@@ -118,7 +124,7 @@ func (c *Controller) MatchV2(ctx *gin.Context) {
 		var targetReqs PartnerRequirements
 		if target.PartnerRequirements != "" {
 			_ = json.Unmarshal([]byte(target.PartnerRequirements), &targetReqs)
-			
+
 			// Reverse Age
 			if targetReqs.MinAge > 0 && (sourceAge < targetReqs.MinAge || sourceAge > targetReqs.MaxAge) {
 				score -= 40
@@ -138,7 +144,9 @@ func (c *Controller) MatchV2(ctx *gin.Context) {
 		score += 50 // Base points
 
 		// Final threshold
-		if score < 0 { score = 0 }
+		if score < 0 {
+			score = 0
+		}
 		if isHardPass {
 			scoredList = append(scoredList, ScoredCandidate{
 				Client: convertToResponse(target),
@@ -155,19 +163,21 @@ func (c *Controller) MatchV2(ctx *gin.Context) {
 
 	// 6. Return Top 20
 	limit := 20
-	if len(scoredList) < limit { limit = len(scoredList) }
-	
+	if len(scoredList) < limit {
+		limit = len(scoredList)
+	}
+
 	finalList := make([]map[string]interface{}, limit)
 	for i := 0; i < limit; i++ {
 		finalList[i] = map[string]interface{}{
-			"client": scoredList[i].Client,
-			"score":  scoredList[i].Score,
+			"client":     scoredList[i].Client,
+			"score":      scoredList[i].Score,
 			"match_tags": scoredList[i].Reason,
 		}
 	}
 
 	response.SuccessResponse(ctx, "匹配成功", map[string]interface{}{
-		"list": finalList,
+		"list":       finalList,
 		"source_req": reqs, // Return used requirements for UI display
 	})
 }

@@ -10,7 +10,7 @@ import (
 )
 
 type COS struct {
-	Client *cos.Client
+	client *cos.Client
 }
 
 func NewCOS(bucketURL, region, secretID, secretKey string) *COS {
@@ -22,19 +22,19 @@ func NewCOS(bucketURL, region, secretID, secretKey string) *COS {
 			SecretKey: secretKey,
 		},
 	})
-	return &COS{Client: client}
+	return &COS{client: client}
 }
 
 func (c *COS) Put(ctx context.Context, key string, r io.Reader) (string, error) {
-	_, err := c.Client.Object.Put(ctx, key, r, nil)
+	_, err := c.client.Object.Put(ctx, key, r, nil)
 	if err != nil {
 		return "", err
 	}
 
-	return c.Client.BaseURL.BucketURL.String() + "/" + key, nil
+	return c.client.BaseURL.BucketURL.String() + "/" + key, nil
 }
 
 func (c *COS) Delete(ctx context.Context, key string) error {
-	_, err := c.Client.Object.Delete(ctx, key)
+	_, err := c.client.Object.Delete(ctx, key)
 	return err
 }

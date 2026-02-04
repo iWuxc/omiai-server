@@ -9,7 +9,7 @@ import (
 
 func (c *Controller) Stats(ctx *gin.Context) {
 	log.Infof("GET /api/client/stats requested")
-	stats, err := c.Client.Stats(ctx)
+	stats, err := c.client.Stats(ctx)
 	if err != nil {
 		log.Errorf("Stats failed: %v", err)
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取统计信息失败")

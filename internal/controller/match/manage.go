@@ -19,13 +19,13 @@ func (c *Controller) Create(ctx *gin.Context) {
 	}
 
 	// 1. Gender Validation
-	male, err := c.Client.Get(ctx, req.MaleClientID)
+	male, err := c.client.Get(ctx, req.MaleClientID)
 	if err != nil || male == nil || male.Gender != 1 {
 		response.ErrorResponse(ctx, response.ParamsCommonError, "男方信息错误或性别不符")
 		return
 	}
 
-	female, err := c.Client.Get(ctx, req.FemaleClientID)
+	female, err := c.client.Get(ctx, req.FemaleClientID)
 	if err != nil || female == nil || female.Gender != 2 {
 		response.ErrorResponse(ctx, response.ParamsCommonError, "女方信息错误或性别不符")
 		return
@@ -51,7 +51,7 @@ func (c *Controller) Create(ctx *gin.Context) {
 		Remark:         req.Remark,
 	}
 
-	if err := c.Match.Create(ctx, record); err != nil {
+	if err := c.match.Create(ctx, record); err != nil {
 		response.ErrorResponse(ctx, response.DBInsertCommonError, "保存匹配记录失败")
 		return
 	}
@@ -76,7 +76,7 @@ func (c *Controller) List(ctx *gin.Context) {
 
 	// Note: Complex filtering by names might need Joins or specific SQL
 	// For simplicity, we filter by status and pagination first
-	list, err := c.Match.Select(ctx, &biz.WhereClause{
+	list, err := c.match.Select(ctx, &biz.WhereClause{
 		Where:   where,
 		Args:    args,
 		OrderBy: "match_date desc",
@@ -97,7 +97,7 @@ func (c *Controller) UpdateStatus(ctx *gin.Context) {
 		return
 	}
 
-	record, err := c.Match.Get(ctx, req.ID)
+	record, err := c.match.Get(ctx, req.ID)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "记录不存在")
 		return
@@ -108,7 +108,7 @@ func (c *Controller) UpdateStatus(ctx *gin.Context) {
 		record.Remark = req.Remark
 	}
 
-	if err := c.Match.Update(ctx, record); err != nil {
+	if err := c.match.Update(ctx, record); err != nil {
 		response.ErrorResponse(ctx, response.DBUpdateCommonError, "更新失败")
 		return
 	}

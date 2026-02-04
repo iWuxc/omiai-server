@@ -22,6 +22,7 @@ import (
 	"omiai-server/internal/queues"
 	"omiai-server/internal/server"
 	"omiai-server/internal/service/banner"
+	"omiai-server/internal/service/chat_parser"
 )
 
 // Injectors from wire.go:
@@ -44,7 +45,8 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	service := banner.NewService(redis)
 	bannerController := banner2.NewController(db, bannerInterface, service)
 	clientInterface := omiai.NewClientRepo(db)
-	clientController := client.NewController(db, clientInterface)
+	chatParser := chat_parser.NewChatParser()
+	clientController := client.NewController(db, clientInterface, chatParser)
 	config := conf.GetConfig()
 	driver, err := data.NewStorage(config)
 	if err != nil {

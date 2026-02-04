@@ -50,20 +50,20 @@ func main() {
 		}
 
 		client := &biz_omiai.Client{
-			Name:                name,
-			Gender:              gender,
-			Phone:               fmt.Sprintf("13%d%08d", rand.Intn(10), rand.Intn(100000000)),
-			Birthday:            generateBirthday(),
-			Age:                 20 + rand.Intn(15),
-			Zodiac:              zodiacs[rand.Intn(len(zodiacs))],
-			Height:              generateHeight(gender),
-			Weight:              generateWeight(gender),
-			Education:           educations[rand.Intn(len(educations))],
-			MaritalStatus:       int8(rand.Intn(2) + 1), // 1:未婚 2:离异
-			Address:             addresses[rand.Intn(len(addresses))] + "某小区",
-			Income:              (rand.Intn(40) + 5) * 1000, // 5000 - 45000
-			WorkUnit:            "某某公司",
-			Position:            professions[rand.Intn(len(professions))],
+			Name:          name,
+			Gender:        gender,
+			Phone:         fmt.Sprintf("13%d%08d", rand.Intn(10), rand.Intn(100000000)),
+			Birthday:      generateBirthday(),
+			Age:           20 + rand.Intn(15),
+			Zodiac:        zodiacs[rand.Intn(len(zodiacs))],
+			Height:        generateHeight(gender),
+			Weight:        generateWeight(gender),
+			Education:     educations[rand.Intn(len(educations))],
+			MaritalStatus: int8(rand.Intn(2) + 1), // 1:未婚 2:离异
+			Address:       addresses[rand.Intn(len(addresses))] + "某小区",
+			Income:        (rand.Intn(40) + 5) * 1000, // 5000 - 45000
+			//WorkUnit:            "某某公司",
+			//Position:            professions[rand.Intn(len(professions))],
 			HouseStatus:         houseStatus,
 			HouseAddress:        houseAddress,
 			CarStatus:           int8(rand.Intn(2) + 1),

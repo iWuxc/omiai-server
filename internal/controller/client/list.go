@@ -89,15 +89,15 @@ func (c *Controller) List(ctx *gin.Context) {
 	// 单人模式：移除 Scope 权限过滤，默认返回所有客户
 	// 原公海池逻辑废弃，所有录入数据均可见
 	/*
-	currentUserID := ctx.GetUint64("current_user_id")
-	switch req.Scope {
-	case "my":
-		clause.Where += " AND manager_id = ?"
-		clause.Args = append(clause.Args, currentUserID)
-	case "public":
-		clause.Where += " AND is_public = 1"
-	default:
-	}
+		currentUserID := ctx.GetUint64("current_user_id")
+		switch req.Scope {
+		case "my":
+			clause.Where += " AND manager_id = ?"
+			clause.Args = append(clause.Args, currentUserID)
+		case "public":
+			clause.Where += " AND is_public = 1"
+		default:
+		}
 	*/
 
 	// Phase 1: 标签筛选 (JSON 数组包含)
@@ -130,7 +130,7 @@ func (c *Controller) List(ctx *gin.Context) {
 		clause.Args = append(clause.Args, targetDate)
 	}
 
-	list, err := c.Client.Select(ctx, clause, nil, offset, req.PageSize)
+	list, err := c.client.Select(ctx, clause, nil, offset, req.PageSize)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取客户列表失败")
 		return
@@ -162,11 +162,11 @@ func (c *Controller) List(ctx *gin.Context) {
 			Remark:              v.Remark,
 			Photos:              v.Photos,
 			// Phase 1 Response
-			ManagerID:           v.ManagerID,
-			IsPublic:            v.IsPublic,
-			Tags:                v.Tags,
-			CreatedAt:           v.CreatedAt,
-			UpdatedAt:           v.UpdatedAt,
+			ManagerID: v.ManagerID,
+			IsPublic:  v.IsPublic,
+			Tags:      v.Tags,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
 		})
 	}
 

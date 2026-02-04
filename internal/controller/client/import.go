@@ -3,7 +3,7 @@ package client
 import (
 	"omiai-server/internal/biz"
 	biz_omiai "omiai-server/internal/biz/omiai"
-	"omiai-server/internal/service"
+	"omiai-server/internal/service/chat_parser"
 	"omiai-server/pkg/response"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ type ImportAnalyzeRequest struct {
 }
 
 type ImportBatchRequest struct {
-	List []service.ImportRecord `json:"list" binding:"required"`
+	List []chat_parser.ImportRecord `json:"list" binding:"required"`
 }
 
 // ImportAnalyze 接收文本，返回解析结果预览
@@ -26,8 +26,7 @@ func (c *Controller) ImportAnalyze(ctx *gin.Context) {
 		return
 	}
 
-	parser := service.NewChatParser()
-	records, err := parser.Parse(req.Content)
+	records, err := c.chatParserService.Parse(req.Content)
 	if err != nil {
 		response.ErrorResponse(ctx, response.ServiceCommonError, "解析失败: "+err.Error())
 		return
@@ -66,7 +65,7 @@ func (c *Controller) ImportBatch(ctx *gin.Context) {
 			Where: "phone = ?",
 			Args:  []interface{}{record.Phone},
 		}
-		exists, _ := c.Client.Select(ctx, clause, nil, 0, 1)
+		exists, _ := c.client.Select(ctx, clause, nil, 0, 1)
 		if len(exists) > 0 {
 			failCount++
 			errors = append(errors, "手机号重复: "+record.Phone)
@@ -125,7 +124,7 @@ func (c *Controller) ImportBatch(ctx *gin.Context) {
 		// Correct approach: The error is "Unknown column". The column is missing in DB.
 		// I should check internal/biz/omiai/client.go again.
 
-		if err := c.Client.Create(ctx, client); err != nil {
+		if err := c.client.Create(ctx, client); err != nil {
 			log.Errorf("Import create failed: %v", err)
 			failCount++
 			errors = append(errors, "写入失败: "+record.Name)

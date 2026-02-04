@@ -1,4 +1,4 @@
-package service
+package chat_parser
 
 import (
 	"bytes"

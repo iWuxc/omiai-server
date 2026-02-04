@@ -14,7 +14,7 @@ func (c *Controller) Detail(ctx *gin.Context) {
 		return
 	}
 
-	client, err := c.Client.Get(ctx, req.ID)
+	client, err := c.client.Get(ctx, req.ID)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取客户详情失败")
 		return
