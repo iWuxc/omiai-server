@@ -22,16 +22,19 @@ var (
 		wire.Struct(new(InitCron), "*"),
 		NewCron,
 		NewUserProductFinalizer,
+		NewCandidatePreFilterService,
 	)
 )
 
 type InitCron struct {
 	*UserProductFinalizer
+	*CandidatePreFilterService
 }
 
 func jobs(cron *InitCron) []api.CronJobInterface {
 	return []api.CronJobInterface{
 		cron.UserProductFinalizer,
+		cron.CandidatePreFilterService,
 	}
 }
 func NewCron(initCron *InitCron) (*dcron.Dcron, error) {

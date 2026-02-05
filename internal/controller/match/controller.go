@@ -9,8 +9,9 @@ type Controller struct {
 	db     *data.DB
 	match  biz_omiai.MatchInterface
 	client biz_omiai.ClientInterface
+	user   biz_omiai.UserInterface
 }
 
-func NewController(db *data.DB, match biz_omiai.MatchInterface, client biz_omiai.ClientInterface) *Controller {
-	return &Controller{db: db, match: match, client: client}
+func NewController(db *data.DB, match biz_omiai.MatchInterface, client biz_omiai.ClientInterface, user biz_omiai.UserInterface) *Controller {
+	return &Controller{db: db, match: match, client: client, user: user}
 }

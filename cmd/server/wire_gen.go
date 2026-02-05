@@ -55,7 +55,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	}
 	commonController := common.NewController(driver)
 	matchInterface := omiai.NewMatchRepo(db)
-	matchController := match.NewController(db, matchInterface, clientInterface)
+	matchController := match.NewController(db, matchInterface, clientInterface, userInterface)
 	router := &server.Router{
 		Engine:           engine,
 		DB:               db,

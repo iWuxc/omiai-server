@@ -35,9 +35,9 @@ func (r *Router) Register() http.Handler {
 		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis))
 		{
 			r.banner(authGroup.Group("banner"))
-			r.client(authGroup.Group("client"))
+			r.client(authGroup.Group("clients")) // Renamed from "client" to "clients" for V2
 			r.common(authGroup.Group("common"))
-			r.match(authGroup.Group("match"))
+			r.match(authGroup.Group("couples")) // Renamed from "match" to "couples" for V2
 			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
 		}
 	}
@@ -60,10 +60,14 @@ func (r *Router) common(g *gin.RouterGroup) {
 func (r *Router) match(g *gin.RouterGroup) {
 	g.GET("/list", r.MatchController.List)
 	g.POST("/create", r.MatchController.Create)
+	g.POST("/confirm", r.MatchController.Confirm) // V2: Direct Confirm
+	g.POST("/dissolve", r.MatchController.Dissolve) // V2: Dissolve Match
 	g.POST("/update_status", r.MatchController.UpdateStatus)
 	g.GET("/followup/list", r.MatchController.ListFollowUps)
 	g.POST("/followup/create", r.MatchController.CreateFollowUp)
 	g.GET("/reminders", r.MatchController.GetReminders)
+	g.GET("/status/history", r.MatchController.GetStatusHistory)
+	g.GET("/stats", r.MatchController.Stats)
 }
 
 func (r *Router) banner(g *gin.RouterGroup) {
@@ -81,6 +85,10 @@ func (r *Router) client(g *gin.RouterGroup) {
 	g.GET("/list", r.ClientController.List)
 	g.GET("/detail/:id", r.ClientController.Detail)
 	g.GET("/match/:id", r.ClientController.MatchV2) // Upgrade to V2
+	// V2: New Candidates & Compare Interfaces
+	g.GET("/:id/candidates", r.MatchController.GetCandidates)
+	g.GET("/:id/compare/:candidateId", r.MatchController.Compare)
+
 	// Phase 1: Claim/Release (Hidden for Single Mode but kept for compatibility)
 	g.POST("/claim", r.ClientController.Claim)
 	g.POST("/release", r.ClientController.Release)

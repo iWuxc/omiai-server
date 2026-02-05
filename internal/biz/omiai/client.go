@@ -28,12 +28,15 @@ type Client struct {
 	HouseAddress        string    `json:"house_address" gorm:"column:house_address;size:255;comment:买房地址"`
 	CarStatus           int8      `json:"car_status" gorm:"column:car_status;comment:车辆情况 1无车 2有车"`
 	Status              int8      `json:"status" gorm:"column:status;default:1;comment:状态 1单身 2匹配中 3已匹配 4停止服务"`
+	PartnerID           *uint64   `json:"partner_id" gorm:"column:partner_id;uniqueIndex;default:null;comment:当前匹配对象ID"`
+	Partner             *Client   `json:"partner" gorm:"foreignKey:PartnerID"`
 	ManagerID           uint64    `json:"manager_id" gorm:"column:manager_id;index;default:0;comment:归属红娘ID;-"`
 	IsPublic            bool      `json:"is_public" gorm:"column:is_public;default:true;index;comment:是否公海;-"`
 	Tags                string    `json:"tags" gorm:"column:tags;type:text;comment:标签列表(JSON);-"`
 	PartnerRequirements string    `json:"partner_requirements" gorm:"column:partner_requirements;type:text;comment:对另一半要求(JSON)"`
 	Remark              string    `json:"remark" gorm:"column:remark;type:text;comment:红娘备注"`
 	Photos              string    `json:"photos" gorm:"column:photos;type:text;comment:照片URL列表(JSON)"`
+	CandidateCacheJSON  string    `json:"candidate_cache_json" gorm:"column:candidate_cache_json;type:text;comment:算法初筛结果缓存"`
 	CreatedAt           time.Time `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt           time.Time `json:"updated_at" gorm:"column:updated_at"`
 }
@@ -41,6 +44,25 @@ type Client struct {
 // TableName 表名
 func (t *Client) TableName() string {
 	return "client"
+}
+
+func (c *Client) RealAge() int {
+	if c.Age > 0 {
+		return c.Age
+	}
+	if len(c.Birthday) < 7 {
+		return 0
+	}
+	t, err := time.Parse("2006-01", c.Birthday[:7])
+	if err != nil {
+		return 0
+	}
+	now := time.Now()
+	age := now.Year() - t.Year()
+	if now.Month() < t.Month() {
+		age--
+	}
+	return age
 }
 
 // ClientInterface 定义数据层接口

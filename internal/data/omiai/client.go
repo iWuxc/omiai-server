@@ -45,7 +45,7 @@ func (c *ClientRepo) Delete(ctx context.Context, id uint64) error {
 
 func (c *ClientRepo) Get(ctx context.Context, id uint64) (*biz_omiai.Client, error) {
 	var client biz_omiai.Client
-	err := c.db.WithContext(ctx).Model(c.m).First(&client, id).Error
+	err := c.db.WithContext(ctx).Model(c.m).Preload("Partner").First(&client, id).Error
 	if err != nil {
 		return nil, err
 	}

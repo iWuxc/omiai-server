@@ -22,6 +22,10 @@ type ClientResponse struct {
 	HouseStatus         int8      `json:"house_status"`
 	HouseAddress        string    `json:"house_address"`
 	CarStatus           int8      `json:"car_status"`
+	Status              int8      `json:"status"`
+	PartnerID           uint64    `json:"partner_id"`
+	PartnerName         string    `json:"partner_name,omitempty"`
+	PartnerAvatar       string    `json:"partner_avatar,omitempty"`
 	PartnerRequirements string    `json:"partner_requirements"`
 	Remark              string    `json:"remark"`
 	Photos              string    `json:"photos"`

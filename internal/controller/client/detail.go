@@ -24,6 +24,11 @@ func (c *Controller) Detail(ctx *gin.Context) {
 		return
 	}
 
+	var partnerID uint64
+	if client.PartnerID != nil {
+		partnerID = *client.PartnerID
+	}
+
 	resp := &ClientResponse{
 		ID:                  client.ID,
 		Name:                client.Name,
@@ -44,6 +49,8 @@ func (c *Controller) Detail(ctx *gin.Context) {
 		HouseStatus:         client.HouseStatus,
 		HouseAddress:        client.HouseAddress,
 		CarStatus:           client.CarStatus,
+		Status:              client.Status,
+		PartnerID:           partnerID,
 		PartnerRequirements: client.PartnerRequirements,
 		Remark:              client.Remark,
 		Photos:              client.Photos,
@@ -53,6 +60,16 @@ func (c *Controller) Detail(ctx *gin.Context) {
 
 	if resp.Avatar == "" {
 		resp.Avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + resp.Name
+	}
+
+	if partnerID > 0 {
+		if partner, err := c.client.Get(ctx, partnerID); err == nil && partner != nil {
+			resp.PartnerName = partner.Name
+			resp.PartnerAvatar = partner.Avatar
+			if resp.PartnerAvatar == "" {
+				resp.PartnerAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + partner.Name
+			}
+		}
 	}
 
 	response.SuccessResponse(ctx, "ok", resp)

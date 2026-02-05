@@ -17,9 +17,26 @@ func (c *Controller) CreateFollowUp(ctx *gin.Context) {
 		return
 	}
 
-	followUpDate := req.FollowUpDate
-	if followUpDate.IsZero() {
+	var followUpDate time.Time
+	if req.FollowUpDate == "" {
 		followUpDate = time.Now()
+	} else {
+		var err error
+		followUpDate, err = parseTime(req.FollowUpDate)
+		if err != nil {
+			response.ErrorResponse(ctx, response.ParamsCommonError, "回访时间格式错误: "+err.Error())
+			return
+		}
+	}
+
+	var nextFollowUpAt time.Time
+	if req.NextFollowUpAt != "" {
+		var err error
+		nextFollowUpAt, err = parseTime(req.NextFollowUpAt)
+		if err != nil {
+			response.ErrorResponse(ctx, response.ParamsCommonError, "下次回访时间格式错误: "+err.Error())
+			return
+		}
 	}
 
 	record := &biz_omiai.FollowUpRecord{
@@ -30,7 +47,7 @@ func (c *Controller) CreateFollowUp(ctx *gin.Context) {
 		Feedback:       req.Feedback,
 		Satisfaction:   req.Satisfaction,
 		Attachments:    req.Attachments,
-		NextFollowUpAt: req.NextFollowUpAt,
+		NextFollowUpAt: nextFollowUpAt,
 	}
 
 	if err := c.match.CreateFollowUp(ctx, record); err != nil {
@@ -39,6 +56,19 @@ func (c *Controller) CreateFollowUp(ctx *gin.Context) {
 	}
 
 	response.SuccessResponse(ctx, "保存成功", record)
+}
+
+func parseTime(val string) (time.Time, error) {
+	if t, err := time.Parse(time.RFC3339, val); err == nil {
+		return t, nil
+	}
+	if t, err := time.ParseInLocation("2006-01-02 15:04:05", val, time.Local); err == nil {
+		return t, nil
+	}
+	if t, err := time.ParseInLocation("2006-01-02", val, time.Local); err == nil {
+		return t, nil
+	}
+	return time.Time{}, fmt.Errorf("supported formats: RFC3339, YYYY-MM-DD HH:mm:ss, YYYY-MM-DD")
 }
 
 func (c *Controller) ListFollowUps(ctx *gin.Context) {

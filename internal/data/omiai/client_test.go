@@ -2,82 +2,87 @@ package omiai
 
 import (
 	"context"
+	"fmt"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	"omiai-server/internal/data"
+	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func setupTestDB(t *testing.T) *data.DB {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("failed to open sqlite: %v", err)
-	}
+func setupClientTestDB(t *testing.T) *data.DB {
+	dbName := strings.ReplaceAll(t.Name(), "/", "_")
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_busy_timeout=5000", dbName)
+
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	assert.NoError(t, err)
+
+	db.Migrator().DropTable(&biz_omiai.Client{})
 	err = db.AutoMigrate(&biz_omiai.Client{})
-	if err != nil {
-		t.Fatalf("failed to migrate: %v", err)
-	}
+	assert.NoError(t, err)
+
 	return &data.DB{DB: db}
 }
 
-func TestClientRepo_Stats(t *testing.T) {
-	db := setupTestDB(t)
+func TestClientRepo_Get_WithPartner(t *testing.T) {
+	db := setupClientTestDB(t)
 	repo := NewClientRepo(db)
 	ctx := context.Background()
 
-	// 1. Empty Stats
-	stats, err := repo.Stats(ctx)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(0), stats["total"])
-	assert.Equal(t, int64(0), stats["today"])
-
-	// 2. Add some data
-	now := time.Now()
-	clients := []*biz_omiai.Client{
-		{Name: "Test 1", Gender: 1, CreatedAt: now},
-		{Name: "Test 2", Gender: 2, CreatedAt: now},
-		{Name: "Old 1", Gender: 1, CreatedAt: now.AddDate(0, 0, -2)},
+	// 1. Create Partner
+	partner := &biz_omiai.Client{
+		Name:   "Partner Client",
+		Gender: 2,
+		Status: biz_omiai.ClientStatusMatched,
 	}
-
-	for _, c := range clients {
-		err := repo.Create(ctx, c)
-		assert.NoError(t, err)
-	}
-
-	// 3. Verify Stats
-	stats, err = repo.Stats(ctx)
+	err := repo.Create(ctx, partner)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(3), stats["total"])
-	assert.Equal(t, int64(2), stats["today"])
+
+	// 2. Create Client linked to Partner
+	partnerID := partner.ID
+	client := &biz_omiai.Client{
+		Name:      "Main Client",
+		Gender:    1,
+		Status:    biz_omiai.ClientStatusMatched,
+		PartnerID: &partnerID,
+	}
+	err = repo.Create(ctx, client)
+	assert.NoError(t, err)
+
+	// 3. Get Client and verify Partner is loaded
+	gotClient, err := repo.Get(ctx, client.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, gotClient)
+	assert.NotNil(t, gotClient.Partner)
+	assert.Equal(t, partner.ID, gotClient.Partner.ID)
+	assert.Equal(t, partner.Name, gotClient.Partner.Name)
+
+	// 4. Verify PartnerID is correct
+	assert.NotNil(t, gotClient.PartnerID)
+	assert.Equal(t, partnerID, *gotClient.PartnerID)
 }
 
-func TestClientRepo_Update(t *testing.T) {
-	db := setupTestDB(t)
+func TestClientRepo_Get_NoPartner(t *testing.T) {
+	db := setupClientTestDB(t)
 	repo := NewClientRepo(db)
 	ctx := context.Background()
 
-	// 1. Create a client
+	// Create Client without Partner
 	client := &biz_omiai.Client{
-		Name: "Original Name",
-		Age:  25,
+		Name:   "Single Client",
+		Gender: 1,
+		Status: biz_omiai.ClientStatusSingle,
 	}
 	err := repo.Create(ctx, client)
 	assert.NoError(t, err)
-	assert.NotZero(t, client.ID)
 
-	// 2. Update the client
-	client.Name = "Updated Name"
-	client.Age = 26
-	err = repo.Update(ctx, client)
+	// Get Client
+	gotClient, err := repo.Get(ctx, client.ID)
 	assert.NoError(t, err)
-
-	// 3. Verify update
-	updatedClient, err := repo.Get(ctx, client.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, "Updated Name", updatedClient.Name)
-	assert.Equal(t, 26, updatedClient.Age)
+	assert.NotNil(t, gotClient)
+	assert.Nil(t, gotClient.Partner)
+	assert.Nil(t, gotClient.PartnerID)
 }

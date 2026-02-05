@@ -3,14 +3,6 @@ package biz_omiai
 import "time"
 
 // Dummy structs to fix build errors from existing broken code
-type Candidate struct {
-	ID        uint64    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func (t *Candidate) TableName() string { return "candidate" }
-
 type Submission struct {
 	ID        uint64    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
