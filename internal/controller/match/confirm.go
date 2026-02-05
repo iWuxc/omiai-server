@@ -22,7 +22,7 @@ func (c *Controller) Confirm(ctx *gin.Context) {
 		adminID = fmt.Sprintf("%v", v)
 	}
 
-	matchRecord, err := c.match.ConfirmMatch(ctx, req.ClientID, req.CandidateID, adminID)
+	matchRecord, err := c.match.ConfirmMatch(ctx, req.ClientID, req.CandidateID, adminID, req.Remark)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBInsertCommonError, "确认匹配失败")
 		return

@@ -50,6 +50,7 @@ type CompareValidate struct {
 type ConfirmMatchValidate struct {
 	ClientID    uint64 `json:"client_id" binding:"required"`
 	CandidateID uint64 `json:"candidate_id" binding:"required"`
+	Remark      string `json:"remark"`
 }
 
 type DissolveMatchValidate struct {

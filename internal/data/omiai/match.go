@@ -223,7 +223,7 @@ func (r *MatchRepo) Compare(ctx context.Context, clientID, candidateID uint64) (
 }
 
 // V2: ConfirmMatch 直接确认匹配
-func (r *MatchRepo) ConfirmMatch(ctx context.Context, clientID, candidateID uint64, adminID string) (*biz_omiai.MatchRecord, error) {
+func (r *MatchRepo) ConfirmMatch(ctx context.Context, clientID, candidateID uint64, adminID, remark string) (*biz_omiai.MatchRecord, error) {
 	// 0. Distributed Lock using Redis
 	lockKey := fmt.Sprintf("lock:match:client:%d:%d", clientID, candidateID)
 	// Try to acquire lock for 10 seconds
@@ -236,10 +236,10 @@ func (r *MatchRepo) ConfirmMatch(ctx context.Context, clientID, candidateID uint
 	}
 	defer redis.GetRedis().GetClient().Del(ctx, lockKey)
 
-	return r.confirmMatchDB(ctx, clientID, candidateID, adminID)
+	return r.confirmMatchDB(ctx, clientID, candidateID, adminID, remark)
 }
 
-func (r *MatchRepo) confirmMatchDB(ctx context.Context, clientID, candidateID uint64, adminID string) (*biz_omiai.MatchRecord, error) {
+func (r *MatchRepo) confirmMatchDB(ctx context.Context, clientID, candidateID uint64, adminID, remark string) (*biz_omiai.MatchRecord, error) {
 	var matchRecord *biz_omiai.MatchRecord
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		// 1. Get Clients and Verify Status (Double Check)
@@ -268,6 +268,7 @@ func (r *MatchRepo) confirmMatchDB(ctx context.Context, clientID, candidateID ui
 			Status:         biz_omiai.MatchStatusAcquaintance,
 			MatchScore:     85, // Mock score
 			AdminID:        adminID,
+			Remark:         remark,
 		}
 		if err := tx.WithContext(ctx).Create(matchRecord).Error; err != nil {
 			return err

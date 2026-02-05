@@ -29,7 +29,7 @@ func TestMatchRepo_UniqueConstraint(t *testing.T) {
 	adminID := "admin_tester"
 
 	// 1. Match A and B (Success)
-	matchRecord, err := repo.confirmMatchDB(ctx, c1.ID, c2.ID, adminID)
+	matchRecord, err := repo.confirmMatchDB(ctx, c1.ID, c2.ID, adminID, "")
 	assert.NoError(t, err)
 	assert.NotNil(t, matchRecord)
 
@@ -46,7 +46,7 @@ func TestMatchRepo_UniqueConstraint(t *testing.T) {
 
 	// 2. Try to Match C and B (Should Fail due to Status Check)
 	// Because confirmMatchDB checks status first.
-	_, err = repo.confirmMatchDB(ctx, c3.ID, c2.ID, adminID)
+	_, err = repo.confirmMatchDB(ctx, c3.ID, c2.ID, adminID, "")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "already matched")
 
@@ -84,7 +84,7 @@ func TestMatchRepo_ConfirmMatchConcurrency(t *testing.T) {
 	for i := 0; i < concurrency; i++ {
 		go func(idx int) {
 			// Call confirmMatchDB directly (bypassing Redis lock to test DB lock)
-			_, err := repo.confirmMatchDB(ctx, c1.ID, c2.ID, "admin")
+			_, err := repo.confirmMatchDB(ctx, c1.ID, c2.ID, "admin", "")
 			errChan <- err
 		}(i)
 	}

@@ -112,7 +112,7 @@ type MatchInterface interface {
 	Compare(ctx context.Context, clientID, candidateID uint64) (*Comparison, error)
 
 	// V2: 直接确认匹配 (替换 ConfirmRequest)
-	ConfirmMatch(ctx context.Context, clientID, candidateID uint64, adminID string) (*MatchRecord, error)
+	ConfirmMatch(ctx context.Context, clientID, candidateID uint64, adminID, remark string) (*MatchRecord, error)
 
 	// 状态管理
 	UpdateStatus(ctx context.Context, recordID uint64, oldStatus, newStatus int8, operator, reason string) error
