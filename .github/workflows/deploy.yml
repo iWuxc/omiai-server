@@ -85,9 +85,9 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_LOWER }}-web:latest
           build-args: |
-            VITE_API_BASE_URL=https://www.omiai.cn/api
-            VITE_H5_DOMAIN=https://www.omiai.cn/#
-            VITE_ASSETS_URL=https://www.omiai.cn
+            VITE_API_BASE_URL=http://www.omiai.cn/api
+            VITE_H5_DOMAIN=http://www.omiai.cn/#
+            VITE_ASSETS_URL=http://www.omiai.cn
 
   deploy:
     needs: [build-and-push-backend, build-and-push-frontend]
