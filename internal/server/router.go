@@ -77,6 +77,7 @@ func (r *Router) banner(g *gin.RouterGroup) {
 func (r *Router) client(g *gin.RouterGroup) {
 	g.GET("/stats", r.ClientController.Stats)
 	g.POST("/create", r.ClientController.Create)
+	g.POST("/update", r.ClientController.Update)
 	g.GET("/list", r.ClientController.List)
 	g.GET("/detail/:id", r.ClientController.Detail)
 	g.GET("/match/:id", r.ClientController.MatchV2) // Upgrade to V2

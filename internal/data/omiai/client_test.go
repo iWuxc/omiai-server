@@ -54,3 +54,30 @@ func TestClientRepo_Stats(t *testing.T) {
 	assert.Equal(t, int64(3), stats["total"])
 	assert.Equal(t, int64(2), stats["today"])
 }
+
+func TestClientRepo_Update(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewClientRepo(db)
+	ctx := context.Background()
+
+	// 1. Create a client
+	client := &biz_omiai.Client{
+		Name: "Original Name",
+		Age:  25,
+	}
+	err := repo.Create(ctx, client)
+	assert.NoError(t, err)
+	assert.NotZero(t, client.ID)
+
+	// 2. Update the client
+	client.Name = "Updated Name"
+	client.Age = 26
+	err = repo.Update(ctx, client)
+	assert.NoError(t, err)
+
+	// 3. Verify update
+	updatedClient, err := repo.Get(ctx, client.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "Updated Name", updatedClient.Name)
+	assert.Equal(t, 26, updatedClient.Age)
+}

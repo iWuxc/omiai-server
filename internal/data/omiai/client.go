@@ -36,7 +36,7 @@ func (c *ClientRepo) Create(ctx context.Context, client *biz_omiai.Client) error
 }
 
 func (c *ClientRepo) Update(ctx context.Context, client *biz_omiai.Client) error {
-	return c.db.WithContext(ctx).Model(c.m).Updates(client).Error
+	return c.db.WithContext(ctx).Model(client).Updates(client).Error
 }
 
 func (c *ClientRepo) Delete(ctx context.Context, id uint64) error {
