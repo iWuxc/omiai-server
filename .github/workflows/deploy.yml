@@ -135,7 +135,7 @@ jobs:
                   - DEBUG=false
                   - ENABLE_CRON=true
                   - LOG_LEVEL=info
-                  - STORAGE_DRIVER=local
+                  - STORAGE_DRIVER=\${STORAGE_DRIVER}
                   - TZ=Asia/Shanghai
                   - DB_HOST=mysql
                   - DB_PORT=3306
@@ -231,6 +231,7 @@ jobs:
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             ZHIPUAI_API_KEY=${{ secrets.ZHIPUAI_API_KEY }}
             DOMAIN_H5=${{ secrets.DOMAIN_H5 }}
+            STORAGE_DRIVER=${{ secrets.STORAGE_DRIVER }}
             EOF
             
             # 拉取最新镜像
