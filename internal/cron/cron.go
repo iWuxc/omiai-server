@@ -36,7 +36,7 @@ type InitCron struct {
 
 func jobs(cron *InitCron) []api.CronJobInterface {
 	return []api.CronJobInterface{
-		cron.UserProductFinalizer,
+		//cron.UserProductFinalizer,
 		cron.CandidatePreFilterService,
 		cron.ReminderCronJob,
 	}
