@@ -2,11 +2,13 @@ package server
 
 import (
 	"net/http"
+	"omiai-server/internal/controller/ai"
 	"omiai-server/internal/controller/auth"
 	"omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
 	"omiai-server/internal/controller/match"
+	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/data"
 	"omiai-server/internal/middleware"
 
@@ -17,13 +19,15 @@ import (
 // Router .
 type Router struct {
 	*gin.Engine
-	DB               *data.DB
-	Redis            *redis.Redis
-	AuthController   *auth.Controller
-	BannerController *banner.Controller
-	ClientController *client.Controller
-	CommonController *common.Controller
-	MatchController  *match.Controller
+	DB                 *data.DB
+	Redis              *redis.Redis
+	AIController       *ai.Controller
+	AuthController     *auth.Controller
+	BannerController   *banner.Controller
+	ClientController   *client.Controller
+	CommonController   *common.Controller
+	MatchController    *match.Controller
+	ReminderController *reminder.Controller
 }
 
 func (r *Router) Register() http.Handler {
@@ -34,10 +38,12 @@ func (r *Router) Register() http.Handler {
 		// 需要登录的接口
 		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis))
 		{
+			r.ai(authGroup.Group("ai"))
 			r.banner(authGroup.Group("banner"))
 			r.client(authGroup.Group("clients")) // Renamed from "client" to "clients" for V2
 			r.common(authGroup.Group("common"))
 			r.match(authGroup.Group("couples")) // Renamed from "match" to "couples" for V2
+			r.reminder(authGroup.Group("reminders"))
 			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
 		}
 	}
@@ -53,6 +59,11 @@ func (r *Router) auth(g *gin.RouterGroup) {
 	g.POST("/login/wx", r.AuthController.WxLogin)
 }
 
+func (r *Router) ai(g *gin.RouterGroup) {
+	g.POST("/analyze", r.AIController.AnalyzeMatch)
+	g.POST("/ice-breaker", r.AIController.GetIceBreaker)
+}
+
 func (r *Router) common(g *gin.RouterGroup) {
 	g.POST("/upload", r.CommonController.Upload)
 }
@@ -60,7 +71,7 @@ func (r *Router) common(g *gin.RouterGroup) {
 func (r *Router) match(g *gin.RouterGroup) {
 	g.GET("/list", r.MatchController.List)
 	g.POST("/create", r.MatchController.Create)
-	g.POST("/confirm", r.MatchController.Confirm) // V2: Direct Confirm
+	g.POST("/confirm", r.MatchController.Confirm)   // V2: Direct Confirm
 	g.POST("/dissolve", r.MatchController.Dissolve) // V2: Dissolve Match
 	g.POST("/update_status", r.MatchController.UpdateStatus)
 	g.GET("/followup/list", r.MatchController.ListFollowUps)
@@ -96,4 +107,14 @@ func (r *Router) client(g *gin.RouterGroup) {
 	// Import
 	g.POST("/import/analyze", r.ClientController.ImportAnalyze)
 	g.POST("/import/batch", r.ClientController.ImportBatch)
+}
+
+func (r *Router) reminder(g *gin.RouterGroup) {
+	g.GET("/list", r.ReminderController.List)
+	g.GET("/today", r.ReminderController.TodayList)
+	g.GET("/pending", r.ReminderController.PendingList)
+	g.GET("/stats", r.ReminderController.Stats)
+	g.POST("/read", r.ReminderController.MarkAsRead)
+	g.POST("/done", r.ReminderController.MarkAsDone)
+	g.DELETE("/delete", r.ReminderController.Delete)
 }

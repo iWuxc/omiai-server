@@ -23,18 +23,22 @@ var (
 		NewCron,
 		NewUserProductFinalizer,
 		NewCandidatePreFilterService,
+		NewReminderService,
+		NewReminderCronJob,
 	)
 )
 
 type InitCron struct {
 	*UserProductFinalizer
 	*CandidatePreFilterService
+	*ReminderCronJob
 }
 
 func jobs(cron *InitCron) []api.CronJobInterface {
 	return []api.CronJobInterface{
 		cron.UserProductFinalizer,
 		cron.CandidatePreFilterService,
+		cron.ReminderCronJob,
 	}
 }
 func NewCron(initCron *InitCron) (*dcron.Dcron, error) {

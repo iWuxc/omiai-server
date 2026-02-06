@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"omiai-server/internal/biz"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	"omiai-server/internal/data"
@@ -118,23 +117,10 @@ func (r *MatchRepo) GetCandidates(ctx context.Context, clientID uint64) ([]*biz_
 
 	var candidates []*biz_omiai.Candidate
 	for _, match := range potentialMatches {
-		score := 60 + rand.Intn(40) // Mock Algo
-
-		tags := []string{}
-		if match.Education == client.Education {
-			tags = append(tags, "学历相当")
-		}
-		// Simple age gap check
-		ageGap := client.RealAge() - match.RealAge()
-		if ageGap < 0 {
-			ageGap = -ageGap
-		}
-		if ageGap <= 3 {
-			tags = append(tags, "年龄相仿")
-		}
-		if len(tags) == 0 {
-			tags = append(tags, "推荐")
-		}
+		// 使用匹配算法计算真实匹配度
+		calculator := NewMatchCalculator(&client, match)
+		score := calculator.Calculate()
+		tags := calculator.GetMatchTags()
 
 		candidates = append(candidates, &biz_omiai.Candidate{
 			CandidateID: match.ID,

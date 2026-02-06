@@ -10,11 +10,13 @@ import (
 	"context"
 	"github.com/iWuxc/go-wit/app"
 	"omiai-server/internal/conf"
+	"omiai-server/internal/controller/ai"
 	"omiai-server/internal/controller/auth"
 	banner2 "omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
 	"omiai-server/internal/controller/match"
+	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/cron"
 	"omiai-server/internal/data"
 	"omiai-server/internal/data/omiai"
@@ -39,12 +41,13 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
+	clientInterface := omiai.NewClientRepo(db)
+	controller := ai.NewController(db, clientInterface)
 	userInterface := omiai.NewUserRepo(db)
-	controller := auth.NewController(db, userInterface)
+	authController := auth.NewController(db, userInterface)
 	bannerInterface := omiai.NewBannerRepo(db)
 	service := banner.NewService(redis)
 	bannerController := banner2.NewController(db, bannerInterface, service)
-	clientInterface := omiai.NewClientRepo(db)
 	chatParser := chat_parser.NewChatParser()
 	clientController := client.NewController(db, clientInterface, chatParser)
 	config := conf.GetConfig()
@@ -56,20 +59,29 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	commonController := common.NewController(driver)
 	matchInterface := omiai.NewMatchRepo(db)
 	matchController := match.NewController(db, matchInterface, clientInterface, userInterface)
+	reminderInterface := omiai.NewReminderRepo(db)
+	reminderController := reminder.NewController(db, reminderInterface)
 	router := &server.Router{
-		Engine:           engine,
-		DB:               db,
-		Redis:            redis,
-		AuthController:   controller,
-		BannerController: bannerController,
-		ClientController: clientController,
-		CommonController: commonController,
-		MatchController:  matchController,
+		Engine:             engine,
+		DB:                 db,
+		Redis:              redis,
+		AIController:       controller,
+		AuthController:     authController,
+		BannerController:   bannerController,
+		ClientController:   clientController,
+		CommonController:   commonController,
+		MatchController:    matchController,
+		ReminderController: reminderController,
 	}
 	v2 := server.NewHTTPServer(router)
 	userProductFinalizer := cron.NewUserProductFinalizer(db)
+	candidatePreFilterService := cron.NewCandidatePreFilterService(db)
+	reminderService := cron.NewReminderService(db, reminderInterface, clientInterface, matchInterface, userInterface)
+	reminderCronJob := cron.NewReminderCronJob(reminderService)
 	initCron := &cron.InitCron{
-		UserProductFinalizer: userProductFinalizer,
+		UserProductFinalizer:      userProductFinalizer,
+		CandidatePreFilterService: candidatePreFilterService,
+		ReminderCronJob:           reminderCronJob,
 	}
 	dcron, err := cron.NewCron(initCron)
 	if err != nil {
