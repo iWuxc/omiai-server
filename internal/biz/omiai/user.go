@@ -14,6 +14,7 @@ const (
 type User struct {
 	ID        uint64    `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
 	Phone     string    `json:"phone" gorm:"column:phone;size:20;uniqueIndex;comment:手机号"`
+	Password  string    `json:"-" gorm:"column:password;size:128;comment:密码"`
 	Nickname  string    `json:"nickname" gorm:"column:nickname;size:64;comment:昵称"`
 	Avatar    string    `json:"avatar" gorm:"column:avatar;size:255;comment:头像"`
 	Role      string    `json:"role" gorm:"column:role;size:20;default:operator;comment:角色 admin/operator"`

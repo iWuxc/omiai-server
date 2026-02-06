@@ -4,14 +4,14 @@
  Source Server         : 腾讯云
  Source Server Type    : MySQL
  Source Server Version : 80045 (8.0.45)
- Source Host           : 82.156.241.188:3306
+ Source Host           : 82.156.241.188:13018
  Source Schema         : omiai
 
  Target Server Type    : MySQL
  Target Server Version : 80045 (8.0.45)
  File Encoding         : 65001
 
- Date: 05/02/2026 19:58:49
+ Date: 06/02/2026 16:09:17
 */
 
 SET NAMES utf8mb4;
@@ -40,21 +40,6 @@ BEGIN;
 INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (1, '春季相亲大会', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1000', 1, 1, '/pages/activity/detail?id=1', '2026-02-01 08:04:25.157', '2026-02-01 08:04:25.157');
 INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (2, '精英男士专场', 'https://images.unsplash.com/photo-1516589174184-c68526673fd0?auto=format&fit=crop&q=80&w=1000', 2, 1, '/pages/activity/detail?id=2', '2026-02-01 08:04:25.157', '2026-02-01 08:04:25.157');
 INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (3, '牵手成功案例分享', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000', 3, 1, '/pages/activity/detail?id=3', '2026-02-01 08:04:25.157', '2026-02-01 08:04:25.157');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (4, '春季相亲大会', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1000', 1, 1, '/pages/activity/detail?id=1', '2026-02-01 10:12:53.131', '2026-02-01 10:12:53.131');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (5, '精英男士专场', 'https://images.unsplash.com/photo-1516589174184-c68526673fd0?auto=format&fit=crop&q=80&w=1000', 2, 1, '/pages/activity/detail?id=2', '2026-02-01 10:12:53.131', '2026-02-01 10:12:53.131');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (6, '牵手成功案例分享', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000', 3, 1, '/pages/activity/detail?id=3', '2026-02-01 10:12:53.131', '2026-02-01 10:12:53.131');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (7, '春季相亲大会', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1000', 1, 1, '/pages/activity/detail?id=1', '2026-02-01 18:04:46.321', '2026-02-01 18:04:46.321');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (8, '精英男士专场', 'https://images.unsplash.com/photo-1516589174184-c68526673fd0?auto=format&fit=crop&q=80&w=1000', 2, 1, '/pages/activity/detail?id=2', '2026-02-01 18:04:46.321', '2026-02-01 18:04:46.321');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (9, '牵手成功案例分享', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000', 3, 1, '/pages/activity/detail?id=3', '2026-02-01 18:04:46.321', '2026-02-01 18:04:46.321');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (10, '春季相亲大会', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1000', 1, 1, '/pages/activity/detail?id=1', '2026-02-01 18:05:02.001', '2026-02-01 18:05:02.001');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (11, '精英男士专场', 'https://images.unsplash.com/photo-1516589174184-c68526673fd0?auto=format&fit=crop&q=80&w=1000', 2, 1, '/pages/activity/detail?id=2', '2026-02-01 18:05:02.001', '2026-02-01 18:05:02.001');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (12, '牵手成功案例分享', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000', 3, 1, '/pages/activity/detail?id=3', '2026-02-01 18:05:02.001', '2026-02-01 18:05:02.001');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (13, '春季相亲大会', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1000', 1, 1, '/pages/activity/detail?id=1', '2026-02-01 19:13:24.244', '2026-02-01 19:13:24.244');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (14, '精英男士专场', 'https://images.unsplash.com/photo-1516589174184-c68526673fd0?auto=format&fit=crop&q=80&w=1000', 2, 1, '/pages/activity/detail?id=2', '2026-02-01 19:13:24.244', '2026-02-01 19:13:24.244');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (15, '牵手成功案例分享', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000', 3, 1, '/pages/activity/detail?id=3', '2026-02-01 19:13:24.244', '2026-02-01 19:13:24.244');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (16, '春季相亲大会', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1000', 1, 1, '/pages/activity/detail?id=1', '2026-02-01 19:25:52.593', '2026-02-01 19:25:52.593');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (17, '精英男士专场', 'https://images.unsplash.com/photo-1516589174184-c68526673fd0?auto=format&fit=crop&q=80&w=1000', 2, 1, '/pages/activity/detail?id=2', '2026-02-01 19:25:52.593', '2026-02-01 19:25:52.593');
-INSERT INTO `banner` (`id`, `title`, `image_url`, `sort_order`, `status`, `link_url`, `created_at`, `updated_at`) VALUES (18, '牵手成功案例分享', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000', 3, 1, '/pages/activity/detail?id=3', '2026-02-01 19:25:52.593', '2026-02-01 19:25:52.593');
 COMMIT;
 
 -- ----------------------------
@@ -89,7 +74,7 @@ CREATE TABLE `client` (
   `work_unit` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '工作单位',
   `position` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '职位',
   `house_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '买房地址',
-  `candidate_cache_json` longtext COLLATE utf8mb4_general_ci COMMENT '匹配候选缓存',
+  `candidate_cache_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '匹配候选缓存',
   `partner_id` bigint unsigned DEFAULT NULL COMMENT '当前匹配对象ID',
   `manager_id` bigint unsigned DEFAULT '0' COMMENT '归属红娘ID',
   PRIMARY KEY (`id`),
@@ -97,7 +82,7 @@ CREATE TABLE `client` (
   KEY `idx_phone` (`phone`),
   KEY `idx_client_phone` (`phone`),
   KEY `idx_client_manager` (`manager_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=355 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
+) ENGINE=InnoDB AUTO_INCREMENT=356 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
 
 -- ----------------------------
 -- Records of client
@@ -112,7 +97,8 @@ INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `he
 INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (42, '何芳', 2, '13403239666', '1997-09-10', '龙', 158, 54, 4, 2, '丰台区某小区', '父母退休，家庭和睦', 24000, '互联网/IT', 1, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.627', '2026-01-31 22:01:52.627', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
 INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (43, '朱伟', 1, '13016833980', '1995-01-14', '蛇', 174, 81, 2, 2, '海淀区某小区', '父母退休，家庭和睦', 33000, '公务员', 1, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.628', '2026-01-31 22:01:52.628', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
 INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (44, '张娜', 2, '13267655110', '1993-05-22', '猪', 162, 45, 3, 1, '昌平区某小区', '父母退休，家庭和睦', 20000, '企业高管', 2, 1, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.629', '2026-01-31 22:01:52.629', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (141, '朱敏', 2, '13590346602', '1998-02-10', '羊', 166, 58, 3, 1, '东城区某小区', '父母退休，家庭和睦', 20000, '公务员', 2, 1, '', '系统自动生成测试数据', '', '2026-02-01 10:12:53.124', '2026-02-01 10:12:53.124', '', 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (141, '朱敏', 2, '13590346602', '1998-02-10', '羊', 166, 58, 3, 1, '东城区某小区', '父母退休，家庭和睦', 20000, '公务员', 2, 1, '', '系统自动生成测试数据', '', '2026-02-01 10:12:53.124', '2026-02-06 15:22:37.888', '', 1, NULL, NULL, NULL, NULL, '[{\"candidate_id\":1,\"name\":\"何平\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"都有房产\",\"婚史相同\"],\"age\":34,\"height\":180,\"education\":5},{\"candidate_id\":2,\"name\":\"李涛\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"学历相当\",\"都有房产\",\"婚史相同\"],\"age\":32,\"height\":173,\"education\":3},{\"candidate_id\":3,\"name\":\"秦超\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"收入匹配\",\"都有房产\",\"婚史相同\"],\"age\":35,\"height\":173,\"education\":4},{\"candidate_id\":41,\"name\":\"张平\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"年龄相仿\",\"学历相当\",\"都有房产\",\"婚史相同\"],\"age\":27,\"height\":178,\"education\":3},{\"candidate_id\":43,\"name\":\"朱伟\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"年龄相仿\"],\"age\":31,\"height\":174,\"education\":2}]', NULL, 0);
+INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (355, '周芷若', 2, '18612591840', '1993-01', '鸡', 165, 59, 3, 1, '北京市丰台区', '一家三口', 8000, '业务员', 2, 2, '能用就行', '这娃有点东西', '[\"http://www.omiai.cn/uploads/20260206/5ed45e0e-2707-4b4c-a3c0-65228585e082.png\"]', '2026-02-06 10:14:38.585', '2026-02-06 10:14:38.585', 'http://www.omiai.cn/uploads/20260206/fc711277-b56b-4f9a-97c7-47cfca89187c.png', 1, 0, NULL, NULL, '张家口', '', NULL, 0);
 COMMIT;
 
 -- ----------------------------
@@ -153,7 +139,7 @@ CREATE TABLE `match_record` (
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '关系状态 1:相识 2:交往 3:稳定 4:订婚 5:结婚',
   `match_score` int DEFAULT '0' COMMENT '匹配得分',
   `remark` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '备注',
-  `admin_id` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '操作管理员ID',
+  `admin_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '操作管理员ID',
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -192,12 +178,46 @@ BEGIN;
 COMMIT;
 
 -- ----------------------------
+-- Table structure for reminder
+-- ----------------------------
+DROP TABLE IF EXISTS `reminder`;
+CREATE TABLE `reminder` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID（红娘ID）',
+  `type` tinyint NOT NULL DEFAULT '1' COMMENT '提醒类型：1=回访提醒，2=生日提醒，3=纪念日提醒，4=流失预警',
+  `client_id` bigint unsigned DEFAULT NULL COMMENT '关联客户ID',
+  `match_record_id` bigint unsigned DEFAULT NULL COMMENT '关联匹配记录ID（纪念日提醒时用）',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒标题',
+  `content` text COMMENT '提醒内容',
+  `remind_at` datetime NOT NULL COMMENT '提醒时间',
+  `is_read` tinyint NOT NULL DEFAULT '0' COMMENT '是否已读：0=未读，1=已读',
+  `is_done` tinyint NOT NULL DEFAULT '0' COMMENT '是否已完成：0=未完成，1=已完成',
+  `priority` tinyint NOT NULL DEFAULT '2' COMMENT '优先级：1=低，2=中，3=高',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_client_id` (`client_id`),
+  KEY `idx_remind_at` (`remind_at`),
+  KEY `idx_is_done` (`is_done`),
+  KEY `idx_type` (`type`),
+  KEY `idx_user_status` (`user_id`,`is_done`,`remind_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='提醒记录表';
+
+-- ----------------------------
+-- Records of reminder
+-- ----------------------------
+BEGIN;
+COMMIT;
+
+-- ----------------------------
 -- Table structure for user
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '手机号',
+  `password` varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '密码',
   `nickname` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '昵称',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '头像',
   `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'operator' COMMENT '角色 admin/operator',
@@ -213,7 +233,7 @@ CREATE TABLE `user` (
 -- Records of user
 -- ----------------------------
 BEGIN;
-INSERT INTO `user` (`id`, `phone`, `nickname`, `avatar`, `role`, `wx_openid`, `created_at`, `updated_at`) VALUES (1, '18612571940', '管理员', '', 'admin', '', '2026-02-01 18:05:02.005', '2026-02-01 18:05:02.005');
+INSERT INTO `user` (`id`, `phone`, `password`, `nickname`, `avatar`, `role`, `wx_openid`, `created_at`, `updated_at`) VALUES (1, '18612571940', 'e10adc3949ba59abbe56e057f20f883e', '管理员', '', 'admin', '', '2026-02-01 18:05:02.005', '2026-02-01 18:05:02.005');
 COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/md5"
 	"fmt"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	"omiai-server/internal/data"
@@ -27,16 +28,21 @@ func NewController(db *data.DB, user biz_omiai.UserInterface) *Controller {
 	}
 }
 
-type SmsLoginRequest struct {
-	Phone string `json:"phone" binding:"required"`
-	Code  string `json:"code" binding:"required"`
+type PasswordLoginRequest struct {
+	Phone    string `json:"phone" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
 
 type SendSmsRequest struct {
 	Phone string `json:"phone" binding:"required"`
 }
 
-// SendSms 发送验证码
+// SendSms 发送验证码（保留接口但不再用于H5登录）
 func (c *Controller) SendSms(ctx *gin.Context) {
 	var req SendSmsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -63,28 +69,15 @@ func (c *Controller) SendSms(ctx *gin.Context) {
 	response.SuccessResponse(ctx, "验证码已发送", nil)
 }
 
-// H5Login H5 登录 (手机号 + 验证码)
+// H5Login H5 登录 (手机号 + 密码)
 func (c *Controller) H5Login(ctx *gin.Context) {
-	var req SmsLoginRequest
+	var req PasswordLoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.ValidateError(ctx, err, response.ValidateCommonError)
 		return
 	}
 
-	// 1. 验证码校验
-	// 特殊处理测试账号
-	if !(req.Phone == "18612571940" && req.Code == "123456") {
-		codeKey := fmt.Sprintf("sms:code:%s", req.Phone)
-		savedCode := c.Redis.GetClient().Get(ctx, codeKey).Val()
-		if savedCode == "" || savedCode != req.Code {
-			response.ErrorResponse(ctx, response.ParamsCommonError, "验证码错误或已过期")
-			return
-		}
-		// 校验成功后清除验证码
-		c.Redis.GetClient().Del(ctx, codeKey)
-	}
-
-	// 2. 获取或创建用户
+	// 1. 查找用户
 	user, err := c.User.GetByPhone(ctx, req.Phone)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "系统错误")
@@ -92,15 +85,15 @@ func (c *Controller) H5Login(ctx *gin.Context) {
 	}
 
 	if user == nil {
-		user = &biz_omiai.User{
-			Phone:    req.Phone,
-			Nickname: fmt.Sprintf("用户_%s", req.Phone[len(req.Phone)-4:]),
-			Role:     biz_omiai.RoleOperator,
-		}
-		if err := c.User.Create(ctx, user); err != nil {
-			response.ErrorResponse(ctx, response.DBInsertCommonError, "创建用户失败")
-			return
-		}
+		response.ErrorResponse(ctx, response.ParamsCommonError, "手机号或密码错误")
+		return
+	}
+
+	// 2. 验证密码（使用MD5加密对比）
+	encryptedPassword := fmt.Sprintf("%x", md5.Sum([]byte(req.Password)))
+	if user.Password != encryptedPassword {
+		response.ErrorResponse(ctx, response.ParamsCommonError, "手机号或密码错误")
+		return
 	}
 
 	// 3. 生成 Token
@@ -114,6 +107,39 @@ func (c *Controller) H5Login(ctx *gin.Context) {
 		"token": token,
 		"user":  user,
 	})
+}
+
+// ChangePassword 修改密码
+func (c *Controller) ChangePassword(ctx *gin.Context) {
+	var req ChangePasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.ValidateError(ctx, err, response.ValidateCommonError)
+		return
+	}
+
+	userID := ctx.GetUint64("user_id")
+	user, err := c.User.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "用户不存在")
+		return
+	}
+
+	// 验证旧密码
+	oldEncrypted := fmt.Sprintf("%x", md5.Sum([]byte(req.OldPassword)))
+	if user.Password != oldEncrypted {
+		response.ErrorResponse(ctx, response.ParamsCommonError, "原密码错误")
+		return
+	}
+
+	// 更新密码
+	newEncrypted := fmt.Sprintf("%x", md5.Sum([]byte(req.NewPassword)))
+	user.Password = newEncrypted
+	if err := c.User.Update(ctx, user); err != nil {
+		response.ErrorResponse(ctx, response.DBUpdateCommonError, "修改密码失败")
+		return
+	}
+
+	response.SuccessResponse(ctx, "密码修改成功", nil)
 }
 
 type WxLoginRequest struct {

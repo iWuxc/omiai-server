@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"omiai-server/internal/conf"
+	"strings"
 )
 
 // AIAnalyzer AI分析服务
@@ -84,9 +85,49 @@ func (a *AIAnalyzer) AnalyzeMatch(clientA, clientB *ClientProfile) (*MatchAnalys
 
 // buildMatchAnalysisPrompt 构建匹配分析Prompt
 func buildMatchAnalysisPrompt(clientA, clientB *ClientProfile) string {
-	return fmt.Sprintf(`你是一位资深的婚恋顾问，拥有20年的红娘经验。请分析以下两位客户的匹配度，给出专业的分析和建议。
+	return fmt.Sprintf(`【角色设定】
+你是一位资深的婚恋顾问，拥有20年的红娘经验，擅长分析客户的匹配度。
 
-请按以下JSON格式输出你的分析结果：
+【任务】
+分析以下两位客户的匹配度，给出专业的分析和建议。
+
+【客户A资料】
+姓名：%s
+性别：%s
+年龄：%d岁
+身高：%dcm
+学历：%s
+月收入：%d元
+职业：%s
+婚姻状况：%s
+房产情况：%s
+车辆情况：%s
+居住地址：%s
+家庭情况：%s
+择偶要求：%s
+红娘备注：%s
+标签：%s
+
+【客户B资料】
+姓名：%s
+性别：%s
+年龄：%d岁
+身高：%dcm
+学历：%s
+月收入：%d元
+职业：%s
+婚姻状况：%s
+房产情况：%s
+车辆情况：%s
+居住地址：%s
+家庭情况：%s
+择偶要求：%s
+红娘备注：%s
+标签：%s
+
+【输出要求】
+必须严格按以下JSON格式输出，不要添加任何markdown代码块标记，不要有任何解释性文字：
+
 {
   "overall_score": 85,
   "level": "良好匹配",
@@ -109,41 +150,18 @@ func buildMatchAnalysisPrompt(clientA, clientB *ClientProfile) string {
   "success_probability": "根据分析，预测这对客户的成功概率为70%-80%，建议优先推荐。"
 }
 
-客户A资料：
-- 姓名：%s
-- 性别：%s
-- 年龄：%d岁
-- 身高：%dcm
-- 学历：%s
-- 月收入：%d元
-- 职业：%s
-- 婚姻状况：%s
-- 房产情况：%s
-- 车辆情况：%s
-- 居住地址：%s
-- 家庭情况：%s
-- 择偶要求：%s
-- 红娘备注：%s
-- 标签：%s
+【字段说明】
+- overall_score: 总体匹配分数，0-100的整数
+- level: 匹配等级，可选：完美匹配、良好匹配、一般匹配、不太匹配
+- hard_conditions.score: 硬性条件得分，0-100的整数
+- soft_conditions.score: 软性条件得分，0-100的整数
+- risk_points: 风险点数组，没有则填[]
+- advantages: 优势点数组，没有则填[]
+- suggestions: 总体建议，不超过200字
+- ice_breaker_topics: 破冰话题数组，3-5个话题
+- success_probability: 成功概率预测描述
 
-客户B资料：
-- 姓名：%s
-- 性别：%s
-- 年龄：%d岁
-- 身高：%dcm
-- 学历：%s
-- 月收入：%d元
-- 职业：%s
-- 婚姻状况：%s
-- 房产情况：%s
-- 车辆情况：%s
-- 居住地址：%s
-- 家庭情况：%s
-- 择偶要求：%s
-- 红娘备注：%s
-- 标签：%s
-
-请基于你的专业经验，深入分析这两位客户的匹配度，考虑中国传统婚恋观念和现代社会实际情况。只输出JSON格式的结果，不要有任何其他文字。`,
+【重要】只输出JSON，不要任何其他文字！`,
 		clientA.Name, clientA.Gender, clientA.Age, clientA.Height, clientA.Education,
 		clientA.Income, clientA.Profession, clientA.MaritalStatus, clientA.HouseStatus,
 		clientA.CarStatus, clientA.Address, clientA.FamilyDescription,
@@ -234,15 +252,35 @@ func parseAIResponse(response string) (*MatchAnalysisResult, error) {
 
 // cleanJSONResponse 清理AI返回的JSON字符串
 func cleanJSONResponse(response string) string {
-	// 移除Markdown代码块标记
-	response = bytes.NewBufferString(response).String()
-	if idx := bytes.Index([]byte(response), []byte("```json")); idx != -1 {
-		response = response[idx+7:]
+	response = strings.TrimSpace(response)
+
+	// 移除Markdown代码块标记（多种格式）
+	response = strings.ReplaceAll(response, "```json", "")
+	response = strings.ReplaceAll(response, "```JSON", "")
+	response = strings.ReplaceAll(response, "```", "")
+
+	// 移除可能的 "json" 前缀
+	response = strings.TrimPrefix(response, "json")
+
+	// 找到JSON开始的位置（第一个 { 或 [）
+	startIdx := strings.Index(response, "{")
+	if startIdx == -1 {
+		startIdx = strings.Index(response, "[")
 	}
-	if idx := bytes.Index([]byte(response), []byte("```")); idx != -1 {
-		response = response[:idx]
+	if startIdx > 0 {
+		response = response[startIdx:]
 	}
-	return response
+
+	// 找到JSON结束的位置（最后一个 } 或 ]）
+	endIdx := strings.LastIndex(response, "}")
+	if endIdx == -1 {
+		endIdx = strings.LastIndex(response, "]")
+	}
+	if endIdx > 0 && endIdx < len(response)-1 {
+		response = response[:endIdx+1]
+	}
+
+	return strings.TrimSpace(response)
 }
 
 // GenerateIceBreaker 生成破冰话题

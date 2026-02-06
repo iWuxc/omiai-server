@@ -45,6 +45,7 @@ func (r *Router) Register() http.Handler {
 			r.match(authGroup.Group("couples")) // Renamed from "match" to "couples" for V2
 			r.reminder(authGroup.Group("reminders"))
 			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
+			authGroup.POST("/user/change_password", r.AuthController.ChangePassword)
 		}
 	}
 	// Serve static files for uploads
