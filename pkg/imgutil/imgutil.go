@@ -7,9 +7,11 @@ import (
 	"errors"
 	"image"
 	"image/color"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"mime/multipart"
+	"strings"
 
 	"github.com/disintegration/imaging"
 )
@@ -18,18 +20,20 @@ import (
 const (
 	KB           = 1024
 	MB           = 1024 * 1024
+	Limit50MB    = 50 * MB
 	Limit20MB    = 20 * MB
 	Limit5MB     = 5 * MB
 	Limit3MB     = 3 * MB
+	Limit1MB     = 1 * MB
 	Limit500KB   = 500 * KB
 	Limit200KB   = 200 * KB
-	MinPixelSize = 32  // 最小边长像素
+	MinPixelSize = 32   // 最小边长像素
 	MaxEdgeSize  = 1500 // 最大边长像素
 )
 
 var (
-	// ErrOverSingleLimit 超过单张图片上限 20MB
-	ErrOverSingleLimit = errors.New("图片超过单张上限 20MB")
+	// ErrOverSingleLimit 超过单张图片上限 50MB
+	ErrOverSingleLimit = errors.New("图片超过单张上限 50MB")
 	// ErrTooSmall 图片尺寸过小
 	ErrTooSmall = errors.New("图片尺寸不能小于 32x32 像素")
 	// ErrDecodeFailed 图片解码失败
@@ -40,22 +44,24 @@ var (
 
 // ProcessOptions 图片处理选项
 type ProcessOptions struct {
-	MaxWidth    int  // 最大宽度，0表示不限制
-	MaxHeight   int  // 最大高度，0表示不限制
-	Quality     int  // 压缩质量 1-100，PNG忽略此参数
-	MaxFileSize int  // 最大文件大小（字节），0表示不限制
-	MinFileSize int  // 最小文件大小（字节），0表示不限制
-	AutoOrient  bool // 自动校正图片方向
+	MaxWidth     int    // 最大宽度，0表示不限制
+	MaxHeight    int    // 最大高度，0表示不限制
+	Quality      int    // 压缩质量 1-100，PNG忽略此参数
+	MaxFileSize  int    // 最大文件大小（字节），0表示不限制
+	MinFileSize  int    // 最小文件大小（字节），0表示不限制
+	AutoOrient   bool   // 自动校正图片方向
+	TargetFormat string // 目标格式 (png/jpeg)，为空默认 png
 }
 
 // DefaultOptions 默认处理选项（统一输出PNG）
 var DefaultOptions = &ProcessOptions{
-	MaxWidth:    MaxEdgeSize,
-	MaxHeight:   MaxEdgeSize,
-	Quality:     85,
-	MaxFileSize: Limit3MB,
-	MinFileSize: 0,
-	AutoOrient:  true,
+	MaxWidth:     MaxEdgeSize,
+	MaxHeight:    MaxEdgeSize,
+	Quality:      85,
+	MaxFileSize:  Limit3MB,
+	MinFileSize:  0,
+	AutoOrient:   true,
+	TargetFormat: "png",
 }
 
 // ProcessResult 处理结果
@@ -94,7 +100,7 @@ func ProcessFromBytes(data []byte, opts *ProcessOptions) (*ProcessResult, error)
 	originSize := len(data)
 
 	// 检查原始大小限制
-	if originSize > Limit20MB {
+	if originSize > Limit50MB {
 		return nil, ErrOverSingleLimit
 	}
 
@@ -128,7 +134,7 @@ func ProcessFromBytes(data []byte, opts *ProcessOptions) (*ProcessResult, error)
 }
 
 // smartCompress 智能压缩策略
-// 统一输出 PNG 格式
+// 支持 PNG/JPEG 格式
 func smartCompress(img image.Image, opts *ProcessOptions, originSize int) (*ProcessResult, error) {
 	bounds := img.Bounds()
 	width, height := bounds.Dx(), bounds.Dy()
@@ -154,20 +160,42 @@ func smartCompress(img image.Image, opts *ProcessOptions, originSize int) (*Proc
 		}
 	}
 
-	// 第二阶段：PNG 编码（质量优先）
-	// PNG 是无损格式，通过调整压缩级别控制大小
-	buf := new(bytes.Buffer)
-	encoder := &png.Encoder{
-		CompressionLevel: png.BestCompression, // 最高压缩级别
+	// 确定输出格式
+	format := strings.ToLower(opts.TargetFormat)
+	if format == "" {
+		format = "png"
+	}
+	// 归一化格式名称
+	if format == "jpg" {
+		format = "jpeg"
 	}
 
-	if err := encoder.Encode(buf, img); err != nil {
-		return nil, ErrEncodeFailed
+	buf := new(bytes.Buffer)
+
+	// 第二阶段：编码（质量优先）
+	if format == "jpeg" {
+		// JPEG 编码
+		quality := opts.Quality
+		if quality == 0 {
+			quality = 85
+		}
+		if err := jpeg.Encode(buf, img, &jpeg.Options{Quality: quality}); err != nil {
+			return nil, ErrEncodeFailed
+		}
+	} else {
+		// PNG 编码 (默认)
+		// PNG 是无损格式，通过调整压缩级别控制大小
+		encoder := &png.Encoder{
+			CompressionLevel: png.BestCompression, // 最高压缩级别
+		}
+		if err := encoder.Encode(buf, img); err != nil {
+			return nil, ErrEncodeFailed
+		}
 	}
 
 	// 第三阶段：如果文件仍然过大，进行降级处理
 	if opts.MaxFileSize > 0 && buf.Len() > opts.MaxFileSize {
-		buf = downgradeCompress(img, opts.MaxFileSize)
+		buf = downgradeCompress(img, opts.MaxFileSize, format)
 	}
 
 	// 更新尺寸信息
@@ -177,20 +205,20 @@ func smartCompress(img image.Image, opts *ProcessOptions, originSize int) (*Proc
 		Data:      buf,
 		Width:     bounds.Dx(),
 		Height:    bounds.Dy(),
-		Format:    "png",
+		Format:    format,
 		FinalSize: buf.Len(),
 	}, nil
 }
 
 // downgradeCompress 降级压缩策略
-// 当 PNG 过大时，通过降低尺寸来减小文件大小
-func downgradeCompress(img image.Image, maxSize int) *bytes.Buffer {
+// 当图片过大时，通过降低尺寸来减小文件大小
+func downgradeCompress(img image.Image, maxSize int, format string) *bytes.Buffer {
 	bounds := img.Bounds()
 	width, height := bounds.Dx(), bounds.Dy()
 	maxEdge := max(width, height)
 
 	// 逐步降低尺寸直到满足大小要求
-	sizes := []int{1200, 1000, 800, 600}
+	sizes := []int{1200, 1000, 800, 600, 400}
 	for _, targetSize := range sizes {
 		if maxEdge <= targetSize {
 			continue
@@ -204,17 +232,31 @@ func downgradeCompress(img image.Image, maxSize int) *bytes.Buffer {
 		}
 
 		buf := new(bytes.Buffer)
-		encoder := &png.Encoder{
-			CompressionLevel: png.BestCompression,
-		}
-		if err := encoder.Encode(buf, resized); err == nil && buf.Len() <= maxSize {
-			return buf
+
+		if format == "jpeg" {
+			// JPEG 降级时尝试降低质量
+			if err := jpeg.Encode(buf, resized, &jpeg.Options{Quality: 80}); err == nil && buf.Len() <= maxSize {
+				return buf
+			}
+		} else {
+			// PNG
+			encoder := &png.Encoder{
+				CompressionLevel: png.BestCompression,
+			}
+			if err := encoder.Encode(buf, resized); err == nil && buf.Len() <= maxSize {
+				return buf
+			}
 		}
 	}
 
-	// 如果仍不满足，返回最后一次尝试的结果
+	// 如果仍不满足，返回最后一次尝试的结果 (400px 或更小)
+	// 再次尝试强力压缩
 	buf := new(bytes.Buffer)
-	png.Encode(buf, img)
+	if format == "jpeg" {
+		jpeg.Encode(buf, img, &jpeg.Options{Quality: 60})
+	} else {
+		png.Encode(buf, img)
+	}
 	return buf
 }
 

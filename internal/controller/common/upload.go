@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	MaxUploadSize = 5 * 1024 * 1024 // 5MB
+	MaxUploadSize = 50 * 1024 * 1024 // 50MB
 )
 
 var AllowedExtensions = map[string]bool{
@@ -76,7 +76,7 @@ func (c *Controller) Upload(ctx *gin.Context) {
 
 	// 1. Validate File Size
 	if file.Size > MaxUploadSize {
-		response.ErrorResponse(ctx, response.ParamsCommonError, "文件大小不能超过5MB")
+		response.ErrorResponse(ctx, response.ParamsCommonError, "文件大小不能超过50MB")
 		return
 	}
 
@@ -103,7 +103,7 @@ func (c *Controller) Upload(ctx *gin.Context) {
 
 	if IsImageFile(file.Filename) {
 		log.Infof("Processing image: %s", file.Filename)
-		
+
 		// 处理图片（统一输出 PNG）
 		result, err := imgutil.ProcessUpload(src, file)
 		if err != nil {
@@ -112,17 +112,24 @@ func (c *Controller) Upload(ctx *gin.Context) {
 			return
 		}
 
-		log.Infof("Image processed: %d bytes -> %d bytes, dimensions: %dx%d",
-			result.OriginSize, result.FinalSize, result.Width, result.Height)
+		log.Infof("Image processed: %d bytes -> %d bytes, dimensions: %dx%d, format: %s",
+			result.OriginSize, result.FinalSize, result.Width, result.Height, result.Format)
 
 		uploadReader = result.Data
-		finalExt = ".png"
-		contentType = "image/png"
+
+		// 根据处理结果设置最终格式
+		if result.Format == "jpeg" || result.Format == "jpg" {
+			finalExt = ".jpg"
+			contentType = "image/jpeg"
+		} else {
+			finalExt = ".png"
+			contentType = "image/png"
+		}
 	} else {
 		contentType = GetContentType(file.Filename)
 	}
 
-	// 5. Generate New Filename/Key (强制使用 .png 后缀)
+	// 5. Generate New Filename/Key
 	key := fmt.Sprintf("uploads/%s/%s%s", time.Now().Format("20060102"), uuid.New().String(), finalExt)
 
 	log.Infof("Uploading file: %s, Content-Type: %s", key, contentType)

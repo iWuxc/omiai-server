@@ -6,16 +6,18 @@ import (
 	"bytes"
 	"io"
 	"mime/multipart"
+	"path/filepath"
+	"strings"
 )
 
 // UploadProcessResult 上传处理结果
 type UploadProcessResult struct {
-	Data      *bytes.Buffer // 处理后的图片数据
-	Format    string        // 输出格式（统一为png）
-	OriginSize int          // 原始大小
-	FinalSize  int          // 处理后大小
-	Width     int           // 宽度
-	Height    int           // 高度
+	Data       *bytes.Buffer // 处理后的图片数据
+	Format     string        // 输出格式（统一为png）
+	OriginSize int           // 原始大小
+	FinalSize  int           // 处理后大小
+	Width      int           // 宽度
+	Height     int           // 高度
 }
 
 // ProcessUpload 处理上传文件（统一输出PNG）
@@ -23,6 +25,19 @@ type UploadProcessResult struct {
 func ProcessUpload(file multipart.File, header *multipart.FileHeader) (*UploadProcessResult, error) {
 	// 根据原始文件大小选择不同的压缩策略
 	opts := determineProcessOptions(header.Size)
+
+	// 根据文件扩展名优化压缩格式
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if ext == ".jpg" || ext == ".jpeg" {
+		opts.TargetFormat = "jpeg"
+		// 如果是 JPEG，适当放宽尺寸限制，因为 JPEG 压缩率更高
+		if opts.MaxWidth < 1500 && opts.MaxWidth > 0 {
+			opts.MaxWidth = 1500
+			opts.MaxHeight = 1500
+		}
+	} else {
+		opts.TargetFormat = "png"
+	}
 
 	result, err := ProcessFromMultipart(file, opts)
 	if err != nil {
@@ -185,11 +200,11 @@ func determineProcessOptions(originSize int64) *ProcessOptions {
 			AutoOrient:  true,
 		}
 	default:
-		// 超大图：严格限制
+		// 超大图（>3MB）：严格限制在 1MB 以内
 		return &ProcessOptions{
-			MaxWidth:    MaxEdgeSize,
-			MaxHeight:   MaxEdgeSize,
-			MaxFileSize: Limit3MB,
+			MaxWidth:    1200, // 降低最大边长起始值
+			MaxHeight:   1200,
+			MaxFileSize: Limit1MB, // 目标大小 1MB
 			AutoOrient:  true,
 		}
 	}
