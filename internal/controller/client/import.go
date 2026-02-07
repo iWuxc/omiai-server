@@ -73,24 +73,43 @@ func (c *Controller) ImportBatch(ctx *gin.Context) {
 		}
 
 		client := &biz_omiai.Client{
-			Name:                record.Name,
-			Gender:              record.Gender,
-			Phone:               record.Phone,
-			Birthday:            record.Birthday,
-			Height:              record.Height,
-			Weight:              record.Weight,
-			Education:           record.Education,
-			MaritalStatus:       record.MaritalStatus,
-			Income:              record.Income,
-			Address:             record.Address,
-			Profession:          record.Profession,
-			HouseStatus:         record.HouseStatus,
-			CarStatus:           record.CarStatus,
+			// 基础信息
+			Name:     record.Name,
+			Gender:   record.Gender,
+			Phone:    record.Phone,
+			Birthday: record.Birthday,
+			Age:      record.Age,
+			Zodiac:   record.Zodiac,
+
+			// 身体特征
+			Height: record.Height,
+			Weight: record.Weight,
+
+			// 教育婚姻
+			Education:     record.Education,
+			MaritalStatus: record.MaritalStatus,
+
+			// 工作收入
+			Profession: record.Profession,
+			WorkCity:   record.WorkCity,
+			Income:     record.Income,
+
+			// 房产车辆
+			HouseStatus:  record.HouseStatus,
+			HouseAddress: record.HouseAddress,
+			CarStatus:    record.CarStatus,
+
+			// 家庭信息
+			Address:           record.Address,
+			FamilyDescription: record.FamilyDescription,
+
+			// 择偶相关
 			PartnerRequirements: record.PartnerRequirements,
-			// ManagerID:           currentUserID, // Import to current user's private pool
-			// IsPublic:            true, // Phase 1 adjustment: Default to public since single user mode
+			ParentsProfession:   record.ParentsProfession,
+
+			// 备注
+			Remark: record.Remark,
 			Status: 1, // Default single
-			Remark: "批量导入数据",
 		}
 
 		// Check if manager_id column exists (Dynamic adaptation for different DB versions)

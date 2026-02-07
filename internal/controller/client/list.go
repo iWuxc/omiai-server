@@ -67,6 +67,10 @@ func (c *Controller) List(ctx *gin.Context) {
 		clause.Where += " AND profession LIKE ?"
 		clause.Args = append(clause.Args, "%"+req.Profession+"%")
 	}
+	if req.WorkCity != "" {
+		clause.Where += " AND work_city LIKE ?"
+		clause.Args = append(clause.Args, "%"+req.WorkCity+"%")
+	}
 	if req.MaritalStatus > 0 {
 		clause.Where += " AND marital_status = ?"
 		clause.Args = append(clause.Args, req.MaritalStatus)
@@ -155,6 +159,7 @@ func (c *Controller) List(ctx *gin.Context) {
 			FamilyDescription:   v.FamilyDescription,
 			Income:              v.Income,
 			Profession:          v.Profession,
+			WorkCity:            v.WorkCity,
 			HouseStatus:         v.HouseStatus,
 			HouseAddress:        v.HouseAddress,
 			CarStatus:           v.CarStatus,

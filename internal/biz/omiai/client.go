@@ -24,6 +24,7 @@ type Client struct {
 	FamilyDescription   string    `json:"family_description" gorm:"column:family_description;type:text;comment:家庭成员描述"`
 	Income              int       `json:"income" gorm:"column:income;comment:月收入"`
 	Profession          string    `json:"profession" gorm:"column:profession;size:128;comment:具体工作"`
+	WorkCity            string    `json:"work_city" gorm:"column:work_city;size:128;comment:工作城市"`
 	HouseStatus         int8      `json:"house_status" gorm:"column:house_status;comment:房产情况 1无房 2已购房 3贷款购房"`
 	HouseAddress        string    `json:"house_address" gorm:"column:house_address;size:255;comment:买房地址"`
 	CarStatus           int8      `json:"car_status" gorm:"column:car_status;comment:车辆情况 1无车 2有车"`
@@ -34,8 +35,9 @@ type Client struct {
 	IsPublic            bool      `json:"is_public" gorm:"column:is_public;default:true;index;comment:是否公海;-"`
 	Tags                string    `json:"tags" gorm:"column:tags;type:text;comment:标签列表(JSON);-"`
 	PartnerRequirements string    `json:"partner_requirements" gorm:"column:partner_requirements;type:text;comment:对另一半要求(JSON)"`
+	ParentsProfession   string    `json:"parents_profession" gorm:"column:parents_profession;size:255;comment:父母工作"`
 	Remark              string    `json:"remark" gorm:"column:remark;type:text;comment:红娘备注"`
-	Photos              string    `json:"photos" gorm:"column:photos;type:text;comment:照片URL列表(JSON)"`
+	Photos              string    `json:"photos" gorm:"column:photos;type:text;comment:照片URL列表(JSON)`
 	CandidateCacheJSON  string    `json:"candidate_cache_json" gorm:"column:candidate_cache_json;type:text;comment:算法初筛结果缓存"`
 	CreatedAt           time.Time `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt           time.Time `json:"updated_at" gorm:"column:updated_at"`

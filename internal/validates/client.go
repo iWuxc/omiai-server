@@ -70,6 +70,7 @@ type ClientListValidate struct {
 	MaritalStatus int8   `json:"marital_status" form:"marital_status"` // 婚姻状况
 	HouseStatus   int8   `json:"house_status" form:"house_status"`     // 房产情况
 	CarStatus     int8   `json:"car_status" form:"car_status"`         // 车辆情况
+	WorkCity      string `json:"work_city" form:"work_city"`           // 工作城市
 }
 
 type ClientDetailValidate struct {
