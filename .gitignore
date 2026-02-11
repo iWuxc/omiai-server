@@ -13,6 +13,7 @@ coverage.out
 *.swp
 .env
 omiai-miniapp/
+omiai-admin/
 configs/config.yaml
 server
 seeder
