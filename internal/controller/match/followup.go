@@ -74,11 +74,32 @@ func parseTime(val string) (time.Time, error) {
 func (c *Controller) ListFollowUps(ctx *gin.Context) {
 	idStr := ctx.Query("match_record_id")
 	if idStr == "" {
-		response.ErrorResponse(ctx, response.ParamsCommonError, "参数错误")
+		// 如果没有提供match_record_id，返回所有跟进记录
+		page := 1
+		pageSize := 20
+		if p := ctx.Query("page"); p != "" {
+			fmt.Sscanf(p, "%d", &page)
+		}
+		if ps := ctx.Query("page_size"); ps != "" {
+			fmt.Sscanf(ps, "%d", &pageSize)
+		}
+		offset := (page - 1) * pageSize
+
+		list, err := c.match.SelectAllFollowUps(ctx, offset, pageSize)
+		if err != nil {
+			response.ErrorResponse(ctx, response.DBSelectCommonError, "查询失败")
+			return
+		}
+
+		response.SuccessResponse(ctx, "ok", gin.H{
+			"list":  list,
+			"total": len(list),
+			"page":  page,
+		})
 		return
 	}
 
-	// In a real app, use a proper parser
+	// 根据 match_record_id 查询
 	var id uint64
 	fmt.Sscanf(idStr, "%d", &id)
 

@@ -380,6 +380,18 @@ func (r *MatchRepo) SelectFollowUps(ctx context.Context, matchRecordID uint64) (
 	return list, err
 }
 
+func (r *MatchRepo) SelectAllFollowUps(ctx context.Context, offset, limit int) ([]*biz_omiai.FollowUpRecord, error) {
+	var list []*biz_omiai.FollowUpRecord
+	err := r.db.WithContext(ctx).
+		Order("follow_up_date desc").
+		Offset(offset).
+		Limit(limit).
+		Preload("MatchRecord.MaleClient").
+		Preload("MatchRecord.FemaleClient").
+		Find(&list).Error
+	return list, err
+}
+
 func (r *MatchRepo) GetReminders(ctx context.Context) ([]*biz_omiai.MatchRecord, error) {
 	var list []*biz_omiai.MatchRecord
 	now := time.Now()

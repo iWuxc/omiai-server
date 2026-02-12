@@ -122,6 +122,7 @@ type MatchInterface interface {
 	// 回访相关
 	CreateFollowUp(ctx context.Context, record *FollowUpRecord) error
 	SelectFollowUps(ctx context.Context, matchRecordID uint64) ([]*FollowUpRecord, error)
+	SelectAllFollowUps(ctx context.Context, offset, limit int) ([]*FollowUpRecord, error)
 	GetReminders(ctx context.Context) ([]*MatchRecord, error)
 
 	// 统计分析
