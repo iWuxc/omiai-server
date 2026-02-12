@@ -7,6 +7,7 @@ import (
 	"omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
+	"omiai-server/internal/controller/dashboard"
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/data"
@@ -26,6 +27,7 @@ type Router struct {
 	BannerController   *banner.Controller
 	ClientController   *client.Controller
 	CommonController   *common.Controller
+	DashboardController *dashboard.Controller
 	MatchController    *match.Controller
 	ReminderController *reminder.Controller
 }
@@ -42,8 +44,11 @@ func (r *Router) Register() http.Handler {
 			r.banner(authGroup.Group("banner"))
 			r.client(authGroup.Group("clients")) // Renamed from "client" to "clients" for V2
 			r.common(authGroup.Group("common"))
+			r.dashboard(authGroup.Group("dashboard"))
 			r.match(authGroup.Group("couples")) // Renamed from "match" to "couples" for V2
 			r.reminder(authGroup.Group("reminders"))
+			// 认证相关接口（需要登录）
+			authGroup.GET("/auth/codes", r.AuthController.GetAccessCodes)
 			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
 			authGroup.POST("/user/change_password", r.AuthController.ChangePassword)
 		}
@@ -67,6 +72,13 @@ func (r *Router) ai(g *gin.RouterGroup) {
 
 func (r *Router) common(g *gin.RouterGroup) {
 	g.POST("/upload", r.CommonController.Upload)
+}
+
+func (r *Router) dashboard(g *gin.RouterGroup) {
+	g.GET("/stats", r.DashboardController.Stats)
+	g.GET("/todos", r.DashboardController.GetTodos)
+	g.GET("/chart/client", r.DashboardController.ClientTrend)
+	g.GET("/chart/match", r.DashboardController.MatchTrend)
 }
 
 func (r *Router) match(g *gin.RouterGroup) {

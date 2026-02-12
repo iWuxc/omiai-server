@@ -75,4 +75,8 @@ type ClientInterface interface {
 	Delete(ctx context.Context, id uint64) error
 	Get(ctx context.Context, id uint64) (*Client, error)
 	Stats(ctx context.Context) (map[string]int64, error)
+	
+	// Dashboard 相关
+	GetDashboardStats(ctx context.Context) (map[string]int64, error)
+	GetClientTrend(ctx context.Context, days int) (map[string]interface{}, error)
 }

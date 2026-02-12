@@ -126,4 +126,5 @@ type MatchInterface interface {
 
 	// 统计分析
 	Stats(ctx context.Context) (map[string]interface{}, error)
+	GetMatchTrend(ctx context.Context, days int) (map[string]interface{}, error)
 }

@@ -7,6 +7,7 @@ import (
 	"omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
+	"omiai-server/internal/controller/dashboard"
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 
@@ -20,6 +21,7 @@ var ProviderController = wire.NewSet(
 	banner.NewController,
 	client.NewController,
 	common.NewController,
+	dashboard.NewController,
 	match.NewController,
 	reminder.NewController,
 )

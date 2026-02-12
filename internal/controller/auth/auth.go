@@ -104,8 +104,8 @@ func (c *Controller) H5Login(ctx *gin.Context) {
 	}
 
 	response.SuccessResponse(ctx, "登录成功", map[string]interface{}{
-		"token": token,
-		"user":  user,
+		"accessToken": token,
+		"user":       user,
 	})
 }
 
@@ -184,8 +184,8 @@ func (c *Controller) WxLogin(ctx *gin.Context) {
 	}
 
 	response.SuccessResponse(ctx, "登录成功", map[string]interface{}{
-		"token": token,
-		"user":  user,
+		"accessToken": token,
+		"user":       user,
 	})
 }
 
@@ -199,4 +199,32 @@ func (c *Controller) GetUserInfo(ctx *gin.Context) {
 	}
 
 	response.SuccessResponse(ctx, "ok", user)
+}
+
+// GetAccessCodes 获取用户权限码
+func (c *Controller) GetAccessCodes(ctx *gin.Context) {
+	userID := ctx.GetUint64("user_id")
+	user, err := c.User.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "用户不存在")
+		return
+	}
+
+	// 根据角色返回权限码
+	var codes []string
+	switch user.Role {
+	case biz_omiai.RoleAdmin:
+		codes = []string{"*"} // 管理员拥有所有权限
+	case biz_omiai.RoleOperator:
+		codes = []string{
+			"client:view", "client:create", "client:update", "client:delete",
+			"match:view", "match:create", "match:update", "match:delete",
+			"reminder:view", "reminder:update", "reminder:delete",
+			"banner:view", "banner:create", "banner:update", "banner:delete",
+		}
+	default:
+		codes = []string{}
+	}
+
+	response.SuccessResponse(ctx, "ok", codes)
 }
