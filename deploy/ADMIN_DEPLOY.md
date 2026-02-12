@@ -4,6 +4,24 @@
 
 Admin 后台已集成到一键部署流程中，与后端服务和 H5 前端一起部署。
 
+## 仓库结构
+
+```
+├── omiai-server (主仓库)
+│   ├── .github/workflows/deploy.yml  # 部署配置
+│   ├── Dockerfile                    # 后端 Dockerfile
+│   └── ...
+│
+├── omiai-miniapp (独立仓库)          # H5 前端
+│   ├── Dockerfile
+│   └── ...
+│
+└── omiai-admin (独立仓库)            # Admin 后台
+    ├── Dockerfile                    # Admin Dockerfile
+    ├── apps/web-antd/nginx.conf      # Nginx 配置
+    └── ...
+```
+
 ## 架构
 
 ```
@@ -15,6 +33,33 @@ Admin 后台已集成到一键部署流程中，与后端服务和 H5 前端一�
 │  /*         →  omiai-frontend:80 (H5前端)                    │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## GitHub Actions 配置
+
+### 必需的 Secrets
+
+在 `omiai-server` 仓库的 Settings → Secrets and variables → Actions 中配置：
+
+| Secret 名称 | 说明 |
+|------------|------|
+| `GH_PAT` | GitHub Personal Access Token (访问 omiai-admin 仓库) |
+| `SERVER_HOST` | 服务器地址 |
+| `SERVER_USER` | 服务器用户名 |
+| `SERVER_SSH_KEY` | SSH 私钥 |
+| `DB_PASSWORD` | 数据库密码 |
+| `REDIS_PASSWORD` | Redis 密码 |
+| 其他 Secrets... | 参考原有配置 |
+
+### 创建 GH_PAT
+
+1. 访问 GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. 点击 "Generate new token (classic)"
+3. 勾选权限：
+   - `repo` (完整仓库访问权限)
+   - `read:packages`
+   - `write:packages`
+4. 生成并复制 Token
+5. 在 `omiai-server` 仓库的 Secrets 中添加 `GH_PAT`
 
 ## 服务端口
 
@@ -32,34 +77,19 @@ Admin 后台已集成到一键部署流程中，与后端服务和 H5 前端一�
 - **Admin 后台**: http://www.omiai.cn/admin/
 - **API 接口**: http://www.omiai.cn/api/
 
-## 部署方式
+## 部署触发
 
-### 自动部署 (推荐)
+### 自动部署
 
-推送到 `main` 分支后，GitHub Actions 会自动：
+推送到以下仓库的 `main` 分支会触发部署：
 
-1. 构建后端服务镜像 (`ghcr.io/owner/omiai-server:latest`)
-2. 构建 H5 前端镜像 (`ghcr.io/owner/omiai-server-web:latest`)
-3. 构建 Admin 后台镜像 (`ghcr.io/owner/omiai-server-admin:latest`)
-4. 部署到服务器
+1. `omiai-server` - 触发完整部署
+2. `omiai-miniapp` - 通过 `repository_dispatch` 触发
+3. `omiai-admin` - 通过 `repository_dispatch` 触发
 
 ### 手动部署
 
-```bash
-# 1. 构建 Admin 镜像
-cd omiai-admin
-docker build -t omiai-admin:latest .
-
-# 2. 运行容器
-docker run -d \
-  --name omiai-admin \
-  -p 10081:80 \
-  --network omiai-network \
-  omiai-admin:latest
-
-# 3. 更新 Nginx 配置
-# 添加 /admin/ 路由到 omiai-admin:80
-```
+在 GitHub Actions 页面点击 "Run workflow"
 
 ## 本地开发
 
@@ -76,31 +106,19 @@ pnpm dev:antd
 pnpm build:antd
 ```
 
-## 环境变量
+## 本地测试 Docker 构建
 
-### 构建时环境变量
+```bash
+cd omiai-admin
 
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| VITE_API_BASE_URL | API 基础地址 | /api |
-| VITE_APP_TITLE | 应用标题 | Omiai Admin |
+# 构建 Docker 镜像
+docker build -t omiai-admin:test .
 
-### 运行时配置
+# 本地运行测试
+docker run -d -p 10081:80 --name omiai-admin-test omiai-admin:test
 
-Admin 容器内的 Nginx 会自动代理 `/api/` 请求到后端服务。
-
-## 文件结构
-
-```
-omiai-admin/
-├── Dockerfile              # Docker 构建文件
-├── .dockerignore          # Docker 忽略文件
-├── apps/
-│   └── web-antd/
-│       ├── nginx.conf     # Nginx 配置
-│       ├── .env.production # 生产环境变量
-│       └── ...
-└── ...
+# 访问测试
+open http://localhost:10081
 ```
 
 ## 故障排查
@@ -123,13 +141,22 @@ docker exec -it omiai-admin sh
 docker exec omiai-admin nginx -t
 ```
 
-## 更新部署
+### 常见问题
 
-```bash
-# 拉取最新镜像
-docker pull ghcr.io/owner/omiai-server-admin:latest
+#### 1. `path "./omiai-admin" not found`
 
-# 重启服务
-cd /data/omiai-server/deploy
-docker compose -f docker-compose.prod.yml up -d admin
-```
+**原因**: `omiai-admin` 仓库访问权限问题
+
+**解决**: 确保 `GH_PAT` Secret 已正确配置，且 Token 有 `repo` 权限
+
+#### 2. API 请求 404
+
+**原因**: Nginx 代理配置问题
+
+**解决**: 检查 `apps/web-antd/nginx.conf` 中的 API 代理配置
+
+#### 3. 页面空白
+
+**原因**: 路由模式或构建问题
+
+**解决**: 检查 `.env.production` 中的 `VITE_ROUTER_HISTORY=history`
