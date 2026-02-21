@@ -148,7 +148,7 @@ func (c *Controller) List(ctx *gin.Context) {
 			Gender:              v.Gender,
 			Phone:               v.Phone,
 			Birthday:            v.Birthday,
-			Age:                 CalculateAge(v.Birthday),
+			Age:                 v.RealAge(), // 优先使用存储的 Age
 			Avatar:              v.Avatar, // Mock avatar
 			Zodiac:              v.Zodiac,
 			Height:              v.Height,

@@ -20,16 +20,16 @@ import (
 // Router .
 type Router struct {
 	*gin.Engine
-	DB                 *data.DB
-	Redis              *redis.Redis
-	AIController       *ai.Controller
-	AuthController     *auth.Controller
-	BannerController   *banner.Controller
-	ClientController   *client.Controller
-	CommonController   *common.Controller
+	DB                  *data.DB
+	Redis               *redis.Redis
+	AIController        *ai.Controller
+	AuthController      *auth.Controller
+	BannerController    *banner.Controller
+	ClientController    *client.Controller
+	CommonController    *common.Controller
 	DashboardController *dashboard.Controller
-	MatchController    *match.Controller
-	ReminderController *reminder.Controller
+	MatchController     *match.Controller
+	ReminderController  *reminder.Controller
 }
 
 func (r *Router) Register() http.Handler {
@@ -77,8 +77,6 @@ func (r *Router) common(g *gin.RouterGroup) {
 func (r *Router) dashboard(g *gin.RouterGroup) {
 	g.GET("/stats", r.DashboardController.Stats)
 	g.GET("/todos", r.DashboardController.GetTodos)
-	g.GET("/chart/client", r.DashboardController.ClientTrend)
-	g.GET("/chart/match", r.DashboardController.MatchTrend)
 }
 
 func (r *Router) match(g *gin.RouterGroup) {

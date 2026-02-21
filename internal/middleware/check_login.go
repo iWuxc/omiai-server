@@ -28,7 +28,7 @@ func Authorization(db *data.DB, redis *redis.Redis) gin.HandlerFunc {
 
 		claims, err := auth.ParseToken(parts[1])
 		if err != nil {
-			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "登录已失效")
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "登录已过期，请重新登录")
 			c.Abort()
 			return
 		}

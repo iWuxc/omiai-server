@@ -14,24 +14,24 @@ omiai-admin 管理后台存在多个功能无法使用的问题，需要修复�
 - **新增文件**: `internal/controller/dashboard/dashboard.go`
   - `Stats()` - 获取仪表盘统计数据
   - `GetTodos()` - 获取待办事项
-  - `ClientTrend()` - 获取客户增长趋势
-  - `MatchTrend()` - 获取撮合增长趋势
+  - `ClientTrend()` - 获取客户增长趋势 (已移除)
+  - `MatchTrend()` - 获取撮合增长趋势 (已移除)
 
 #### Biz 层接口扩展
 - **`internal/biz/omiai/client.go`**:
   - 添加 `GetDashboardStats()` - 获取仪表盘客户统计
-  - 添加 `GetClientTrend()` - 获取客户趋势数据
+  - 添加 `GetClientTrend()` - 获取客户趋势数据 (已移除)
 
 - **`internal/biz/omiai/match.go`**:
-  - 添加 `GetMatchTrend()` - 获取撮合趋势数据
+  - 添加 `GetMatchTrend()` - 获取撮合趋势数据 (已移除)
 
 #### Data 层实现
 - **`internal/data/omiai/client.go`**:
   - `GetDashboardStats()` - 实现客户统计查询（总数、今日新增、本月新增）
-  - `GetClientTrend()` - 实现客户趋势统计（按日期分组）
+  - `GetClientTrend()` - 实现客户趋势统计（按日期分组） (已移除)
 
 - **`internal/data/omiai/match.go`**:
-  - `GetMatchTrend()` - 实现撮合趋势统计（按日期分组）
+  - `GetMatchTrend()` - 实现撮合趋势统计（按日期分组） (已移除)
 
 #### 路由注册
 - **`internal/server/router.go`**:
@@ -40,8 +40,8 @@ omiai-admin 管理后台存在多个功能无法使用的问题，需要修复�
   - 注册 dashboard 路由：
     - `GET /api/dashboard/stats` - 统计数据
     - `GET /api/dashboard/todos` - 待办事项
-    - `GET /api/dashboard/chart/client` - 客户趋势
-    - `GET /api/dashboard/chart/match` - 撮合趋势
+    - `GET /api/dashboard/chart/client` - 客户趋势 (已移除)
+    - `GET /api/dashboard/chart/match` - 撮合趋势 (已移除)
 
 #### 依赖注入
 - **`internal/controller/controller.go`**:
@@ -55,8 +55,8 @@ omiai-admin 管理后台存在多个功能无法使用的问题，需要修复�
 |---------|---------|------|
 | `/dashboard/stats` | `GET /api/dashboard/stats` | ✅ 已实现 |
 | `/dashboard/todos` | `GET /api/dashboard/todos` | ✅ 已实现 |
-| `/dashboard/chart/client?days=30` | `GET /api/dashboard/chart/client` | ✅ 已实现 |
-| `/dashboard/chart/match?days=30` | `GET /api/dashboard/chart/match` | ✅ 已实现 |
+| `/dashboard/chart/client?days=30` | `GET /api/dashboard/chart/client` | ❌ 已移除 |
+| `/dashboard/chart/match?days=30` | `GET /api/dashboard/chart/match` | ❌ 已移除 |
 
 ---
 

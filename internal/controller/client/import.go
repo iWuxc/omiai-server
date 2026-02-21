@@ -91,7 +91,9 @@ func (c *Controller) ImportBatch(ctx *gin.Context) {
 
 			// 工作收入
 			Profession: record.Profession,
+			WorkUnit:   record.WorkUnit,
 			WorkCity:   record.WorkCity,
+			Position:   record.Position,
 			Income:     record.Income,
 
 			// 房产车辆

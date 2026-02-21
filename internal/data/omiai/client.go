@@ -54,7 +54,7 @@ func (c *ClientRepo) Get(ctx context.Context, id uint64) (*biz_omiai.Client, err
 
 func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
-	
+
 	// 客户总数
 	var total int64
 	if err := c.db.WithContext(ctx).Model(c.m).Count(&total).Error; err != nil {
@@ -77,7 +77,7 @@ func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 		return nil, err
 	}
 	stats["pending"] = pending
-	
+
 	// 已匹配客户数
 	var matched int64
 	if err := c.db.WithContext(ctx).Model(c.m).Where("status = ?", biz_omiai.ClientStatusMatched).Count(&matched).Error; err != nil {
@@ -91,14 +91,14 @@ func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
 	now := time.Now()
-	
+
 	// 客户总数
 	var total int64
 	if err := c.db.WithContext(ctx).Model(c.m).Count(&total).Error; err != nil {
 		return nil, err
 	}
 	stats["client_total"] = total
-	
+
 	// 今日新增
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	var today int64
@@ -106,7 +106,7 @@ func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, e
 		return nil, err
 	}
 	stats["client_today"] = today
-	
+
 	// 本月新增
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 	var month int64
@@ -116,52 +116,4 @@ func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, e
 	stats["client_month"] = month
 
 	return stats, nil
-}
-
-func (c *ClientRepo) GetClientTrend(ctx context.Context, days int) (map[string]interface{}, error) {
-	result := make(map[string]interface{})
-	
-	// 按日期统计每日新增
-	type TrendResult struct {
-		Date  string `gorm:"column:date"`
-		Count int64  `gorm:"column:count"`
-	}
-	
-	var trends []TrendResult
-	now := time.Now()
-	startDate := now.AddDate(0, 0, -days)
-	
-	err := c.db.WithContext(ctx).Raw(`
-		SELECT DATE(created_at) as date, COUNT(*) as count 
-		FROM client 
-		WHERE created_at >= ? 
-		GROUP BY DATE(created_at) 
-		ORDER BY date ASC
-	`, startDate).Scan(&trends).Error
-	
-	if err != nil {
-		return nil, err
-	}
-	
-	// 构建日期和数值数组
-	dates := make([]string, 0, days)
-	values := make([]int64, 0, days)
-	
-	// 补全所有日期
-	dateMap := make(map[string]int64)
-	for _, t := range trends {
-		dateMap[t.Date] = t.Count
-	}
-	
-	for i := 0; i < days; i++ {
-		date := now.AddDate(0, 0, -days+i+1)
-		dateStr := date.Format("2006-01-02")
-		dates = append(dates, dateStr)
-		values = append(values, dateMap[dateStr])
-	}
-	
-	result["dates"] = dates
-	result["values"] = values
-	
-	return result, nil
 }

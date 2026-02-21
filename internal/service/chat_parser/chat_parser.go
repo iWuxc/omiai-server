@@ -32,9 +32,11 @@ type ImportRecord struct {
 	MaritalStatus int8 `json:"marital_status"` // 1未婚 2已婚 3离异 4丧偶
 
 	// 工作收入
-	Profession string `json:"profession"` // 具体工作/职业
-	WorkCity   string `json:"work_city"`  // 工作城市/具体工作地点
-	Income     int    `json:"income"`     // 月收入(元)
+	Profession string `json:"profession"` // 职业/工作。识别：职业、工作、职位、干什么、单位、具体工作、做什么工作
+	WorkUnit   string `json:"work_unit"`  // 工作单位。识别：单位、公司、就职于
+	WorkCity   string `json:"work_city"`  // 工作城市/具体工作地点。识别：具体地点、工作地点、在哪上班、工作城市
+	Position   string `json:"position"`   // 职位。识别：职位、头衔、岗位
+	Income     int    `json:"income"`     // 月收入(元)。识别：收入、月薪、工资、X万/月、Xk、税后收入、税后月薪
 
 	// 房产车辆
 	HouseStatus  int8   `json:"house_status"`  // 1无房 2已购房 3贷款购房

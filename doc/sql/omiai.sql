@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 腾讯云
+ Source Server         : 本地dcoker
  Source Server Type    : MySQL
- Source Server Version : 80045 (8.0.45)
- Source Host           : 82.156.241.188:13018
+ Source Server Version : 80034 (8.0.34)
+ Source Host           : 127.0.0.1:3306
  Source Schema         : omiai
 
  Target Server Type    : MySQL
- Target Server Version : 80045 (8.0.45)
+ Target Server Version : 80034 (8.0.34)
  File Encoding         : 65001
 
- Date: 06/02/2026 16:09:17
+ Date: 21/02/2026 18:36:26
 */
 
 SET NAMES utf8mb4;
@@ -61,9 +61,11 @@ CREATE TABLE `client` (
   `family_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '家庭成员描述',
   `income` bigint DEFAULT NULL COMMENT '月收入',
   `profession` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '具体工作',
+  `work_city` varchar(128) COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '工作城市',
   `house_status` tinyint DEFAULT NULL COMMENT '房产情况 1无房 2已购房 3贷款购房',
   `car_status` tinyint DEFAULT NULL COMMENT '车辆情况 1无车 2有车',
   `partner_requirements` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '对另一半要求(JSON)',
+  `parents_profession` varchar(255) COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '父母工作',
   `remark` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '红娘备注',
   `photos` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '照片URL列表(JSON)',
   `created_at` datetime(3) DEFAULT NULL,
@@ -82,23 +84,13 @@ CREATE TABLE `client` (
   KEY `idx_phone` (`phone`),
   KEY `idx_client_phone` (`phone`),
   KEY `idx_client_manager` (`manager_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=356 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
+) ENGINE=InnoDB AUTO_INCREMENT=357 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
 
 -- ----------------------------
 -- Records of client
 -- ----------------------------
 BEGIN;
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (1, '何平', 1, '13811968136', '1991-03-14', '兔', 180, 83, 5, 1, '海淀区某小区', '父母退休，家庭和睦', 8000, '金融/银行', 2, 1, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.570', '2026-01-31 22:01:52.570', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (2, '李涛', 1, '13211861338', '1993-09-28', '猴', 173, 69, 3, 1, '东城区某小区', '父母退休，家庭和睦', 37000, '互联网/IT', 2, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.574', '2026-01-31 22:01:52.574', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (3, '秦超', 1, '13373348298', '1991-01-18', '羊', 173, 68, 4, 1, '通州区某小区', '父母退休，家庭和睦', 21000, '自由职业', 2, 1, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.576', '2026-01-31 22:01:52.576', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (4, '尤秀', 2, '13773302801', '1991-07-01', '猪', 169, 59, 2, 2, '东城区某小区', '父母退休，家庭和睦', 7000, '公务员', 2, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.578', '2026-01-31 22:01:52.578', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (40, '王英', 2, '13828281977', '1991-06-30', '牛', 158, 58, 3, 1, '海淀区某小区', '父母退休，家庭和睦', 36000, '金融/银行', 2, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.625', '2026-01-31 22:01:52.625', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (41, '张平', 1, '13943032315', '1998-08-21', '猴', 178, 79, 3, 1, '海淀区某小区', '父母退休，家庭和睦', 33000, '企业高管', 2, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.626', '2026-01-31 22:01:52.626', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (42, '何芳', 2, '13403239666', '1997-09-10', '龙', 158, 54, 4, 2, '丰台区某小区', '父母退休，家庭和睦', 24000, '互联网/IT', 1, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.627', '2026-01-31 22:01:52.627', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (43, '朱伟', 1, '13016833980', '1995-01-14', '蛇', 174, 81, 2, 2, '海淀区某小区', '父母退休，家庭和睦', 33000, '公务员', 1, 2, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.628', '2026-01-31 22:01:52.628', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (44, '张娜', 2, '13267655110', '1993-05-22', '猪', 162, 45, 3, 1, '昌平区某小区', '父母退休，家庭和睦', 20000, '企业高管', 2, 1, '', '系统自动生成测试数据', '', '2026-01-31 22:01:52.629', '2026-01-31 22:01:52.629', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (141, '朱敏', 2, '13590346602', '1998-02-10', '羊', 166, 58, 3, 1, '东城区某小区', '父母退休，家庭和睦', 20000, '公务员', 2, 1, '', '系统自动生成测试数据', '', '2026-02-01 10:12:53.124', '2026-02-06 15:22:37.888', '', 1, NULL, NULL, NULL, NULL, '[{\"candidate_id\":1,\"name\":\"何平\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"都有房产\",\"婚史相同\"],\"age\":34,\"height\":180,\"education\":5},{\"candidate_id\":2,\"name\":\"李涛\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"学历相当\",\"都有房产\",\"婚史相同\"],\"age\":32,\"height\":173,\"education\":3},{\"candidate_id\":3,\"name\":\"秦超\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"收入匹配\",\"都有房产\",\"婚史相同\"],\"age\":35,\"height\":173,\"education\":4},{\"candidate_id\":41,\"name\":\"张平\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"年龄相仿\",\"学历相当\",\"都有房产\",\"婚史相同\"],\"age\":27,\"height\":178,\"education\":3},{\"candidate_id\":43,\"name\":\"朱伟\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"年龄相仿\"],\"age\":31,\"height\":174,\"education\":2}]', NULL, 0);
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `house_status`, `car_status`, `partner_requirements`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (355, '周芷若', 2, '18612591840', '1993-01', '鸡', 165, 59, 3, 1, '北京市丰台区', '一家三口', 8000, '业务员', 2, 2, '能用就行', '这娃有点东西', '[\"http://www.omiai.cn/uploads/20260206/5ed45e0e-2707-4b4c-a3c0-65228585e082.png\"]', '2026-02-06 10:14:38.585', '2026-02-06 10:14:38.585', 'http://www.omiai.cn/uploads/20260206/fc711277-b56b-4f9a-97c7-47cfca89187c.png', 1, 0, NULL, NULL, '张家口', '', NULL, 0);
+INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `work_city`, `house_status`, `car_status`, `partner_requirements`, `parents_profession`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `position`, `house_address`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (356, '伍六一', 2, '18612571940', '2001-01', '猴', 178, 75, 3, 1, '河北省张家口', '爸爸妈妈和我', 20000, '程序员', '北京', 2, 2, '性格温和大方，能够经得起共同郝菲尔那个号否', '都是普通工人', '阿斯顿发顺丰撒上档次闲杂v代发说法中山西正擦', '[\"https://omiai-server-1252902619.cos.ap-nanjing.myqcloud.com/uploads/20260221/92ab36bf-c507-4463-9a34-aba41aacbfb8.jpg\",\"https://omiai-server-1252902619.cos.ap-nanjing.myqcloud.com/uploads/20260221/c279b7d5-b0ea-453f-ba1b-dd1ff0cf15cc.jpg\",\"https://omiai-server-1252902619.cos.ap-nanjing.myqcloud.com/uploads/20260221/b03a9f53-49a6-476f-8744-9f121d82b62b.jpg\",\"https://omiai-server-1252902619.cos.ap-nanjing.myqcloud.com/uploads/20260221/ab2e7119-491f-42a0-bcdb-23e097fc3823.jpg\"]', '2026-02-21 17:53:23.619', '2026-02-21 17:53:23.619', 'https://omiai-server-1252902619.cos.ap-nanjing.myqcloud.com/uploads/20260221/69daa181-5dad-4692-838b-3cd6954833c7.jpg', 1, 25, '互联网行业', '普通职工', '河北省张家口', '', NULL, 0);
 COMMIT;
 
 -- ----------------------------
@@ -217,7 +209,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '手机号',
-  `password` varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '密码',
+  `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '密码',
   `nickname` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '昵称',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '头像',
   `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'operator' COMMENT '角色 admin/operator',

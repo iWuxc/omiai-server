@@ -33,6 +33,11 @@ func (c *Controller) Create(ctx *gin.Context) {
 		FamilyDescription:   req.FamilyDescription,
 		Income:              req.Income,
 		Profession:          req.Profession,
+		WorkUnit:            req.WorkUnit,
+		WorkCity:            req.WorkCity,
+		Position:            req.Position,
+		ParentsProfession:   req.ParentsProfession,
+		Tags:                req.Tags,
 		HouseStatus:         req.HouseStatus,
 		HouseAddress:        req.HouseAddress,
 		CarStatus:           req.CarStatus,
@@ -41,7 +46,11 @@ func (c *Controller) Create(ctx *gin.Context) {
 		Photos:              req.Photos,
 	}
 
+	// 自动计算年龄
+	client.Age = client.RealAge()
+
 	if err := c.client.Create(ctx, client); err != nil {
+		log.WithContext(ctx).Errorf("Client Create failed: %v", err)
 		response.ErrorResponse(ctx, response.DBInsertCommonError, "创建客户档案失败")
 		return
 	}

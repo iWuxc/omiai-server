@@ -18,7 +18,7 @@ func (c *Controller) Update(ctx *gin.Context) {
 	}
 
 	log.Infof("Updating client ID: %d", req.ID)
-	
+
 	// 先获取现有数据，或者直接更新字段
 	// 这里我们构造一个 Client 对象，只包含需要更新的字段
 	// 注意：GORM 的 Update 行为取决于实现，这里假设传入的 struct 字段会被更新
@@ -29,7 +29,6 @@ func (c *Controller) Update(ctx *gin.Context) {
 		Phone:               req.Phone,
 		Birthday:            req.Birthday,
 		Avatar:              req.Avatar,
-		Age:                 req.Age,
 		Zodiac:              req.Zodiac,
 		Height:              req.Height,
 		Weight:              req.Weight,
@@ -39,6 +38,11 @@ func (c *Controller) Update(ctx *gin.Context) {
 		FamilyDescription:   req.FamilyDescription,
 		Income:              req.Income,
 		Profession:          req.Profession,
+		WorkUnit:            req.WorkUnit,
+		WorkCity:            req.WorkCity,
+		Position:            req.Position,
+		ParentsProfession:   req.ParentsProfession,
+		Tags:                req.Tags,
 		HouseStatus:         req.HouseStatus,
 		HouseAddress:        req.HouseAddress,
 		CarStatus:           req.CarStatus,
@@ -46,6 +50,9 @@ func (c *Controller) Update(ctx *gin.Context) {
 		Remark:              req.Remark,
 		Photos:              req.Photos,
 	}
+
+	// 重新计算年龄
+	client.Age = client.RealAge()
 
 	if err := c.client.Update(ctx, client); err != nil {
 		log.Errorf("Failed to update client: %v", err)

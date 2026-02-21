@@ -24,7 +24,9 @@ type Client struct {
 	FamilyDescription   string    `json:"family_description" gorm:"column:family_description;type:text;comment:家庭成员描述"`
 	Income              int       `json:"income" gorm:"column:income;comment:月收入"`
 	Profession          string    `json:"profession" gorm:"column:profession;size:128;comment:具体工作"`
+	WorkUnit            string    `json:"work_unit" gorm:"column:work_unit;size:128;comment:工作单位"`
 	WorkCity            string    `json:"work_city" gorm:"column:work_city;size:128;comment:工作城市"`
+	Position            string    `json:"position" gorm:"column:position;size:128;comment:职位"`
 	HouseStatus         int8      `json:"house_status" gorm:"column:house_status;comment:房产情况 1无房 2已购房 3贷款购房"`
 	HouseAddress        string    `json:"house_address" gorm:"column:house_address;size:255;comment:买房地址"`
 	CarStatus           int8      `json:"car_status" gorm:"column:car_status;comment:车辆情况 1无车 2有车"`
@@ -75,8 +77,7 @@ type ClientInterface interface {
 	Delete(ctx context.Context, id uint64) error
 	Get(ctx context.Context, id uint64) (*Client, error)
 	Stats(ctx context.Context) (map[string]int64, error)
-	
+
 	// Dashboard 相关
 	GetDashboardStats(ctx context.Context) (map[string]int64, error)
-	GetClientTrend(ctx context.Context, days int) (map[string]interface{}, error)
 }
