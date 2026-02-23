@@ -8,4 +8,7 @@ var ProviderOmiai = wire.NewSet(
 	NewMatchRepo,
 	NewUserRepo,
 	NewReminderRepo,
+	NewChinaRegionRepo,
+	NewTemplateRepo,
+	NewAIMatchRepo,
 )

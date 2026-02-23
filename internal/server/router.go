@@ -5,11 +5,13 @@ import (
 	"omiai-server/internal/controller/ai"
 	"omiai-server/internal/controller/auth"
 	"omiai-server/internal/controller/banner"
+	"omiai-server/internal/controller/china_region"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
 	"omiai-server/internal/controller/dashboard"
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
+	"omiai-server/internal/controller/template"
 	"omiai-server/internal/data"
 	"omiai-server/internal/middleware"
 
@@ -20,22 +22,30 @@ import (
 // Router .
 type Router struct {
 	*gin.Engine
-	DB                  *data.DB
-	Redis               *redis.Redis
-	AIController        *ai.Controller
-	AuthController      *auth.Controller
-	BannerController    *banner.Controller
-	ClientController    *client.Controller
-	CommonController    *common.Controller
-	DashboardController *dashboard.Controller
-	MatchController     *match.Controller
-	ReminderController  *reminder.Controller
+	DB                    *data.DB
+	Redis                 *redis.Redis
+	AIController          *ai.Controller
+	AuthController        *auth.Controller
+	BannerController      *banner.Controller
+	ChinaRegionController *china_region.Controller
+	ClientController      *client.Controller
+	CommonController      *common.Controller
+	TemplateController    *template.Controller
+	ReminderController    *reminder.Controller
+	DashboardController   *dashboard.Controller
+	MatchController       *match.Controller
 }
 
 func (r *Router) Register() http.Handler {
 	g := r.Group("api")
 	{
 		r.auth(g.Group("auth"))
+		// 不需要登录的接口
+		g.GET("/china_region/provinces", r.ChinaRegionController.GetProvinces)
+		g.GET("/china_region/cities", r.ChinaRegionController.GetCities)
+		g.GET("/china_region/districts", r.ChinaRegionController.GetDistricts)
+		g.GET("/china_region/hot", r.ChinaRegionController.GetHotCities)
+		g.GET("/china_region/search", r.ChinaRegionController.Search)
 
 		// 需要登录的接口
 		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis))
@@ -47,14 +57,26 @@ func (r *Router) Register() http.Handler {
 			r.dashboard(authGroup.Group("dashboard"))
 			r.match(authGroup.Group("couples")) // Renamed from "match" to "couples" for V2
 			r.reminder(authGroup.Group("reminders"))
+			r.template(authGroup.Group("templates"))
 			// 认证相关接口（需要登录）
 			authGroup.GET("/auth/codes", r.AuthController.GetAccessCodes)
 			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
 			authGroup.POST("/user/change_password", r.AuthController.ChangePassword)
+
+			// 自动提醒
+			// reminderGroup := authGroup.Group("reminder")
+			// reminderGroup.GET("/rules", r.ReminderController.ListRules)
+			// reminderGroup.POST("/rules", r.ReminderController.CreateRule)
+			// reminderGroup.GET("/tasks/pending", r.ReminderController.ListPendingTasks)
+			// reminderGroup.POST("/tasks/:id/complete", r.ReminderController.CompleteTask)
+			// // 手动触发生成任务（测试用）
+			// reminderGroup.POST("/generate", r.ReminderController.CheckAndGenerateTasks)
 		}
 	}
 	// Serve static files for uploads
 	r.Static("/uploads", "./runtime/uploads")
+	// Serve H5 frontend
+	r.Static("/h5", "./web")
 
 	return r
 }
@@ -122,11 +144,26 @@ func (r *Router) client(g *gin.RouterGroup) {
 }
 
 func (r *Router) reminder(g *gin.RouterGroup) {
-	g.GET("/list", r.ReminderController.List)
-	g.GET("/today", r.ReminderController.TodayList)
-	g.GET("/pending", r.ReminderController.PendingList)
-	g.GET("/stats", r.ReminderController.Stats)
-	g.POST("/read", r.ReminderController.MarkAsRead)
-	g.POST("/done", r.ReminderController.MarkAsDone)
-	g.DELETE("/delete", r.ReminderController.Delete)
+	g.GET("/list", r.ReminderController.ListPendingTasks) // Default to pending tasks
+	// g.GET("/today", r.ReminderController.TodayList) // Removed
+	// g.GET("/pending", r.ReminderController.PendingList) // Removed
+	// g.GET("/stats", r.ReminderController.Stats) // Removed
+	// g.POST("/read", r.ReminderController.MarkAsRead) // Removed
+	g.POST("/done/:id", r.ReminderController.CompleteTask) // Updated
+	// g.DELETE("/delete", r.ReminderController.Delete) // Removed
+
+	// New routes
+	g.GET("/rules", r.ReminderController.ListRules)
+	g.POST("/rules", r.ReminderController.CreateRule)
+	g.GET("/tasks/pending", r.ReminderController.ListPendingTasks)
+	g.POST("/tasks/:id/complete", r.ReminderController.CompleteTask)
+	g.POST("/generate", r.ReminderController.CheckAndGenerateTasks)
+}
+
+func (r *Router) template(g *gin.RouterGroup) {
+	g.POST("", r.TemplateController.Create)
+	g.GET("", r.TemplateController.List)
+	g.PUT("/:id", r.TemplateController.Update)
+	g.DELETE("/:id", r.TemplateController.Delete)
+	g.POST("/:id/use", r.TemplateController.Use)
 }

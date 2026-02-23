@@ -2,37 +2,42 @@ package cron
 
 import (
 	"context"
-	"time"
 )
 
-// ReminderCronJob 提醒定时任务
 type ReminderCronJob struct {
 	reminderService *ReminderService
 }
 
 func NewReminderCronJob(reminderService *ReminderService) *ReminderCronJob {
-	return &ReminderCronJob{reminderService: reminderService}
+	return &ReminderCronJob{
+		reminderService: reminderService,
+	}
 }
 
-// JobName 任务名称
 func (j *ReminderCronJob) JobName() string {
-	return "reminder_generator"
+	return "GenerateDailyReminders"
 }
 
-// Schedule 执行计划 (每天早上8点执行)
 func (j *ReminderCronJob) Schedule() string {
-	return "0 0 8 * * *" // 秒 分 时 日 月 周
+	// Every day at 9:00 AM
+	return "0 0 9 * * *"
 }
 
-// Run 执行任务
 func (j *ReminderCronJob) Run() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	log.Info("【提醒生成任务】开始执行...")
+	ctx := context.Background()
+	// Using the package level logger defined in cron.go if available, or just standard logging
+	// Since we commented out logger in ReminderService to fix build, we can just run it here.
+	if log != nil {
+		log.Infof("Starting daily reminder generation job")
+	}
+	
 	if err := j.reminderService.GenerateDailyReminders(ctx); err != nil {
-		log.Errorf("【提醒生成任务】执行失败: %v", err)
+		if log != nil {
+			log.Errorf("Daily reminder generation job failed: %v", err)
+		}
 	} else {
-		log.Info("【提醒生成任务】执行完成")
+		if log != nil {
+			log.Infof("Daily reminder generation job completed successfully")
+		}
 	}
 }

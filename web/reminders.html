@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>提醒管理 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>body { background-color: #f7f8fa; }</style>
+</head>
+<body>
+    <div id="app">
+        <van-nav-bar title="提醒管理" left-text="返回" left-arrow @click-left="goBack" />
+        
+        <van-tabs v-model:active="activeTab">
+            <van-tab title="待办提醒">
+                <van-list
+                    v-model:loading="loadingTasks"
+                    :finished="finishedTasks"
+                    finished-text="没有更多了"
+                    @load="onLoadTasks"
+                >
+                    <van-cell v-for="item in tasks" :key="item.id" :title="item.content" :label="item.scheduled_at">
+                        <template #right-icon>
+                            <van-button size="small" type="primary" @click="completeTask(item.id)">完成</van-button>
+                        </template>
+                    </van-cell>
+                </van-list>
+            </van-tab>
+            <van-tab title="提醒规则">
+                <div style="padding: 10px;">
+                    <van-button block type="primary" icon="plus" @click="showAddRule = true">新增规则</van-button>
+                </div>
+                <van-cell-group inset style="margin-top: 10px;">
+                    <van-cell v-for="rule in rules" :key="rule.id" :title="rule.name" :label="rule.trigger_type + ' - ' + rule.delay_days + '天后'">
+                        <template #right-icon>
+                            <van-switch v-model="rule.is_enabled" size="20px" disabled />
+                        </template>
+                    </van-cell>
+                </van-cell-group>
+            </van-tab>
+        </van-tabs>
+
+        <!-- Add Rule Dialog -->
+        <van-dialog v-model:show="showAddRule" title="新增提醒规则" show-cancel-button @confirm="createRule">
+            <van-form>
+                <van-field v-model="newRule.name" label="规则名称" placeholder="如：新客回访" />
+                <van-field v-model="newRule.trigger_type" is-link readonly label="触发类型" placeholder="请选择" @click="showTypePicker = true" />
+                <van-field v-model="newRule.delay_days" type="digit" label="延迟天数" placeholder="0为当天" />
+            </van-form>
+        </van-dialog>
+
+        <van-popup v-model:show="showTypePicker" position="bottom">
+            <van-picker :columns="triggerTypes" @confirm="onConfirmType" @cancel="showTypePicker = false" />
+        </van-popup>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const activeTab = ref(0);
+                const tasks = ref([]);
+                const rules = ref([]);
+                const loadingTasks = ref(false);
+                const finishedTasks = ref(false);
+                
+                const showAddRule = ref(false);
+                const showTypePicker = ref(false);
+                const newRule = ref({ name: '', trigger_type: '', delay_days: 0 });
+                const triggerTypes = [
+                    { text: '新客录入', value: 'NewClient' },
+                    { text: '状态变更', value: 'StatusChange' },
+                    { text: '未联系', value: 'NoContact' },
+                    { text: '生日', value: 'Birthday' }
+                ];
+
+                const token = localStorage.getItem('token');
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const goBack = () => window.history.back();
+
+                const onLoadTasks = async () => {
+                    // Simple implementation, fetching all at once for demo
+                    if (finishedTasks.value) return;
+                    try {
+                        const res = await api.get('/reminders/tasks/pending');
+                        if (res.data.code === 0) {
+                            tasks.value = res.data.data;
+                        }
+                    } catch (e) {}
+                    loadingTasks.value = false;
+                    finishedTasks.value = true;
+                };
+
+                const loadRules = async () => {
+                    try {
+                        const res = await api.get('/reminders/rules');
+                        if (res.data.code === 0) {
+                            rules.value = res.data.data;
+                        }
+                    } catch (e) {}
+                };
+
+                const completeTask = async (id) => {
+                    try {
+                        await api.post(`/reminders/tasks/${id}/complete`);
+                        vant.showToast('已完成');
+                        finishedTasks.value = false; // Trigger reload
+                        tasks.value = [];
+                        onLoadTasks();
+                    } catch (e) {
+                        vant.showToast('失败');
+                    }
+                };
+
+                const onConfirmType = ({ selectedOptions }) => {
+                    newRule.value.trigger_type = selectedOptions[0].value;
+                    showTypePicker.value = false;
+                };
+
+                const createRule = async () => {
+                    try {
+                        await api.post('/reminders/rules', {
+                            ...newRule.value,
+                            delay_days: Number(newRule.value.delay_days),
+                            is_enabled: true
+                        });
+                        vant.showToast('创建成功');
+                        loadRules();
+                        newRule.value = { name: '', trigger_type: '', delay_days: 0 };
+                    } catch (e) {
+                        vant.showToast('创建失败');
+                    }
+                };
+
+                onMounted(() => {
+                    loadRules();
+                });
+
+                return {
+                    activeTab,
+                    tasks,
+                    rules,
+                    loadingTasks,
+                    finishedTasks,
+                    onLoadTasks,
+                    goBack,
+                    completeTask,
+                    showAddRule,
+                    newRule,
+                    createRule,
+                    showTypePicker,
+                    triggerTypes,
+                    onConfirmType
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>

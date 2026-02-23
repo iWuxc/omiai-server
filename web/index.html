@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>工作台 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { background-color: #f7f8fa; padding-bottom: 50px; }
+        .header { background: #ee0a24; padding: 20px; color: white; }
+        .stat-card { margin-top: -30px; }
+        .section-title { margin: 15px; font-weight: bold; font-size: 16px; color: #333; }
+        .todo-item { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="header">
+            <h2>{{ greeting }}</h2>
+            <p>{{ today }}</p>
+        </div>
+
+        <!-- Stats -->
+        <van-cell-group inset class="stat-card">
+            <van-grid :column-num="3">
+                <van-grid-item icon="friends-o" :text="'客户总数 ' + stats.client_total" />
+                <van-grid-item icon="like-o" :text="'匹配成功 ' + stats.match_total" />
+                <van-grid-item icon="bell-o" :text="'待跟进 ' + stats.follow_up_pending" badge="5" />
+            </van-grid>
+        </van-cell-group>
+
+        <!-- Quick Actions -->
+        <div class="section-title">快捷功能</div>
+        <van-grid :column-num="4" :border="false">
+            <van-grid-item icon="add-o" text="录入客户" to="#" />
+            <van-grid-item icon="chat-o" text="话术库" url="templates.html" />
+            <van-grid-item icon="clock-o" text="提醒设置" url="reminders.html" />
+            <van-grid-item icon="gem-o" text="AI推荐" url="recommendations.html" />
+        </van-grid>
+
+        <!-- Todos -->
+        <div class="section-title">待办事项</div>
+        <div v-if="todos.length === 0" style="text-align: center; color: #999; padding: 20px;">
+            暂无待办事项
+        </div>
+        <van-cell-group inset v-else>
+            <van-swipe-cell v-for="item in todos" :key="item.id" class="todo-item">
+                <van-cell :title="item.title" :label="item.created_at" :value="item.priority">
+                    <template #icon>
+                        <van-tag :type="getPriorityType(item.priority)" style="margin-right: 10px">{{ item.priority }}</van-tag>
+                    </template>
+                </van-cell>
+                <template #right>
+                    <van-button square type="primary" text="完成" @click="completeTask(item.id)" />
+                </template>
+            </van-swipe-cell>
+        </van-cell-group>
+
+        <!-- Tabbar -->
+        <van-tabbar v-model="active" active-color="#ee0a24">
+            <van-tabbar-item icon="home-o">工作台</van-tabbar-item>
+            <van-tabbar-item icon="friends-o" url="#">客户</van-tabbar-item>
+            <van-tabbar-item icon="chat-o" url="templates.html">话术</van-tabbar-item>
+            <van-tabbar-item icon="setting-o" url="#">我的</van-tabbar-item>
+        </van-tabbar>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const active = ref(0);
+                const stats = ref({
+                    client_total: 0,
+                    match_total: 0,
+                    follow_up_pending: 0
+                });
+                const todos = ref([]);
+                const greeting = ref('早上好，管理员');
+                const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                }
+
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const loadData = async () => {
+                    try {
+                        const statsRes = await api.get('/dashboard/stats');
+                        if (statsRes.data.code === 0) {
+                            stats.value = statsRes.data.data;
+                        }
+                        
+                        const todosRes = await api.get('/dashboard/todos');
+                        if (todosRes.data.code === 0) {
+                            todos.value = todosRes.data.data;
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        if (e.response && e.response.status === 401) {
+                            window.location.href = 'login.html';
+                        }
+                    }
+                };
+
+                const completeTask = async (id) => {
+                    try {
+                        await api.post(`/reminders/tasks/${id}/complete`);
+                        vant.showToast('已完成');
+                        loadData();
+                    } catch (e) {
+                        vant.showToast('操作失败');
+                    }
+                };
+
+                const getPriorityType = (p) => {
+                    if (p === 'high') return 'danger';
+                    if (p === 'medium') return 'warning';
+                    return 'primary';
+                };
+
+                onMounted(() => {
+                    loadData();
+                    const hour = new Date().getHours();
+                    if (hour < 12) greeting.value = '早上好';
+                    else if (hour < 18) greeting.value = '下午好';
+                    else greeting.value = '晚上好';
+                });
+
+                return {
+                    active,
+                    stats,
+                    todos,
+                    greeting,
+                    today,
+                    completeTask,
+                    getPriorityType
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>

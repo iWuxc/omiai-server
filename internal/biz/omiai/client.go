@@ -25,11 +25,18 @@ type Client struct {
 	Income              int       `json:"income" gorm:"column:income;comment:月收入"`
 	Profession          string    `json:"profession" gorm:"column:profession;size:128;comment:具体工作"`
 	WorkUnit            string    `json:"work_unit" gorm:"column:work_unit;size:128;comment:工作单位"`
-	WorkCity            string    `json:"work_city" gorm:"column:work_city;size:128;comment:工作城市"`
-	Position            string    `json:"position" gorm:"column:position;size:128;comment:职位"`
-	HouseStatus         int8      `json:"house_status" gorm:"column:house_status;comment:房产情况 1无房 2已购房 3贷款购房"`
-	HouseAddress        string    `json:"house_address" gorm:"column:house_address;size:255;comment:买房地址"`
-	CarStatus           int8      `json:"car_status" gorm:"column:car_status;comment:车辆情况 1无车 2有车"`
+	WorkCity         string `json:"work_city" gorm:"column:work_city;size:128;comment:工作城市"`
+	WorkProvinceCode string `json:"work_province_code" gorm:"column:work_province_code;size:20;comment:工作省份代码"`
+	WorkCityCode     string `json:"work_city_code" gorm:"column:work_city_code;size:20;comment:工作城市代码"`
+	WorkDistrictCode string `json:"work_district_code" gorm:"column:work_district_code;size:20;comment:工作区县代码"`
+
+	Position string `json:"position" gorm:"column:position;size:128;comment:职位"`
+	HouseStatus      int8   `json:"house_status" gorm:"column:house_status;comment:房产情况 1无房 2已购房 3贷款购房"`
+	HouseAddress     string `json:"house_address" gorm:"column:house_address;size:255;comment:买房地址"`
+	HouseProvinceCode string `json:"house_province_code" gorm:"column:house_province_code;size:20;comment:房产省份代码"`
+	HouseCityCode     string `json:"house_city_code" gorm:"column:house_city_code;size:20;comment:房产城市代码"`
+	HouseDistrictCode string `json:"house_district_code" gorm:"column:house_district_code;size:20;comment:房产区县代码"`
+	CarStatus        int8   `json:"car_status" gorm:"column:car_status;comment:车辆情况 1无车 2有车"`
 	Status              int8      `json:"status" gorm:"column:status;default:1;comment:状态 1单身 2匹配中 3已匹配 4停止服务"`
 	PartnerID           *uint64   `json:"partner_id" gorm:"column:partner_id;uniqueIndex;default:null;comment:当前匹配对象ID"`
 	Partner             *Client   `json:"partner" gorm:"foreignKey:PartnerID"`

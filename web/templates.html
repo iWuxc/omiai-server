@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>话术库 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>body { background-color: #f7f8fa; }</style>
+</head>
+<body>
+    <div id="app">
+        <van-nav-bar title="话术库" left-text="返回" left-arrow @click-left="goBack" @click-right="showAdd = true">
+            <template #right>
+                <van-icon name="plus" size="18" />
+            </template>
+        </van-nav-bar>
+
+        <van-tabs v-model:active="activeCategory" @change="onCategoryChange">
+            <van-tab v-for="cat in categories" :key="cat" :title="cat" :name="cat">
+                <van-list
+                    v-model:loading="loading"
+                    :finished="finished"
+                    finished-text="没有更多了"
+                    @load="onLoad"
+                >
+                    <van-cell-group inset style="margin-top: 10px;">
+                        <van-cell v-for="item in list" :key="item.id" :title="item.title" :label="item.content" is-link @click="showDetail(item)">
+                            <template #right-icon>
+                                <van-tag type="primary">使用 {{ item.usage_count }}</van-tag>
+                            </template>
+                        </van-cell>
+                    </van-cell-group>
+                </van-list>
+            </van-tab>
+        </van-tabs>
+
+        <!-- Detail Popup -->
+        <van-popup v-model:show="showPopup" position="bottom" style="height: 50%;">
+            <div style="padding: 16px;">
+                <h3>{{ currentItem.title }}</h3>
+                <p style="white-space: pre-wrap; color: #666;">{{ currentItem.content }}</p>
+                <div style="margin-top: 20px;">
+                    <van-button block type="primary" @click="useTemplate(currentItem)">复制并使用</van-button>
+                    <van-button block type="danger" plain style="margin-top: 10px;" @click="deleteTemplate(currentItem.id)">删除</van-button>
+                </div>
+            </div>
+        </van-popup>
+
+        <!-- Add Dialog -->
+        <van-dialog v-model:show="showAdd" title="新增话术" show-cancel-button @confirm="createTemplate">
+            <van-form>
+                <van-field v-model="newItem.title" label="标题" placeholder="请输入标题" />
+                <van-field v-model="newItem.category" is-link readonly label="分类" placeholder="请选择" @click="showCategoryPicker = true" />
+                <van-field v-model="newItem.content" type="textarea" label="内容" placeholder="请输入话术内容" rows="3" autosize />
+            </van-form>
+        </van-dialog>
+
+        <van-popup v-model:show="showCategoryPicker" position="bottom">
+            <van-picker :columns="categories.map(c => ({ text: c, value: c }))" @confirm="onConfirmCategory" @cancel="showCategoryPicker = false" />
+        </van-popup>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const activeCategory = ref('打招呼');
+                const categories = ['打招呼', '邀约', '回访', '挽回', '其他'];
+                const list = ref([]);
+                const loading = ref(false);
+                const finished = ref(false);
+                const showPopup = ref(false);
+                const currentItem = ref({});
+                const showAdd = ref(false);
+                const newItem = ref({ title: '', content: '', category: '' });
+                const showCategoryPicker = ref(false);
+
+                const token = localStorage.getItem('token');
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const goBack = () => window.history.back();
+
+                const onLoad = async () => {
+                    if (finished.value) return;
+                    loading.value = true;
+                    try {
+                        const res = await api.get('/templates', {
+                            params: { category: activeCategory.value, page: 1, page_size: 20 }
+                        });
+                        if (res.data.code === 0) {
+                            list.value = res.data.data.list || [];
+                        }
+                    } catch (e) {}
+                    loading.value = false;
+                    finished.value = true; // Simple pagination for demo
+                };
+
+                const onCategoryChange = () => {
+                    list.value = [];
+                    finished.value = false;
+                    onLoad();
+                };
+
+                const showDetail = (item) => {
+                    currentItem.value = item;
+                    showPopup.value = true;
+                };
+
+                const useTemplate = async (item) => {
+                    try {
+                        await api.post(`/templates/${item.id}/use`);
+                        navigator.clipboard.writeText(item.content);
+                        vant.showToast('已复制到剪贴板');
+                        showPopup.value = false;
+                        // Reload to update usage count
+                        onCategoryChange();
+                    } catch (e) {
+                        vant.showToast('操作失败');
+                    }
+                };
+
+                const deleteTemplate = async (id) => {
+                    try {
+                        await api.delete(`/templates/${id}`);
+                        vant.showToast('删除成功');
+                        showPopup.value = false;
+                        onCategoryChange();
+                    } catch (e) {
+                        vant.showToast('删除失败');
+                    }
+                };
+
+                const onConfirmCategory = ({ selectedOptions }) => {
+                    newItem.value.category = selectedOptions[0].value;
+                    showCategoryPicker.value = false;
+                };
+
+                const createTemplate = async () => {
+                    try {
+                        await api.post('/templates', newItem.value);
+                        vant.showToast('创建成功');
+                        newItem.value = { title: '', content: '', category: '' };
+                        onCategoryChange();
+                    } catch (e) {
+                        vant.showToast('创建失败');
+                    }
+                };
+
+                return {
+                    activeCategory,
+                    categories,
+                    list,
+                    loading,
+                    finished,
+                    onLoad,
+                    onCategoryChange,
+                    goBack,
+                    showDetail,
+                    showPopup,
+                    currentItem,
+                    useTemplate,
+                    deleteTemplate,
+                    showAdd,
+                    newItem,
+                    createTemplate,
+                    showCategoryPicker,
+                    onConfirmCategory
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>

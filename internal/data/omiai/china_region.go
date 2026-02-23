@@ -7,8 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ biz_omiai.ChinaRegionInterface = (*ChinaRegionRepo)(nil)
-
 type ChinaRegionRepo struct {
 	db *data.DB
 }
@@ -17,123 +15,106 @@ func NewChinaRegionRepo(db *data.DB) biz_omiai.ChinaRegionInterface {
 	return &ChinaRegionRepo{db: db}
 }
 
-// GetByCode 根据编码查询
+// GetByCode 根据行政区划代码获取详情
 func (r *ChinaRegionRepo) GetByCode(code string) (*biz_omiai.ChinaRegion, error) {
 	var region biz_omiai.ChinaRegion
-	err := r.db.Where("code = ?", code).First(&region).Error
-	if err != nil {
+	if err := r.db.DB.Where("code = ?", code).First(&region).Error; err != nil {
 		return nil, err
 	}
 	return &region, nil
 }
 
-// GetByName 根据名称模糊查询
+// GetByName 根据名称精确查询
 func (r *ChinaRegionRepo) GetByName(name string) ([]*biz_omiai.ChinaRegion, error) {
 	var regions []*biz_omiai.ChinaRegion
-	err := r.db.Where("name LIKE ?", "%"+name+"%").
-		Order("level ASC, code ASC").
-		Find(&regions).Error
-	return regions, err
+	if err := r.db.DB.Where("name = ?", name).Find(&regions).Error; err != nil {
+		return nil, err
+	}
+	return regions, nil
 }
 
-// GetProvinces 获取所有省份（level=1）
+// GetProvinces 获取所有省份 (Level=1)
 func (r *ChinaRegionRepo) GetProvinces() ([]*biz_omiai.ChinaRegion, error) {
 	var regions []*biz_omiai.ChinaRegion
-	err := r.db.Where("level = ?", 1).
-		Order("code ASC").
-		Find(&regions).Error
-	return regions, err
+	if err := r.db.DB.Where("level = ?", 1).Order("code asc").Find(&regions).Error; err != nil {
+		return nil, err
+	}
+	return regions, nil
 }
 
-// GetCitiesByProvince 获取某省下的所有城市
+// GetCitiesByProvince 获取某省下的城市 (Level=2, ParentCode=provinceCode)
 func (r *ChinaRegionRepo) GetCitiesByProvince(provinceCode string) ([]*biz_omiai.ChinaRegion, error) {
 	var regions []*biz_omiai.ChinaRegion
-	err := r.db.Where("parent_code = ? AND level = ?", provinceCode, 2).
-		Order("code ASC").
-		Find(&regions).Error
-	return regions, err
+	if err := r.db.DB.Where("parent_code = ? AND level = ?", provinceCode, 2).Order("code asc").Find(&regions).Error; err != nil {
+		return nil, err
+	}
+	return regions, nil
 }
 
-// GetDistrictsByCity 获取某城市下的所有区县
+// GetDistrictsByCity 获取某城市下的区县 (Level=3, ParentCode=cityCode)
 func (r *ChinaRegionRepo) GetDistrictsByCity(cityCode string) ([]*biz_omiai.ChinaRegion, error) {
 	var regions []*biz_omiai.ChinaRegion
-	err := r.db.Where("parent_code = ? AND level = ?", cityCode, 3).
-		Order("code ASC").
-		Find(&regions).Error
-	return regions, err
+	if err := r.db.DB.Where("parent_code = ? AND level = ?", cityCode, 3).Order("code asc").Find(&regions).Error; err != nil {
+		return nil, err
+	}
+	return regions, nil
 }
 
-// GetHotCities 获取热门城市（用于快捷选择）
+// GetHotCities 获取热门城市
 func (r *ChinaRegionRepo) GetHotCities() ([]*biz_omiai.ChinaRegion, error) {
 	var regions []*biz_omiai.ChinaRegion
-	err := r.db.Where("is_hot = ? AND level = ?", 1, 2).
-		Order("sort_order ASC, code ASC").
-		Find(&regions).Error
-	return regions, err
+	// 通常热门城市是Level=2 (市级)，但也可能是Level=1 (直辖市)
+	if err := r.db.DB.Where("is_hot = ?", 1).Order("sort_order asc, code asc").Find(&regions).Error; err != nil {
+		return nil, err
+	}
+	return regions, nil
 }
 
-// SearchByKeyword 关键词搜索（支持名称和拼音）
+// SearchByKeyword 按关键词模糊搜索 (Name)
 func (r *ChinaRegionRepo) SearchByKeyword(keyword string) ([]*biz_omiai.ChinaRegion, error) {
 	var regions []*biz_omiai.ChinaRegion
-	err := r.db.Where("name LIKE ? OR pinyin LIKE ?", "%"+keyword+"%", "%"+keyword+"%").
-		Order("level ASC, code ASC").
-		Limit(20).
-		Find(&regions).Error
-	return regions, err
+	likeStr := "%" + keyword + "%"
+	if err := r.db.DB.Where("name LIKE ?", likeStr).Order("level asc, code asc").Limit(20).Find(&regions).Error; err != nil {
+		return nil, err
+	}
+	return regions, nil
 }
 
-// SearchByPinyin 拼音首字母搜索
+// SearchByPinyin 按拼音模糊搜索 (Pinyin or Initial)
 func (r *ChinaRegionRepo) SearchByPinyin(pinyin string) ([]*biz_omiai.ChinaRegion, error) {
 	var regions []*biz_omiai.ChinaRegion
-	// 支持首字母和完整拼音搜索
-	err := r.db.Where("initial = ? OR pinyin LIKE ?",
-		pinyin, "%"+pinyin+"%").
-		Order("level ASC, code ASC").
-		Limit(20).
-		Find(&regions).Error
-	return regions, err
+	likeStr := "%" + pinyin + "%"
+	if err := r.db.DB.Where("pinyin LIKE ? OR initial = ?", likeStr, pinyin).Order("level asc, code asc").Limit(20).Find(&regions).Error; err != nil {
+		return nil, err
+	}
+	return regions, nil
 }
 
-// GetFullPath 获取完整地区路径（省-市-区）
+// GetFullPath 获取完整路径（递归查找父级）
+// 注意：MySQL 8.0+ 支持 CTE 递归查询，这里为了兼容性使用代码递归或多次查询
+// 由于层级固定为3级，直接多次查询更简单
 func (r *ChinaRegionRepo) GetFullPath(code string) ([]*biz_omiai.ChinaRegion, error) {
-	var path []*biz_omiai.ChinaRegion
-
-	currentCode := code
-	for currentCode != "" {
-		var region biz_omiai.ChinaRegion
-		err := r.db.Where("code = ?", currentCode).First(&region).Error
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				break
-			}
-			return nil, err
+	var current biz_omiai.ChinaRegion
+	if err := r.db.DB.Where("code = ?", code).First(&current).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
 		}
+		return nil, err
+	}
 
-		// 插入到头部，保持省-市-区的顺序
-		path = append([]*biz_omiai.ChinaRegion{&region}, path...)
+	path := []*biz_omiai.ChinaRegion{&current}
 
-		// 继续查询父级
-		currentCode = region.ParentCode
+	// 向上查找父级
+	parentCode := current.ParentCode
+	for parentCode != "" {
+		var parent biz_omiai.ChinaRegion
+		if err := r.db.DB.Where("code = ?", parentCode).First(&parent).Error; err != nil {
+			break
+		}
+		// 插入到切片头部
+		path = append([]*biz_omiai.ChinaRegion{&parent}, path...)
+		parentCode = parent.ParentCode
 	}
 
 	return path, nil
-}
-
-// GetCitiesByInitial 按首字母获取城市（用于A-Z索引）
-func (r *ChinaRegionRepo) GetCitiesByInitial(initial string) ([]*biz_omiai.ChinaRegion, error) {
-	var regions []*biz_omiai.ChinaRegion
-	err := r.db.Where("initial = ? AND level = ?", initial, 2).
-		Order("code ASC").
-		Find(&regions).Error
-	return regions, err
-}
-
-// GetAllCities 获取所有城市（排除省直辖县）
-func (r *ChinaRegionRepo) GetAllCities() ([]*biz_omiai.ChinaRegion, error) {
-	var regions []*biz_omiai.ChinaRegion
-	// level=2 且不是省直辖县（parent_code不以00结尾的）
-	err := r.db.Where("level = ?", 2).
-		Order("parent_code ASC, code ASC").
-		Find(&regions).Error
-	return regions, err
 }

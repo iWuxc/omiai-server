@@ -6,6 +6,7 @@ import (
 	"time"
 
 	biz_omiai "omiai-server/internal/biz/omiai"
+	// "omiai-server/internal/data"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -32,7 +33,13 @@ func main() {
 	}
 
 	// Auto Migrate
-	db.AutoMigrate(&biz_omiai.Client{}, &biz_omiai.Banner{}, &biz_omiai.MatchRecord{}, &biz_omiai.FollowUpRecord{}, &biz_omiai.User{})
+	db.AutoMigrate(
+		&biz_omiai.Client{},
+		&biz_omiai.Banner{},
+		&biz_omiai.MatchRecord{},
+		&biz_omiai.FollowUpRecord{},
+		&biz_omiai.User{},
+	)
 
 	fmt.Println("Start seeding...")
 
@@ -62,8 +69,8 @@ func main() {
 			MaritalStatus: int8(rand.Intn(2) + 1), // 1:未婚 2:离异
 			Address:       addresses[rand.Intn(len(addresses))] + "某小区",
 			Income:        (rand.Intn(40) + 5) * 1000, // 5000 - 45000
-			//WorkUnit:            "某某公司",
-			//Position:            professions[rand.Intn(len(professions))],
+			WorkUnit:            "某某公司",
+			Position:            professions[rand.Intn(len(professions))],
 			HouseStatus:         houseStatus,
 			HouseAddress:        houseAddress,
 			CarStatus:           int8(rand.Intn(2) + 1),
@@ -128,7 +135,7 @@ func main() {
 	admin := &biz_omiai.User{
 		Phone:    "13800138000",
 		Nickname: "管理员",
-		Role:     biz_omiai.RoleAdmin,
+		Role:     "admin", // RoleAdmin
 	}
 	db.Where("phone = ?", admin.Phone).FirstOrCreate(admin)
 	fmt.Printf("Created test admin user: %s (%s)\n", admin.Nickname, admin.Phone)

@@ -21,10 +21,16 @@ type ClientResponse struct {
 	Profession          string    `json:"profession"`
 	WorkUnit            string    `json:"work_unit"`
 	WorkCity            string    `json:"work_city"`
+	WorkProvinceCode    string    `json:"work_province_code"`
+	WorkCityCode        string    `json:"work_city_code"`
+	WorkDistrictCode    string    `json:"work_district_code"`
 	Position            string    `json:"position"`
 	ParentsProfession   string    `json:"parents_profession"`
 	HouseStatus         int8      `json:"house_status"`
 	HouseAddress        string    `json:"house_address"`
+	HouseProvinceCode   string    `json:"house_province_code"`
+	HouseCityCode       string    `json:"house_city_code"`
+	HouseDistrictCode   string    `json:"house_district_code"`
 	CarStatus           int8      `json:"car_status"`
 	Status              int8      `json:"status"`
 	PartnerID           uint64    `json:"partner_id"`

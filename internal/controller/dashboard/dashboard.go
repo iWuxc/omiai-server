@@ -8,14 +8,16 @@ import (
 )
 
 type Controller struct {
-	client biz_omiai.ClientInterface
-	match  biz_omiai.MatchInterface
+	client   biz_omiai.ClientInterface
+	match    biz_omiai.MatchInterface
+	reminder biz_omiai.ReminderInterface
 }
 
-func NewController(client biz_omiai.ClientInterface, match biz_omiai.MatchInterface) *Controller {
+func NewController(client biz_omiai.ClientInterface, match biz_omiai.MatchInterface, reminder biz_omiai.ReminderInterface) *Controller {
 	return &Controller{
-		client: client,
-		match:  match,
+		client:   client,
+		match:    match,
+		reminder: reminder,
 	}
 }
 
@@ -57,27 +59,54 @@ func (c *Controller) Stats(ctx *gin.Context) {
 		// TODO: 实现本月匹配统计逻辑
 	}
 
+	// 获取待办提醒
+	// TODO: Get user ID from context. Assuming default 1 for now if not set.
+	userID := ctx.GetUint64("user_id")
+	if userID == 0 {
+		userID = 1
+	}
+	
+	pendingReminders, err := c.reminder.GetPendingReminders(userID)
+	if err == nil {
+		stats["follow_up_pending"] = int64(len(pendingReminders))
+	}
+
 	response.SuccessResponse(ctx, "ok", stats)
 }
 
 func (c *Controller) GetTodos(ctx *gin.Context) {
-	// TODO: 从提醒系统获取待办事项
-	// 暂时返回示例数据
-	todos := []TodoItem{
-		{
-			ID:       1,
-			Type:     "follow_up",
-			Title:    "客户张三需要跟进",
-			Priority: "high",
-			Status:   "pending",
-		},
-		{
-			ID:       2,
-			Type:     "birthday",
-			Title:    "客户李四今天生日",
-			Priority: "medium",
-			Status:   "pending",
-		},
+	// 获取当前用户ID
+	userID := ctx.GetUint64("user_id")
+	if userID == 0 {
+		userID = 1 // 默认用户
+	}
+
+	// 从提醒系统获取待办事项
+	pendingTasks, err := c.reminder.GetPendingReminders(userID)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取待办事项失败")
+		return
+	}
+
+	todos := make([]TodoItem, 0)
+	for _, task := range pendingTasks {
+		// Priority logic could be complex based on Rule or Content keywords
+		priority := "medium" 
+		taskType := "reminder"
+		
+		// Simple keyword matching for type and priority demo
+		// In production, ReminderTask should probably have Type and Priority fields
+		
+		todos = append(todos, TodoItem{
+			ID:        task.ID,
+			Type:      taskType,
+			Title:     task.Content,
+			Priority:  priority,
+			Status:    task.Status,
+			ClientID:  &task.ClientID,
+			// ClientName: fetch client name if needed, or join in repo
+			CreatedAt: task.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
 	}
 
 	response.SuccessResponse(ctx, "ok", todos)
