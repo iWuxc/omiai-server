@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>录入档案 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { background-color: #f7f8fa; padding-bottom: 80px; }
+        .form-section { background: #fff; margin: 12px; border-radius: 12px; overflow: hidden; }
+        .section-title { padding: 16px 16px 8px; font-size: 15px; font-weight: 600; color: #323233; border-bottom: 1px solid #f7f8fa; }
+        .submit-btn { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 16px; background: #fff; box-shadow: 0 -2px 12px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <van-nav-bar title="录入客户档案" left-text="返回" left-arrow @click-left="goBack" :border="false"></van-nav-bar>
+
+        <van-form @submit="onSubmit">
+            <div class="form-section">
+                <div class="section-title">基本信息</div>
+                <van-field v-model="form.name" name="name" label="真实姓名" placeholder="请输入姓名" :rules="[{ required: true, message: '请填写姓名' }]"></van-field>
+                <van-field name="gender" label="客户性别">
+                    <template #input>
+                        <van-radio-group v-model="form.gender" direction="horizontal">
+                            <van-radio name="1">男</van-radio>
+                            <van-radio name="2">女</van-radio>
+                        </van-radio-group>
+                    </template>
+                </van-field>
+                <van-field v-model="form.phone" name="phone" type="tel" label="联系电话" placeholder="请输入手机号" :rules="[{ required: true, message: '请填写手机号' }, { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }]"></van-field>
+                <van-field v-model="form.birthday" name="birthday" label="出生年月" placeholder="请选择出生年月" readonly is-link @click="showBirthdayPicker = true"></van-field>
+                <van-field v-model="form.age" name="age" type="number" label="年龄" placeholder="自动计算" readonly></van-field>
+                <van-field v-model="form.zodiac" name="zodiac" label="属相" placeholder="请输入属相"></van-field>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">详细信息</div>
+                <van-field v-model="form.height" name="height" type="number" label="身高" placeholder="请输入身高" suffix="cm"></van-field>
+                <van-field v-model="form.weight" name="weight" type="number" label="体重" placeholder="请输入体重" suffix="kg"></van-field>
+                <van-field name="education" label="最高学历">
+                    <template #input>
+                        <van-radio-group v-model="form.education" direction="horizontal">
+                            <van-radio name="2">大专</van-radio>
+                            <van-radio name="3">本科</van-radio>
+                            <van-radio name="4">硕士</van-radio>
+                            <van-radio name="5">博士</van-radio>
+                        </van-radio-group>
+                    </template>
+                </van-field>
+                <van-field name="marital_status" label="婚姻状况">
+                    <template #input>
+                        <van-radio-group v-model="form.marital_status" direction="horizontal">
+                            <van-radio name="1">未婚</van-radio>
+                            <van-radio name="2">已婚</van-radio>
+                            <van-radio name="3">离异</van-radio>
+                            <van-radio name="4">丧偶</van-radio>
+                        </van-radio-group>
+                    </template>
+                </van-field>
+                <van-field v-model="form.income" name="income" type="number" label="月收入" placeholder="请输入月收入" suffix="元"></van-field>
+                <van-field v-model="form.address" name="address" label="家庭住址" placeholder="请输入家庭住址"></van-field>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">工作信息</div>
+                <van-field v-model="form.profession" name="profession" label="具体工作" placeholder="请描述具体工作内容"></van-field>
+                <van-field v-model="form.work_unit" name="work_unit" label="工作单位" placeholder="请输入工作单位"></van-field>
+                <van-field v-model="form.work_city" name="work_city" label="工作城市" placeholder="请输入工作城市"></van-field>
+                <van-field v-model="form.position" name="position" label="职位" placeholder="请输入职位"></van-field>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">资产情况</div>
+                <van-field name="house_status" label="房产情况">
+                    <template #input>
+                        <van-radio-group v-model="form.house_status" direction="horizontal">
+                            <van-radio name="1">无房</van-radio>
+                            <van-radio name="2">已购房</van-radio>
+                            <van-radio name="3">贷款购房</van-radio>
+                        </van-radio-group>
+                    </template>
+                </van-field>
+                <van-field v-model="form.house_address" name="house_address" v-if="form.house_status === '2' || form.house_status === '3'" label="购房地址" placeholder="请输入购房地址"></van-field>
+                <van-field name="car_status" label="车辆情况">
+                    <template #input>
+                        <van-radio-group v-model="form.car_status" direction="horizontal">
+                            <van-radio name="1">无车</van-radio>
+                            <van-radio name="2">有车</van-radio>
+                        </van-radio-group>
+                    </template>
+                </van-field>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">其他信息</div>
+                <van-field v-model="form.family_description" name="family_description" type="textarea" label="家庭成员" placeholder="请填写：关系+姓名+年龄" rows="3"></van-field>
+                <van-field v-model="form.parents_profession" name="parents_profession" type="textarea" label="父母工作" placeholder="如：父亲退休，母亲家庭主妇" rows="2"></van-field>
+                <van-field v-model="form.partner_requirements" name="partner_requirements" type="textarea" label="对另一半要求" placeholder="年龄范围、学历要求、身高要求、其他要求..." rows="3"></van-field>
+                <van-field v-model="form.remark" name="remark" type="textarea" label="红娘备注" placeholder="请描述客户的性格、爱好、家庭情况等..." rows="4" maxlength="500" show-word-limit></van-field>
+            </div>
+
+            <div class="submit-btn">
+                <van-button round block type="primary" native-type="submit" :loading="loading">提交并保存档案</van-button>
+            </div>
+        </van-form>
+
+        <van-popup v-model:show="showBirthdayPicker" position="bottom">
+            <van-date-picker
+                v-model="birthdayDate"
+                title="选择出生年月"
+                :min-date="minDate"
+                :max-date="maxDate"
+                :columns-type="['year', 'month']"
+                @confirm="onBirthdayConfirm"
+                @cancel="showBirthdayPicker = false"
+            ></van-date-picker>
+        </van-popup>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const loading = ref(false);
+                const showBirthdayPicker = ref(false);
+                const birthdayDate = ref(['2000', '01']);
+                const isEdit = ref(false);
+                const clientId = ref('');
+
+                const minDate = new Date(1950, 0, 1);
+                const maxDate = new Date();
+
+                const form = reactive({
+                    name: '',
+                    gender: '1',
+                    phone: '',
+                    birthday: '',
+                    age: '',
+                    zodiac: '',
+                    height: '',
+                    weight: '',
+                    education: '3',
+                    marital_status: '1',
+                    income: '',
+                    address: '',
+                    profession: '',
+                    work_unit: '',
+                    work_city: '',
+                    position: '',
+                    house_status: '1',
+                    house_address: '',
+                    car_status: '1',
+                    family_description: '',
+                    parents_profession: '',
+                    partner_requirements: '',
+                    remark: ''
+                });
+
+                const token = localStorage.getItem('token');
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const onBirthdayConfirm = ({ selectedValues }) => {
+                    const [year, month] = selectedValues;
+                    form.birthday = `${year}-${month.padStart(2, '0')}`;
+                    const currentYear = new Date().getFullYear();
+                    form.age = (currentYear - parseInt(year)).toString();
+                    showBirthdayPicker.value = false;
+                };
+
+                const goBack = () => {
+                    window.history.back();
+                };
+
+                const onSubmit = async () => {
+                    if (!form.name || !form.phone || !form.birthday) {
+                        vant.showToast('请填写必填项');
+                        return;
+                    }
+
+                    loading.value = true;
+                    try {
+                        const payload = { ...form };
+                        if (payload.height) payload.height = parseInt(payload.height);
+                        if (payload.weight) payload.weight = parseInt(payload.weight);
+                        if (payload.income) payload.income = parseInt(payload.income);
+                        if (payload.age) payload.age = parseInt(payload.age);
+                        if (isEdit.value) {
+                            payload.id = clientId.value;
+                            await api.post('/clients/update', payload);
+                            vant.showToast('更新成功');
+                        } else {
+                            await api.post('/clients/create', payload);
+                            vant.showToast('保存成功');
+                        }
+                        setTimeout(() => {
+                            window.location.href = 'client-list.html';
+                        }, 1000);
+                    } catch (e) {
+                        vant.showToast(isEdit.value ? '更新失败' : '保存失败');
+                        console.error(e);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const fetchData = async () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const id = urlParams.get('id');
+                    if (id) {
+                        isEdit.value = true;
+                        clientId.value = id;
+                        try {
+                            const res = await api.get(`/clients/detail/${id}`);
+                            if (res.data.code === 0) {
+                                const data = res.data.data;
+                                form.name = data.name || '';
+                                form.gender = data.gender?.toString() || '1';
+                                form.phone = data.phone || '';
+                                form.birthday = data.birthday || '';
+                                form.age = data.age?.toString() || '';
+                                form.zodiac = data.zodiac || '';
+                                form.height = data.height?.toString() || '';
+                                form.weight = data.weight?.toString() || '';
+                                form.education = data.education?.toString() || '3';
+                                form.marital_status = data.marital_status?.toString() || '1';
+                                form.income = data.income?.toString() || '';
+                                form.address = data.address || '';
+                                form.profession = data.profession || '';
+                                form.work_unit = data.work_unit || '';
+                                form.work_city = data.work_city || '';
+                                form.position = data.position || '';
+                                form.house_status = data.house_status?.toString() || '1';
+                                form.house_address = data.house_address || '';
+                                form.car_status = data.car_status?.toString() || '1';
+                                form.family_description = data.family_description || '';
+                                form.parents_profession = data.parents_profession || '';
+                                form.partner_requirements = data.partner_requirements || '';
+                                form.remark = data.remark || '';
+                            }
+                        } catch (e) {
+                            vant.showToast('加载数据失败');
+                        }
+                    }
+                };
+
+                onMounted(() => {
+                    fetchData();
+                });
+
+                return {
+                    loading,
+                    showBirthdayPicker,
+                    birthdayDate,
+                    minDate,
+                    maxDate,
+                    form,
+                    onBirthdayConfirm,
+                    goBack,
+                    onSubmit
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>

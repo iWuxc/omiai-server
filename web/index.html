@@ -36,10 +36,10 @@
         <!-- Quick Actions -->
         <div class="section-title">快捷功能</div>
         <van-grid :column-num="4" :border="false">
-            <van-grid-item icon="add-o" text="录入客户" to="#" />
+            <van-grid-item icon="add-o" text="录入客户" url="client-create.html" />
+            <van-grid-item icon="friends-o" text="客户池" url="client-list.html" />
+            <van-grid-item icon="like-o" text="情侣管理" url="match-list.html" />
             <van-grid-item icon="chat-o" text="话术库" url="templates.html" />
-            <van-grid-item icon="clock-o" text="提醒设置" url="reminders.html" />
-            <van-grid-item icon="gem-o" text="AI推荐" url="recommendations.html" />
         </van-grid>
 
         <!-- Todos -->
@@ -63,9 +63,9 @@
         <!-- Tabbar -->
         <van-tabbar v-model="active" active-color="#ee0a24">
             <van-tabbar-item icon="home-o">工作台</van-tabbar-item>
-            <van-tabbar-item icon="friends-o" url="#">客户</van-tabbar-item>
-            <van-tabbar-item icon="chat-o" url="templates.html">话术</van-tabbar-item>
-            <van-tabbar-item icon="setting-o" url="#">我的</van-tabbar-item>
+            <van-tabbar-item icon="friends-o" url="client-list.html">客户</van-tabbar-item>
+            <van-tabbar-item icon="add-o" url="client-create.html">录入</van-tabbar-item>
+            <van-tabbar-item icon="user-o" url="profile.html">我的</van-tabbar-item>
         </van-tabbar>
     </div>
 

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>客户详情 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { background-color: #f7f8fa; padding-bottom: 80px; }
+        .header { background: #ee0a24; padding: 40px 20px 60px; color: white; text-align: center; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin-bottom: 12px; }
+        .name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .info-row { display: flex; justify-content: center; gap: 16px; font-size: 13px; opacity: 0.9; }
+        .info-row span { display: flex; align-items: center; gap: 4px; }
+        .status-card { margin: -30px 16px 16px; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); position: relative; }
+        .status-title { font-size: 14px; color: #969799; margin-bottom: 8px; }
+        .status-value { font-size: 16px; font-weight: 600; color: #323233; }
+        .section { background: #fff; margin: 16px; border-radius: 12px; padding: 16px; }
+        .section-title { font-size: 15px; font-weight: 600; color: #323233; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f7f8fa; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .info-item { display: flex; flex-direction: column; gap: 4px; }
+        .info-label { font-size: 12px; color: #969799; }
+        .info-value { font-size: 14px; color: #323233; }
+        .photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .photo-item { aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: #f7f8fa; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+        .remark-box { background: #f7f8fa; padding: 12px; border-radius: 8px; font-size: 14px; color: #646566; line-height: 1.6; }
+        .actions { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 12px 16px; box-shadow: 0 -2px 12px rgba(0,0,0,0.05); display: flex; gap: 8px; }
+        .actions .van-button { flex: 1; }
+        .photos-preview { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 999; display: flex; align-items: center; justify-content: center; }
+        .photos-preview img { max-width: 100%; max-height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <van-nav-bar title="客户详情" left-text="返回" left-arrow @click-left="goBack" :border="false" style="background: #ee0a24; color: #fff;"></van-nav-bar>
+
+        <div class="header">
+            <van-image class="avatar" round :src="client.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${client.id}`"></van-image>
+            <div class="name">{{ client.name }}</div>
+            <div class="info-row">
+                <span><van-icon name="contact" size="14"></van-icon>{{ client.gender === 1 ? '男' : '女' }}</span>
+                <span><van-icon name="clock-o" size="14"></van-icon>{{ getAgeText(client) }}</span>
+                <span><van-icon name="phone-o" size="14"></van-icon>{{ client.phone }}</span>
+            </div>
+        </div>
+
+        <div class="status-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div class="status-title">当前状态</div>
+                    <div class="status-value">{{ getStatusText(client.status) }}</div>
+                </div>
+                <van-tag :type="getStatusType(client.status)">{{ getStatusText(client.status) }}</van-tag>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">基本信息</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">出生年月</span>
+                    <span class="info-value">{{ client.birthday || '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">属相</span>
+                    <span class="info-value">{{ client.zodiac || '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">身高</span>
+                    <span class="info-value">{{ client.height }}cm</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">体重</span>
+                    <span class="info-value">{{ client.weight }}kg</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">最高学历</span>
+                    <span class="info-value">{{ getEducationText(client.education) }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">婚姻状况</span>
+                    <span class="info-value">{{ getMaritalStatusText(client.marital_status) }}</span>
+                </div>
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">月收入</span>
+                    <span class="info-value">{{ client.income ? client.income + '元' : '-' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">工作信息</div>
+            <div class="info-grid">
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">具体工作</span>
+                    <span class="info-value">{{ client.profession || '-' }}</span>
+                </div>
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">工作单位</span>
+                    <span class="info-value">{{ client.work_unit || '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">职位</span>
+                    <span class="info-value">{{ client.position || '-' }}</span>
+                </div>
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">工作城市</span>
+                    <span class="info-value">{{ client.work_city || '-' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">资产情况</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">房产情况</span>
+                    <span class="info-value">{{ getHouseStatusText(client.house_status) }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">车辆情况</span>
+                    <span class="info-value">{{ getCarStatusText(client.car_status) }}</span>
+                </div>
+                <div class="info-item" style="grid-column: span 2;" v-if="client.house_address">
+                    <span class="info-label">购房地址</span>
+                    <span class="info-value">{{ client.house_address }}</span>
+                </div>
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">家庭住址</span>
+                    <span class="info-value">{{ client.address || '-' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" v-if="client.family_description">
+            <div class="section-title">家庭成员</div>
+            <div class="remark-box">{{ client.family_description }}</div>
+        </div>
+
+        <div class="section" v-if="client.partner_requirements">
+            <div class="section-title">对另一半要求</div>
+            <div class="remark-box">{{ client.partner_requirements }}</div>
+        </div>
+
+        <div class="section" v-if="client.remark">
+            <div class="section-title">红娘备注</div>
+            <div class="remark-box">{{ client.remark }}</div>
+        </div>
+
+        <div class="section" v-if="photos.length > 0">
+            <div class="section-title">生活相册</div>
+            <div class="photos-grid">
+                <div class="photo-item" v-for="(photo, index) in photos" :key="index" @click="previewPhoto(index)">
+                    <img :src="photo" alt="">
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <van-button type="danger" plain @click="confirmDelete">删除</van-button>
+            <van-button type="primary" plain @click="goEdit">编辑</van-button>
+            <van-button type="primary" @click="goMatch">发起匹配</van-button>
+        </div>
+
+        <van-image-preview v-model:show="showImagePreview" :images="photos" :start-position="imageIndex"></van-image-preview>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const client = ref({});
+                const photos = ref([]);
+                const showImagePreview = ref(false);
+                const imageIndex = ref(0);
+
+                const token = localStorage.getItem('token');
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const clientId = urlParams.get('id');
+
+                const getAgeText = (item) => {
+                    if (item.age) return item.age + '岁';
+                    if (item.birthday) {
+                        const year = parseInt(item.birthday.substring(0, 4));
+                        const currentYear = new Date().getFullYear();
+                        return (currentYear - year) + '岁';
+                    }
+                    return '未知年龄';
+                };
+
+                const getEducationText = (level) => {
+                    const map = { 1: '高中', 2: '大专', 3: '本科', 4: '硕士', 5: '博士' };
+                    return map[level] || '未知';
+                };
+
+                const getMaritalStatusText = (status) => {
+                    const map = { 1: '未婚', 2: '已婚', 3: '离异', 4: '丧偶' };
+                    return map[status] || '未知';
+                };
+
+                const getHouseStatusText = (status) => {
+                    const map = { 1: '无房', 2: '已购房', 3: '贷款购房' };
+                    return map[status] || '未知';
+                };
+
+                const getCarStatusText = (status) => {
+                    const map = { 1: '无车', 2: '有车' };
+                    return map[status] || '未知';
+                };
+
+                const getStatusText = (status) => {
+                    const map = { 1: '单身', 2: '匹配中', 3: '已匹配', 4: '停止服务' };
+                    return map[status] || '未知';
+                };
+
+                const getStatusType = (status) => {
+                    const map = { 1: 'primary', 2: 'warning', 3: 'success', 4: 'info' };
+                    return map[status] || 'default';
+                };
+
+                const fetchData = async () => {
+                    try {
+                        const res = await api.get(`/clients/detail/${clientId}`);
+                        if (res.data.code === 0) {
+                            client.value = res.data.data;
+                            if (client.value.photos) {
+                                try {
+                                    photos.value = JSON.parse(client.value.photos);
+                                } catch (e) {
+                                    photos.value = [];
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        vant.showToast('加载失败');
+                        console.error(e);
+                    }
+                };
+
+                const goBack = () => {
+                    window.history.back();
+                };
+
+                const goEdit = () => {
+                    window.location.href = `client-create.html?id=${clientId}`;
+                };
+
+                const goMatch = () => {
+                    window.location.href = `candidates.html?id=${clientId}`;
+                };
+
+                const confirmDelete = () => {
+                    vant.showConfirmDialog({
+                        title: '确认删除',
+                        message: '删除后无法恢复，确定要删除该客户吗？'
+                    }).then(async () => {
+                        try {
+                            await api.delete(`/clients/delete/${clientId}`);
+                            vant.showToast('删除成功');
+                            setTimeout(() => {
+                                window.location.href = 'client-list.html';
+                            }, 1000);
+                        } catch (e) {
+                            vant.showToast('删除失败');
+                        }
+                    }).catch(() => {});
+                };
+
+                const previewPhoto = (index) => {
+                    imageIndex.value = index;
+                    showImagePreview.value = true;
+                };
+
+                onMounted(() => {
+                    fetchData();
+                });
+
+                return {
+                    client,
+                    photos,
+                    showImagePreview,
+                    imageIndex,
+                    getAgeText,
+                    getEducationText,
+                    getMaritalStatusText,
+                    getHouseStatusText,
+                    getCarStatusText,
+                    getStatusText,
+                    getStatusType,
+                    goBack,
+                    goEdit,
+                    goMatch,
+                    confirmDelete,
+                    previewPhoto
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>

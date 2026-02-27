@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>匹配详情 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { background-color: #f7f8fa; padding-bottom: 80px; }
+        .header { background: linear-gradient(135deg, #ee0a24 0%, #ff6b81 100%); padding: 40px 20px 60px; color: white; text-align: center; }
+        .couple-info { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .person { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .person-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); }
+        .person-name { font-size: 16px; font-weight: 600; }
+        .heart-icon { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .match-score { font-size: 20px; font-weight: 700; }
+        .match-date { font-size: 12px; opacity: 0.9; }
+        .info-card { margin: -30px 16px 16px; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); position: relative; }
+        .info-title { font-size: 14px; color: #969799; margin-bottom: 8px; }
+        .info-value { font-size: 16px; font-weight: 600; color: #323233; }
+        .section { background: #fff; margin: 16px; border-radius: 12px; padding: 16px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .section-title { font-size: 15px; font-weight: 600; color: #323233; }
+        .timeline-item { padding: 12px 0; border-left: 2px solid #ee0a24; padding-left: 16px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 18px; width: 10px; height: 10px; background: #ee0a24; border-radius: 50%; }
+        .timeline-date { font-size: 12px; color: #969799; margin-bottom: 4px; }
+        .timeline-content { font-size: 14px; color: #323233; }
+        .timeline-reason { font-size: 12px; color: #969799; margin-top: 4px; }
+        .actions { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 12px 16px; box-shadow: 0 -2px 12px rgba(0,0,0,0.05); display: flex; gap: 8px; }
+        .actions .van-button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <van-nav-bar title="匹配详情" left-text="返回" left-arrow @click-left="goBack" :border="false" style="background: #ee0a24; color: #fff;"></van-nav-bar>
+
+        <div class="header">
+            <div class="couple-info">
+                <div class="person">
+                    <van-image class="person-avatar" round :src="match.male_client?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${match.male_client_id}`"></van-image>
+                    <span class="person-name">{{ match.male_client?.name }}</span>
+                </div>
+                <div class="heart-icon">
+                    <van-icon name="heart" size="32"></van-icon>
+                    <span class="match-score">{{ match.match_score }}分</span>
+                </div>
+                <div class="person">
+                    <van-image class="person-avatar" round :src="match.female_client?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${match.female_client_id}`"></van-image>
+                    <span class="person-name">{{ match.female_client?.name }}</span>
+                </div>
+            </div>
+            <div class="match-date">{{ formatDate(match.match_date) }} 匹配</div>
+        </div>
+
+        <div class="info-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div class="info-title">当前状态</div>
+                    <div class="info-value">{{ getStatusText(match.status) }}</div>
+                </div>
+                <van-tag :type="getStatusType(match.status)" size="large">{{ getStatusText(match.status) }}</van-tag>
+            </div>
+        </div>
+
+        <div class="section" v-if="match.remark">
+            <div class="section-title" style="margin-bottom: 8px;">匹配备注</div>
+            <div style="color: #646566; line-height: 1.6;">{{ match.remark }}</div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">状态历史</span>
+                <van-button size="small" type="primary" plain @click="showUpdateStatus = true">更新状态</van-button>
+            </div>
+            <div v-if="statusHistory.length === 0" style="text-align: center; padding: 20px; color: #999;">
+                暂无状态变更记录
+            </div>
+            <div v-else>
+                <div class="timeline-item" v-for="item in statusHistory" :key="item.id">
+                    <div class="timeline-date">{{ formatDate(item.change_time) }}</div>
+                    <div class="timeline-content">{{ getStatusText(item.old_status) }} → {{ getStatusText(item.new_status) }}</div>
+                    <div class="timeline-reason" v-if="item.reason">原因: {{ item.reason }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">回访记录</span>
+                <van-button size="small" type="primary" plain @click="showAddFollowUp = true">添加回访</van-button>
+            </div>
+            <div v-if="followUps.length === 0" style="text-align: center; padding: 20px; color: #999;">
+                暂无回访记录
+            </div>
+            <div v-else>
+                <van-cell-group :border="false">
+                    <van-cell v-for="item in followUps" :key="item.id" :title="item.method">
+                        <template #label>
+                            <div>{{ formatDate(item.follow_up_date) }}</div>
+                            <div style="margin-top: 4px; color: #646566;">{{ item.content }}</div>
+                            <div v-if="item.feedback" style="margin-top: 4px; color: #969799;">反馈: {{ item.feedback }}</div>
+                        </template>
+                    </van-cell>
+                </van-cell-group>
+            </div>
+        </div>
+
+        <div class="actions">
+            <van-button type="danger" plain @click="confirmDissolve">解除匹配</van-button>
+            <van-button type="primary" @click="goBack">返回列表</van-button>
+        </div>
+
+        <van-popup v-model:show="showUpdateStatus" position="bottom" round style="padding: 20px;">
+            <van-nav-bar title="更新状态" left-text="取消" @click-left="showUpdateStatus = false"></van-nav-bar>
+            <van-field name="status" label="新状态">
+                <template #input>
+                    <van-radio-group v-model="updateStatusForm.new_status" direction="horizontal">
+                        <van-radio name="2">交往</van-radio>
+                        <van-radio name="3">稳定</van-radio>
+                        <van-radio name="4">订婚</van-radio>
+                        <van-radio name="5">结婚</van-radio>
+                        <van-radio name="6">分手</van-radio>
+                    </van-radio-group>
+                </template>
+            </van-field>
+            <van-field v-model="updateStatusForm.reason" type="textarea" label="变更原因" placeholder="请输入变更原因" rows="3"></van-field>
+            <van-button type="primary" block @click="submitUpdateStatus">提交</van-button>
+        </van-popup>
+
+        <van-popup v-model:show="showAddFollowUp" position="bottom" round style="padding: 20px;">
+            <van-nav-bar title="添加回访" left-text="取消" @click-left="showAddFollowUp = false"></van-nav-bar>
+            <van-field v-model="followUpForm.method" label="回访方式" placeholder="请选择回访方式">
+                <template #input>
+                    <van-radio-group v-model="followUpForm.method" direction="horizontal">
+                        <van-radio name="电话">电话</van-radio>
+                        <van-radio name="面谈">面谈</van-radio>
+                        <van-radio name="线上">线上</van-radio>
+                    </van-radio-group>
+                </template>
+            </van-field>
+            <van-field v-model="followUpForm.content" type="textarea" label="回访内容" placeholder="请输入回访内容" rows="3"></van-field>
+            <van-field v-model="followUpForm.feedback" type="textarea" label="客户反馈" placeholder="请输入客户反馈" rows="2"></van-field>
+            <van-button type="primary" block @click="submitFollowUp">提交</van-button>
+        </van-popup>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const match = ref({});
+                const statusHistory = ref([]);
+                const followUps = ref([]);
+                const showUpdateStatus = ref(false);
+                const showAddFollowUp = ref(false);
+
+                const updateStatusForm = reactive({
+                    old_status: '',
+                    new_status: '2',
+                    reason: ''
+                });
+
+                const followUpForm = reactive({
+                    method: '电话',
+                    content: '',
+                    feedback: ''
+                });
+
+                const token = localStorage.getItem('token');
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const matchId = urlParams.get('id');
+
+                const getStatusText = (status) => {
+                    const map = { 1: '相识', 2: '交往', 3: '稳定', 4: '订婚', 5: '结婚', 6: '分手' };
+                    return map[status] || '未知';
+                };
+
+                const getStatusType = (status) => {
+                    const map = { 1: 'primary', 2: 'warning', 3: 'success', 4: 'success', 5: 'success', 6: 'info' };
+                    return map[status] || 'default';
+                };
+
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '-';
+                    return dateStr.split('T')[0];
+                };
+
+                const fetchData = async () => {
+                    try {
+                        const res = await api.get(`/couples/detail?id=${matchId}`);
+                        if (res.data.code === 0) {
+                            match.value = res.data.data;
+                            updateStatusForm.old_status = match.value.status?.toString() || '1';
+                        }
+                    } catch (e) {
+                        vant.showToast('加载失败');
+                        console.error(e);
+                    }
+                };
+
+                const fetchStatusHistory = async () => {
+                    try {
+                        const res = await api.get('/couples/status/history', { params: { match_record_id: matchId } });
+                        if (res.data.code === 0) {
+                            statusHistory.value = res.data.data || [];
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                const fetchFollowUps = async () => {
+                    try {
+                        const res = await api.get('/couples/followup/list', { params: { match_record_id: matchId } });
+                        if (res.data.code === 0) {
+                            followUps.value = res.data.data || [];
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                const goBack = () => {
+                    window.history.back();
+                };
+
+                const submitUpdateStatus = async () => {
+                    try {
+                        await api.post('/couples/update_status', {
+                            id: matchId,
+                            status: parseInt(updateStatusForm.new_status),
+                            reason: updateStatusForm.reason
+                        });
+                        vant.showToast('状态更新成功');
+                        showUpdateStatus.value = false;
+                        fetchData();
+                        fetchStatusHistory();
+                    } catch (e) {
+                        vant.showToast('状态更新失败');
+                    }
+                };
+
+                const submitFollowUp = async () => {
+                    if (!followUpForm.content) {
+                        vant.showToast('请输入回访内容');
+                        return;
+                    }
+                    try {
+                        await api.post('/couples/followup/create', {
+                            match_record_id: matchId,
+                            method: followUpForm.method,
+                            content: followUpForm.content,
+                            feedback: followUpForm.feedback
+                        });
+                        vant.showToast('回访记录添加成功');
+                        showAddFollowUp.value = false;
+                        followUpForm.content = '';
+                        followUpForm.feedback = '';
+                        fetchFollowUps();
+                    } catch (e) {
+                        vant.showToast('添加失败');
+                    }
+                };
+
+                const confirmDissolve = () => {
+                    vant.showConfirmDialog({
+                        title: '确认解除匹配',
+                        message: '解除匹配后，双方将恢复到单身状态'
+                    }).then(async () => {
+                        try {
+                            await api.post('/couples/dissolve', {
+                                client_id: match.value.male_client_id,
+                                reason: '管理员解除匹配'
+                            });
+                            vant.showToast('解除成功');
+                            setTimeout(() => {
+                                window.location.href = 'match-list.html';
+                            }, 1000);
+                        } catch (e) {
+                            vant.showToast('解除失败');
+                        }
+                    }).catch(() => {});
+                };
+
+                onMounted(() => {
+                    fetchData();
+                    fetchStatusHistory();
+                    fetchFollowUps();
+                });
+
+                return {
+                    match,
+                    statusHistory,
+                    followUps,
+                    showUpdateStatus,
+                    showAddFollowUp,
+                    updateStatusForm,
+                    followUpForm,
+                    getStatusText,
+                    getStatusType,
+                    formatDate,
+                    goBack,
+                    submitUpdateStatus,
+                    submitFollowUp,
+                    confirmDissolve
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>

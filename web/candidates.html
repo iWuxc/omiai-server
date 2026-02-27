@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>匹配候选人 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { background-color: #f7f8fa; padding-bottom: 80px; }
+        .search-section { background: #fff; padding: 12px 16px; }
+        .candidates-list { padding: 16px; }
+        .candidate-card { background: #fff; border-radius: 12px; margin-bottom: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .candidate-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .candidate-avatar { width: 56px; height: 56px; border-radius: 50%; }
+        .candidate-info { flex: 1; }
+        .candidate-name { font-size: 16px; font-weight: 600; color: #323233; margin-bottom: 4px; }
+        .candidate-detail { font-size: 13px; color: #969799; display: flex; gap: 8px; flex-wrap: wrap; }
+        .candidate-detail span { background: #f7f8fa; padding: 2px 8px; border-radius: 4px; }
+        .match-score { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .score-value { font-size: 20px; font-weight: 700; color: #ee0a24; }
+        .score-label { font-size: 11px; color: #969799; }
+        .candidate-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f7f8fa; }
+        .candidate-actions .van-button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <van-nav-bar title="匹配候选人" left-text="返回" left-arrow @click-left="goBack"></van-nav-bar>
+
+        <div class="search-section">
+            <van-search v-model="keyword" placeholder="搜索候选人" @search="onSearch" :show-action="false"></van-search>
+        </div>
+
+        <div class="candidates-list">
+            <div v-if="loading" style="text-align: center; padding: 40px;">
+                <van-loading size="24px">加载中...</van-loading>
+            </div>
+            <div v-else-if="candidates.length === 0" style="text-align: center; padding: 40px; color: #999;">
+                <van-empty description="暂无候选人"></van-empty>
+            </div>
+            <div v-else>
+                <div class="candidate-card" v-for="item in candidates" :key="item.candidate_id">
+                    <div class="candidate-header">
+                        <van-image class="candidate-avatar" round :src="item.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.candidate_id}`"></van-image>
+                        <div class="candidate-info">
+                            <div class="candidate-name">{{ item.name }}</div>
+                            <div class="candidate-detail">
+                                <span>{{ item.age }}岁</span>
+                                <span>{{ item.height }}cm</span>
+                                <span>{{ getEducationText(item.education) }}</span>
+                            </div>
+                        </div>
+                        <div class="match-score">
+                            <span class="score-value">{{ item.match_score }}</span>
+                            <span class="score-label">匹配度</span>
+                        </div>
+                    </div>
+                    <div class="candidate-actions">
+                        <van-button size="small" plain @click="goCompare(item.candidate_id)">对比详情</van-button>
+                        <van-button size="small" type="primary" @click="confirmMatch(item.candidate_id)">确认匹配</van-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const keyword = ref('');
+                const candidates = ref([]);
+                const loading = ref(false);
+                const clientId = ref('');
+
+                const token = localStorage.getItem('token');
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const urlParams = new URLSearchParams(window.location.search);
+                clientId.value = urlParams.get('id');
+
+                const getEducationText = (level) => {
+                    const map = { 1: '高中', 2: '大专', 3: '本科', 4: '硕士', 5: '博士' };
+                    return map[level] || '未知';
+                };
+
+                const fetchData = async () => {
+                    loading.value = true;
+                    try {
+                        const res = await api.get(`/clients/${clientId.value}/candidates`);
+                        if (res.data.code === 0) {
+                            candidates.value = res.data.data || [];
+                        }
+                    } catch (e) {
+                        vant.showToast('加载失败');
+                        console.error(e);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const onSearch = () => {
+                    if (!keyword.value) {
+                        fetchData();
+                        return;
+                    }
+                    candidates.value = candidates.value.filter(item =>
+                        item.name.toLowerCase().includes(keyword.value.toLowerCase())
+                    );
+                };
+
+                const goCompare = (candidateId) => {
+                    window.location.href = `compare.html?clientId=${clientId.value}&candidateId=${candidateId}`;
+                };
+
+                const confirmMatch = (candidateId) => {
+                    vant.showConfirmDialog({
+                        title: '确认匹配',
+                        message: '确定要确认这个匹配吗？'
+                    }).then(async () => {
+                        try {
+                            await api.post('/couples/confirm', {
+                                client_id: parseInt(clientId.value),
+                                candidate_id: candidateId
+                            });
+                            vant.showToast('匹配成功');
+                            setTimeout(() => {
+                                window.location.href = 'match-list.html';
+                            }, 1000);
+                        } catch (e) {
+                            vant.showToast('匹配失败');
+                            console.error(e);
+                        }
+                    }).catch(() => {});
+                };
+
+                const goBack = () => {
+                    window.history.back();
+                };
+
+                onMounted(() => {
+                    fetchData();
+                });
+
+                return {
+                    keyword,
+                    candidates,
+                    loading,
+                    getEducationText,
+                    onSearch,
+                    goCompare,
+                    confirmMatch,
+                    goBack
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>

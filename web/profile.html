@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>个人中心 - 红娘助手</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { background-color: #f7f8fa; padding-bottom: 60px; }
+        .header { background: linear-gradient(135deg, #ee0a24 0%, #ff6b81 100%); padding: 40px 20px 50px; color: white; text-align: center; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin-bottom: 12px; }
+        .name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .role { font-size: 14px; opacity: 0.9; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; display: inline-block; }
+        .info-card { margin: -30px 16px 16px; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); position: relative; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f7f8fa; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #969799; }
+        .info-value { color: #323233; font-weight: 500; }
+        .menu-section { background: #fff; margin: 16px; border-radius: 12px; overflow: hidden; }
+        .logout-btn { background: #fff; margin: 16px; border-radius: 12px; padding: 16px; text-align: center; color: #ee0a24; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <van-image class="avatar" round :src="user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`"></van-image>
+            <div class="name">{{ user.nickname || '红娘' }}</div>
+            <div class="role">{{ getRoleText(user.role) }}</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-label">用户ID</span>
+                <span class="info-value">{{ user.id }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">手机号</span>
+                <span class="info-value">{{ user.phone || '-' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">注册时间</span>
+                <span class="info-value">{{ formatDate(user.created_at) }}</span>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <van-cell title="修改密码" is-link @click="showChangePassword = true"></van-cell>
+            <van-cell title="权限设置" is-link @click="goPermissions"></van-cell>
+            <van-cell title="关于我们" is-link @click="goAbout"></van-cell>
+        </div>
+
+        <div class="logout-btn" @click="logout">
+            退出登录
+        </div>
+
+        <van-tabbar v-model="active" active-color="#ee0a24">
+            <van-tabbar-item icon="home-o" url="index.html">工作台</van-tabbar-item>
+            <van-tabbar-item icon="friends-o" url="client-list.html">客户池</van-tabbar-item>
+            <van-tabbar-item icon="add-o" url="client-create.html">录入</van-tabbar-item>
+            <van-tabbar-item icon="user-o">我的</van-tabbar-item>
+        </van-tabbar>
+
+        <van-popup v-model:show="showChangePassword" position="bottom" round style="padding: 20px;">
+            <van-nav-bar title="修改密码" left-text="取消" @click-left="showChangePassword = false"></van-nav-bar>
+            <van-field v-model="passwordForm.old_password" type="password" label="原密码" placeholder="请输入原密码"></van-field>
+            <van-field v-model="passwordForm.new_password" type="password" label="新密码" placeholder="请输入新密码"></van-field>
+            <van-field v-model="passwordForm.confirm_password" type="password" label="确认密码" placeholder="请再次输入新密码"></van-field>
+            <van-button type="primary" block style="margin-top: 16px;" @click="submitChangePassword">提交</van-button>
+        </van-popup>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const active = ref(3);
+                const user = ref({});
+                const showChangePassword = ref(false);
+
+                const passwordForm = reactive({
+                    old_password: '',
+                    new_password: '',
+                    confirm_password: ''
+                });
+
+                const token = localStorage.getItem('token');
+                const api = axios.create({
+                    baseURL: '/api',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const getRoleText = (role) => {
+                    const map = { 1: '超级管理员', 2: '红娘' };
+                    return map[role] || '用户';
+                };
+
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '-';
+                    return dateStr.split('T')[0];
+                };
+
+                const fetchUserInfo = async () => {
+                    try {
+                        const res = await api.get('/user/info');
+                        if (res.data.code === 0) {
+                            user.value = res.data.data;
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                const submitChangePassword = async () => {
+                    if (!passwordForm.old_password || !passwordForm.new_password) {
+                        vant.showToast('请填写密码');
+                        return;
+                    }
+                    if (passwordForm.new_password !== passwordForm.confirm_password) {
+                        vant.showToast('两次密码输入不一致');
+                        return;
+                    }
+                    if (passwordForm.new_password.length < 6) {
+                        vant.showToast('新密码至少6位');
+                        return;
+                    }
+                    try {
+                        await api.post('/user/change_password', {
+                            old_password: passwordForm.old_password,
+                            new_password: passwordForm.new_password
+                        });
+                        vant.showToast('密码修改成功');
+                        showChangePassword.value = false;
+                        passwordForm.old_password = '';
+                        passwordForm.new_password = '';
+                        passwordForm.confirm_password = '';
+                    } catch (e) {
+                        vant.showToast('密码修改失败');
+                    }
+                };
+
+                const goPermissions = () => {
+                    vant.showToast('权限设置功能开发中');
+                };
+
+                const goAbout = () => {
+                    vant.showDialog({
+                        title: '关于我们',
+                        message: '红娘助手 v1.0.0\n专业的相亲匹配管理系统',
+                        showCancelButton: false
+                    });
+                };
+
+                const logout = () => {
+                    vant.showConfirmDialog({
+                        title: '确认退出',
+                        message: '确定要退出登录吗？'
+                    }).then(() => {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = 'login.html';
+                    }).catch(() => {});
+                };
+
+                onMounted(() => {
+                    fetchUserInfo();
+                });
+
+                return {
+                    active,
+                    user,
+                    showChangePassword,
+                    passwordForm,
+                    getRoleText,
+                    formatDate,
+                    submitChangePassword,
+                    goPermissions,
+                    goAbout,
+                    logout
+                };
+            }
+        }).use(vant).mount('#app');
+    </script>
+</body>
+</html>
