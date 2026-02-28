@@ -1,74 +1,50 @@
-# omiai
+# omiai - 婚恋匹配服务
 
-## 项目概览
+## 项目简介
 
-本项目为服务端应用，采用 Go 开发。文中出现的代码路径均以项目根路径为基准。
+Go + Gin + GORM + Redis 开发的婚恋匹配服务端应用。
 
-## 目录结构
+## 核心功能
 
-```text
-.
-├── Dockerfile
-├── Makefile
-├── README.md
-├── cmd
-│  └── server
-│    ├── main.go            项目入口
-│    ├── wire.go            依赖注入定义
-│    └── wire_gen.go
-├── configs
-│  ├── config.yaml          实际配置
-│  └── config.yaml.bak      配置示例
-├── data                    数据文件
-├── doc                     文档中心
-│  ├── FAQ.md
-│  ├── README.md
-│  └── images
-├── internal
-│  ├── api                  接口定义
-│  ├── biz                  业务接口定义
-│  ├── conf                 配置与初始化
-│  ├── controller           业务处理
-│  ├── cron                 定时任务
-│  ├── data                 数据访问
-│  ├── middleware           中间件
-│  ├── server               服务初始化
-│  ├── service              业务服务
-│  └── validate             数据校验
-├── pkg
-│  └── response             响应与状态码
-├── runtime                 运行时日志
-└── scripts                 启停脚本
-```
+- 客户管理：客户档案的增删改查、公海池管理
+- 匹配推荐：AI 算法自动推荐合适对象
+- 跟进提醒：自动生成跟进任务、提醒规则配置
+- 数据统计：工作台数据概览
+- H5 管理端：内置轻量级管理后台
 
-## 版本要求
+## 快速开始
 
-Go 1.25
+### 环境要求
 
-## 本地开发
+- Go 1.25+
 
-1. 配置 Go 代理（建议写入 `~/.bashrc` 或 `~/.zshrc`）
-
-```bash
-export GO111MODULE=on
-export GOPROXY=https://goproxy.io
-```
-
-2. 准备配置文件
+### 配置
 
 ```bash
 cp configs/config.yaml.bak configs/config.yaml
 ```
 
-## H5 管理端 (单管理员效率版)
+### 启动服务
 
-本项目内置了轻量级 H5 管理端，用于单管理员快速处理业务。
+```bash
+make build
+./bin/server
+```
 
-访问地址：`http://localhost:8000/h5/login.html` (端口视配置而定)
+## 命令
 
-主要功能：
-- **工作台**：查看核心数据统计、待办事项概览。
-- **提醒管理**：处理系统自动生成的跟进任务，配置自动提醒规则。
-- **话术库**：管理常用沟通话术，支持分类筛选和一键复制。
-- **AI 推荐**：每日自动生成的匹配推荐，支持一键确认推送或忽略。
+```bash
+make build    # 构建
+make lint     # 代码检查
+make test     # 测试
+make wire     # 重新生成依赖注入
+```
 
+## 目录结构
+
+```
+cmd/server/      # 入口
+configs/         # 配置
+internal/        # 业务代码 (controller/biz/data)
+pkg/             # 公共包
+```
