@@ -176,8 +176,6 @@ jobs:
                   - REDIS_PORT=6379
                   - REDIS_PASSWORD=\${REDIS_PASSWORD}
                   - REDIS_DB=0
-                  - NACOS_ENDPOINT=
-                  - NACOS_DATA_ID=
                   - ZHIPUAI_API_KEY=\${ZHIPUAI_API_KEY}
                   - ZHIPUAI_MODEL=glm-4-flash
                   - DOMAIN_H5=\${DOMAIN_H5}
