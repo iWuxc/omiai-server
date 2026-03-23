@@ -5,6 +5,10 @@ import (
 	"omiai-server/internal/controller/ai"
 	"omiai-server/internal/controller/auth"
 	"omiai-server/internal/controller/banner"
+	"omiai-server/internal/controller/c_auth"
+	"omiai-server/internal/controller/c_client"
+	"omiai-server/internal/controller/c_interact"
+	"omiai-server/internal/controller/c_recommend"
 	"omiai-server/internal/controller/china_region"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
@@ -26,6 +30,10 @@ type Router struct {
 	Redis                 *redis.Redis
 	AIController          *ai.Controller
 	AuthController        *auth.Controller
+	CAuthController       *c_auth.Controller
+	CClientController     *c_client.Controller
+	CRecommendController  *c_recommend.Controller
+	CInteractController   *c_interact.Controller
 	BannerController      *banner.Controller
 	ChinaRegionController *china_region.Controller
 	ClientController      *client.Controller
@@ -46,6 +54,27 @@ func (r *Router) Register() http.Handler {
 		g.GET("/china_region/districts", r.ChinaRegionController.GetDistricts)
 		g.GET("/china_region/hot", r.ChinaRegionController.GetHotCities)
 		g.GET("/china_region/search", r.ChinaRegionController.Search)
+
+		// C端接口 (小程序)
+		cGroup := g.Group("c")
+		{
+			// C端鉴权
+			cGroup.POST("/auth/wx_login", r.CAuthController.WxLogin)
+
+			// C端需要登录的接口
+			cAuthGroup := cGroup.Group("", middleware.CClientAuthorization(r.DB, r.Redis))
+			{
+				cAuthGroup.GET("/profile/mine", r.CClientController.GetMine)
+				cAuthGroup.POST("/profile/update", r.CClientController.UpdateMine)
+
+				// 推荐流
+				cAuthGroup.GET("/recommend/daily", r.CRecommendController.DailyRecommend)
+				cAuthGroup.GET("/recommend/detail/:id", r.CRecommendController.Detail)
+
+				// 互动
+				cAuthGroup.POST("/interact/like", r.CInteractController.Like)
+			}
+		}
 
 		// 需要登录的接口
 		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis))

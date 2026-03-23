@@ -88,6 +88,42 @@ func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 	return stats, nil
 }
 
+// GetByWxOpenID 根据微信OpenID查询客户
+func (c *ClientRepo) GetByWxOpenID(ctx context.Context, openID string) (*biz_omiai.Client, error) {
+	var client biz_omiai.Client
+	err := c.db.WithContext(ctx).Model(c.m).Where("wx_openid = ?", openID).First(&client).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &client, nil
+}
+
+// SaveInteraction 保存或更新互动记录
+func (c *ClientRepo) SaveInteraction(ctx context.Context, interaction *biz_omiai.ClientInteraction) error {
+	if interaction.ID > 0 {
+		return c.db.WithContext(ctx).Model(interaction).Updates(interaction).Error
+	}
+	return c.db.WithContext(ctx).Model(interaction).Create(interaction).Error
+}
+
+// GetInteraction 获取互动记录
+func (c *ClientRepo) GetInteraction(ctx context.Context, fromID, toID uint64) (*biz_omiai.ClientInteraction, error) {
+	var interaction biz_omiai.ClientInteraction
+	err := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{}).
+		Where("from_client_id = ? AND to_client_id = ?", fromID, toID).
+		First(&interaction).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &interaction, nil
+}
+
 func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
 	now := time.Now()

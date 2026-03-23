@@ -54,6 +54,7 @@ func main() {
 
 	// Add commands
 	rootCmd.AddCommand(app.Command.InsertClass())
+	rootCmd.AddCommand(app.Command.Migrate())
 	if err = rootCmd.Execute(); err != nil {
 		log.Fatalf("execute core service failed, %s", err.Error())
 	}

@@ -40,3 +40,40 @@ func Authorization(db *data.DB, redis *redis.Redis) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// CClientAuthorization C端用户鉴权中间件
+func CClientAuthorization(db *data.DB, redis *redis.Redis) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "未登录")
+			c.Abort()
+			return
+		}
+
+		parts := strings.SplitN(authHeader, " ", 2)
+		if !(len(parts) == 2 && parts[0] == "Bearer") {
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "认证格式错误")
+			c.Abort()
+			return
+		}
+
+		claims, err := auth.ParseToken(parts[1])
+		if err != nil {
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "登录已过期，请重新登录")
+			c.Abort()
+			return
+		}
+
+		if claims.Role != "c_client" {
+			response.MiddlewareErrorResponse(c, response.ParamsCommonError, "权限不足")
+			c.Abort()
+			return
+		}
+
+		// 存入上下文
+		c.Set("client_id", claims.UserID)
+
+		c.Next()
+	}
+}

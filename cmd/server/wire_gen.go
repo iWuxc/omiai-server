@@ -13,6 +13,10 @@ import (
 	"omiai-server/internal/controller/ai"
 	"omiai-server/internal/controller/auth"
 	banner2 "omiai-server/internal/controller/banner"
+	"omiai-server/internal/controller/c_auth"
+	"omiai-server/internal/controller/c_client"
+	"omiai-server/internal/controller/c_interact"
+	"omiai-server/internal/controller/c_recommend"
 	"omiai-server/internal/controller/china_region"
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
@@ -48,6 +52,11 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	controller := ai.NewController(db, clientInterface)
 	userInterface := omiai.NewUserRepo(db)
 	authController := auth.NewController(db, userInterface)
+	c_authController := c_auth.NewController(db, clientInterface)
+	c_clientController := c_client.NewController(db, clientInterface)
+	matchInterface := omiai.NewMatchRepo(db)
+	c_recommendController := c_recommend.NewController(db, clientInterface, matchInterface)
+	c_interactController := c_interact.NewController(db, clientInterface, matchInterface)
 	bannerInterface := omiai.NewBannerRepo(db)
 	service := banner.NewService(redis)
 	bannerController := banner2.NewController(db, bannerInterface, service)
@@ -65,7 +74,6 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	templateController := template.NewController(templateRepo)
 	reminderInterface := omiai.NewReminderRepo(db)
 	reminderController := reminder.NewController(db, reminderInterface)
-	matchInterface := omiai.NewMatchRepo(db)
 	dashboardController := dashboard.NewController(clientInterface, matchInterface, reminderInterface)
 	matchController := match.NewController(db, matchInterface, clientInterface, userInterface)
 	router := &server.Router{
@@ -74,6 +82,10 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		Redis:                 redis,
 		AIController:          controller,
 		AuthController:        authController,
+		CAuthController:       c_authController,
+		CClientController:     c_clientController,
+		CRecommendController:  c_recommendController,
+		CInteractController:   c_interactController,
 		BannerController:      bannerController,
 		ChinaRegionController: china_regionController,
 		ClientController:      clientController,
