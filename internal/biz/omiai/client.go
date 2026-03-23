@@ -9,6 +9,7 @@ import (
 // Client 客户档案模型
 type Client struct {
 	ID                uint64 `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	TenantID          uint64 `json:"tenant_id" gorm:"column:tenant_id;index;default:1;comment:所属租户(机构)ID"`
 	Name              string `json:"name" gorm:"column:name;size:64;not null;comment:姓名"`
 	Gender            int8   `json:"gender" gorm:"column:gender;comment:性别 1男 2女"`
 	Phone             string `json:"phone" gorm:"column:phone;size:20;index;comment:联系电话"`
@@ -78,6 +79,7 @@ func (t *ClientCoinRecord) TableName() string {
 // ClientInteraction 互动记录表
 type ClientInteraction struct {
 	ID           uint64    `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	TenantID     uint64    `json:"tenant_id" gorm:"column:tenant_id;index;default:1;comment:所属租户(机构)ID"`
 	FromClientID uint64    `json:"from_client_id" gorm:"column:from_client_id;index;comment:发起方ID"`
 	ToClientID   uint64    `json:"to_client_id" gorm:"column:to_client_id;index;comment:接收方ID"`
 	ActionType   int8      `json:"action_type" gorm:"column:action_type;comment:行为类型 1查看 2单向心动 3互相心动"`

@@ -25,6 +25,7 @@ const (
 // MatchRecord 匹配成功记录 (情侣档案)
 type MatchRecord struct {
 	ID             uint64    `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	TenantID       uint64    `json:"tenant_id" gorm:"column:tenant_id;index;default:1;comment:所属租户(机构)ID"`
 	MaleClientID   uint64    `json:"male_client_id" gorm:"column:male_client_id;index;comment:男方ID"`
 	FemaleClientID uint64    `json:"female_client_id" gorm:"column:female_client_id;index;comment:女方ID"`
 	MatchDate      time.Time `json:"match_date" gorm:"column:match_date;comment:匹配确认时间"`

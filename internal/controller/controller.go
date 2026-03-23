@@ -17,6 +17,7 @@ import (
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/controller/template"
+	"omiai-server/internal/controller/tenant"
 	"omiai-server/internal/service/notification"
 	"omiai-server/internal/service/wechatpay"
 
@@ -42,4 +43,5 @@ var ProviderController = wire.NewSet(
 	match.NewController,
 	reminder.NewController,
 	template.NewController,
+	tenant.NewController,
 )

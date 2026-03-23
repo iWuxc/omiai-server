@@ -1,6 +1,9 @@
 package omiai
 
-import "github.com/google/wire"
+import (
+	"github.com/google/wire"
+	"omiai-server/internal/data/tenant"
+)
 
 var ProviderOmiai = wire.NewSet(
 	NewBannerRepo,
@@ -11,4 +14,5 @@ var ProviderOmiai = wire.NewSet(
 	NewChinaRegionRepo,
 	NewTemplateRepo,
 	NewAIMatchRepo,
+	tenant.NewTenantRepo,
 )

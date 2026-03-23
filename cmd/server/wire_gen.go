@@ -25,9 +25,11 @@ import (
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/controller/template"
+	tenant2 "omiai-server/internal/controller/tenant"
 	"omiai-server/internal/cron"
 	"omiai-server/internal/data"
 	"omiai-server/internal/data/omiai"
+	"omiai-server/internal/data/tenant"
 	"omiai-server/internal/middleware"
 	"omiai-server/internal/queues"
 	"omiai-server/internal/server"
@@ -82,6 +84,8 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	reminderController := reminder.NewController(db, reminderInterface)
 	dashboardController := dashboard.NewController(clientInterface, matchInterface, reminderInterface)
 	matchController := match.NewController(db, matchInterface, clientInterface, userInterface, service)
+	tenantInterface := tenant.NewTenantRepo(db)
+	tenantController := tenant2.NewController(tenantInterface)
 	router := &server.Router{
 		Engine:                engine,
 		DB:                    db,
@@ -101,6 +105,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		ReminderController:    reminderController,
 		DashboardController:   dashboardController,
 		MatchController:       matchController,
+		TenantController:      tenantController,
 	}
 	v2 := server.NewHTTPServer(router)
 	userProductFinalizer := cron.NewUserProductFinalizer(db)

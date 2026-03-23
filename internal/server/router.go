@@ -17,6 +17,7 @@ import (
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/controller/template"
+	"omiai-server/internal/controller/tenant"
 	"omiai-server/internal/data"
 	"omiai-server/internal/middleware"
 
@@ -44,6 +45,7 @@ type Router struct {
 	ReminderController    *reminder.Controller
 	DashboardController   *dashboard.Controller
 	MatchController       *match.Controller
+	TenantController      *tenant.Controller
 }
 
 func (r *Router) Register() http.Handler {
@@ -90,7 +92,14 @@ func (r *Router) Register() http.Handler {
 		// 需要登录的接口
 		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis))
 		{
-			r.ai(authGroup.Group("ai"))
+			// SaaS 超管接口 (只允许 admin 访问)
+			saasGroup := authGroup.Group("saas")
+			{
+				saasGroup.POST("/tenant", r.TenantController.Create)
+				saasGroup.GET("/tenant/list", r.TenantController.List)
+			}
+
+			r.client(authGroup.Group("client"))
 			r.banner(authGroup.Group("banner"))
 			r.client(authGroup.Group("clients")) // Renamed from "client" to "clients" for V2
 			r.common(authGroup.Group("common"))
