@@ -17,6 +17,7 @@ func (s *Script) Migrate() *cobra.Command {
 			err := s.db.AutoMigrate(
 				&biz_omiai.Client{},
 				&biz_omiai.ClientInteraction{},
+				&biz_omiai.ClientCoinRecord{},
 			)
 			if err != nil {
 				fmt.Printf("Migration failed: %v\n", err)

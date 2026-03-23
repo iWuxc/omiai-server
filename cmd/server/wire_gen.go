@@ -16,6 +16,7 @@ import (
 	"omiai-server/internal/controller/c_auth"
 	"omiai-server/internal/controller/c_client"
 	"omiai-server/internal/controller/c_interact"
+	"omiai-server/internal/controller/c_pay"
 	"omiai-server/internal/controller/c_recommend"
 	"omiai-server/internal/controller/china_region"
 	"omiai-server/internal/controller/client"
@@ -59,6 +60,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	c_recommendController := c_recommend.NewController(db, clientInterface, matchInterface)
 	service := notification.NewNotificationService()
 	c_interactController := c_interact.NewController(db, clientInterface, matchInterface, service)
+	c_payController := c_pay.NewController(db, clientInterface)
 	bannerInterface := omiai.NewBannerRepo(db)
 	bannerService := banner.NewService(redis)
 	bannerController := banner2.NewController(db, bannerInterface, bannerService)
@@ -88,6 +90,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		CClientController:     c_clientController,
 		CRecommendController:  c_recommendController,
 		CInteractController:   c_interactController,
+		CPayController:        c_payController,
 		BannerController:      bannerController,
 		ChinaRegionController: china_regionController,
 		ClientController:      clientController,

@@ -8,6 +8,7 @@ import (
 	"omiai-server/internal/controller/c_auth"
 	"omiai-server/internal/controller/c_client"
 	"omiai-server/internal/controller/c_interact"
+	"omiai-server/internal/controller/c_pay"
 	"omiai-server/internal/controller/c_recommend"
 	"omiai-server/internal/controller/china_region"
 	"omiai-server/internal/controller/client"
@@ -30,6 +31,7 @@ var ProviderController = wire.NewSet(
 	c_client.NewController,
 	c_recommend.NewController,
 	c_interact.NewController,
+	c_pay.NewController,
 	banner.NewController,
 	china_region.NewController,
 	client.NewController,

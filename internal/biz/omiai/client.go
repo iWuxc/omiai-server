@@ -51,8 +51,24 @@ type Client struct {
 	WxOpenid            string    `json:"wx_openid" gorm:"column:wx_openid;size:128;uniqueIndex;comment:微信OpenID"`
 	WxUnionid           string    `json:"wx_unionid" gorm:"column:wx_unionid;size:128;comment:微信UnionID"`
 	IsVerified          bool      `json:"is_verified" gorm:"column:is_verified;default:false;comment:是否已实名/审核"`
+	Coins               int       `json:"coins" gorm:"column:coins;default:0;comment:虚拟币余额(红豆)"`
+	VipExpireAt         time.Time `json:"vip_expire_at" gorm:"column:vip_expire_at;comment:VIP到期时间"`
 	CreatedAt           time.Time `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt           time.Time `json:"updated_at" gorm:"column:updated_at"`
+}
+
+// ClientCoinRecord 虚拟币流水表
+type ClientCoinRecord struct {
+	ID        uint64    `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	ClientID  uint64    `json:"client_id" gorm:"column:client_id;index;comment:客户ID"`
+	Amount    int       `json:"amount" gorm:"column:amount;comment:变动金额(正负)"`
+	Type      int8      `json:"type" gorm:"column:type;comment:变动类型 1充值 2解锁查看 3开通VIP"`
+	Remark    string    `json:"remark" gorm:"column:remark;size:255;comment:备注说明"`
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
+}
+
+func (t *ClientCoinRecord) TableName() string {
+	return "client_coin_record"
 }
 
 // ClientInteraction 互动记录表
@@ -109,6 +125,10 @@ type ClientInterface interface {
 	GetInteraction(ctx context.Context, fromID, toID uint64) (*ClientInteraction, error)
 	GetInteractionLeads(ctx context.Context, managerID uint64, offset, limit int) ([]*ClientInteraction, error)
 	GetClientInteractions(ctx context.Context, clientID uint64, actionType int8, offset, limit int) ([]*ClientInteraction, error)
+
+	// 商业化相关
+	AddCoins(ctx context.Context, clientID uint64, amount int, recordType int8, remark string) error
+	IsVip(ctx context.Context, clientID uint64) bool
 
 	// Dashboard 相关
 	GetDashboardStats(ctx context.Context) (map[string]int64, error)

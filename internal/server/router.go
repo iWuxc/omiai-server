@@ -8,6 +8,7 @@ import (
 	"omiai-server/internal/controller/c_auth"
 	"omiai-server/internal/controller/c_client"
 	"omiai-server/internal/controller/c_interact"
+	"omiai-server/internal/controller/c_pay"
 	"omiai-server/internal/controller/c_recommend"
 	"omiai-server/internal/controller/china_region"
 	"omiai-server/internal/controller/client"
@@ -34,6 +35,7 @@ type Router struct {
 	CClientController     *c_client.Controller
 	CRecommendController  *c_recommend.Controller
 	CInteractController   *c_interact.Controller
+	CPayController        *c_pay.Controller
 	BannerController      *banner.Controller
 	ChinaRegionController *china_region.Controller
 	ClientController      *client.Controller
@@ -75,6 +77,11 @@ func (r *Router) Register() http.Handler {
 				cAuthGroup.POST("/interact/like", r.CInteractController.Like)
 				cAuthGroup.GET("/interact/received_likes", r.CInteractController.GetReceivedLikes)
 				cAuthGroup.GET("/interact/mutual_matches", r.CInteractController.GetMutualMatches)
+
+				// 商业化与支付
+				cAuthGroup.POST("/pay/recharge", r.CPayController.Recharge)
+				cAuthGroup.POST("/pay/unlock", r.CPayController.UnlockProfile)
+				cAuthGroup.POST("/pay/vip", r.CPayController.BuyVip)
 			}
 		}
 

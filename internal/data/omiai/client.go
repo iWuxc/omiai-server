@@ -165,6 +165,42 @@ func (c *ClientRepo) GetClientInteractions(ctx context.Context, clientID uint64,
 	return list, nil
 }
 
+// AddCoins 增加/扣除虚拟币，并记录流水
+func (c *ClientRepo) AddCoins(ctx context.Context, clientID uint64, amount int, recordType int8, remark string) error {
+	tx := c.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// 1. 更新余额
+	if err := tx.Model(c.m).Where("id = ?", clientID).UpdateColumn("coins", gorm.Expr("coins + ?", amount)).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 2. 插入流水
+	record := &biz_omiai.ClientCoinRecord{
+		ClientID: clientID,
+		Amount:   amount,
+		Type:     recordType,
+		Remark:   remark,
+	}
+	if err := tx.Create(record).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+func (c *ClientRepo) IsVip(ctx context.Context, clientID uint64) bool {
+	client, err := c.Get(ctx, clientID)
+	if err != nil || client == nil {
+		return false
+	}
+	return client.VipExpireAt.After(time.Now())
+}
+
 func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
 	now := time.Now()
