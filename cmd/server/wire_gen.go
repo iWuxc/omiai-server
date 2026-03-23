@@ -32,6 +32,7 @@ import (
 	"omiai-server/internal/server"
 	"omiai-server/internal/service/banner"
 	"omiai-server/internal/service/chat_parser"
+	"omiai-server/internal/service/notification"
 )
 
 // Injectors from wire.go:
@@ -56,10 +57,11 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	c_clientController := c_client.NewController(db, clientInterface)
 	matchInterface := omiai.NewMatchRepo(db)
 	c_recommendController := c_recommend.NewController(db, clientInterface, matchInterface)
-	c_interactController := c_interact.NewController(db, clientInterface, matchInterface)
+	service := notification.NewNotificationService()
+	c_interactController := c_interact.NewController(db, clientInterface, matchInterface, service)
 	bannerInterface := omiai.NewBannerRepo(db)
-	service := banner.NewService(redis)
-	bannerController := banner2.NewController(db, bannerInterface, service)
+	bannerService := banner.NewService(redis)
+	bannerController := banner2.NewController(db, bannerInterface, bannerService)
 	china_regionController := china_region.NewController(db)
 	chatParser := chat_parser.NewChatParser()
 	clientController := client.NewController(db, clientInterface, chatParser)
@@ -75,7 +77,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	reminderInterface := omiai.NewReminderRepo(db)
 	reminderController := reminder.NewController(db, reminderInterface)
 	dashboardController := dashboard.NewController(clientInterface, matchInterface, reminderInterface)
-	matchController := match.NewController(db, matchInterface, clientInterface, userInterface)
+	matchController := match.NewController(db, matchInterface, clientInterface, userInterface, service)
 	router := &server.Router{
 		Engine:                engine,
 		DB:                    db,

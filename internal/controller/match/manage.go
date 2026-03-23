@@ -56,6 +56,10 @@ func (c *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
+	// 新增：触发状态变更通知给C端用户
+	c.Notifier.NotifyClient(ctx, male.ID, male.WxOpenid, "红娘为您牵线啦！", "红娘已为您匹配到一位合适的女生，请在小程序中查看详情。")
+	c.Notifier.NotifyClient(ctx, female.ID, female.WxOpenid, "红娘为您牵线啦！", "红娘已为您匹配到一位合适的男生，请在小程序中查看详情。")
+
 	response.SuccessResponse(ctx, "匹配成功", record)
 }
 
@@ -163,6 +167,22 @@ func (c *Controller) UpdateStatus(ctx *gin.Context) {
 	if err := c.match.UpdateStatus(ctx, record.ID, record.Status, req.Status, operator, req.Reason); err != nil {
 		response.ErrorResponse(ctx, response.DBUpdateCommonError, "更新状态失败")
 		return
+	}
+
+	// 状态更新后通知双方
+	if record.MaleClient != nil && record.FemaleClient != nil {
+		statusMap := map[int8]string{
+			biz_omiai.MatchStatusDating:     "开始交往",
+			biz_omiai.MatchStatusStable:     "感情稳定",
+			biz_omiai.MatchStatusEngagement: "订婚",
+			biz_omiai.MatchStatusMarried:    "结婚",
+			biz_omiai.MatchStatusBroken:     "匹配已解除",
+		}
+		statusText := statusMap[req.Status]
+		if statusText != "" {
+			c.Notifier.NotifyClient(ctx, record.MaleClient.ID, record.MaleClient.WxOpenid, "您的缘分进度有更新", fmt.Sprintf("您当前的匹配状态已变更为: %s", statusText))
+			c.Notifier.NotifyClient(ctx, record.FemaleClient.ID, record.FemaleClient.WxOpenid, "您的缘分进度有更新", fmt.Sprintf("您当前的匹配状态已变更为: %s", statusText))
+		}
 	}
 
 	response.SuccessResponse(ctx, "更新成功", nil)

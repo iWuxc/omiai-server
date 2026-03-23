@@ -1,8 +1,10 @@
 package c_interact
 
 import (
+	"fmt"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	"omiai-server/internal/data"
+	"omiai-server/internal/service/notification"
 	"omiai-server/pkg/response"
 	"time"
 
@@ -11,16 +13,18 @@ import (
 )
 
 type Controller struct {
-	db     *data.DB
-	Client biz_omiai.ClientInterface
-	Match  biz_omiai.MatchInterface
+	db       *data.DB
+	Client   biz_omiai.ClientInterface
+	Match    biz_omiai.MatchInterface
+	Notifier notification.Service
 }
 
-func NewController(db *data.DB, client biz_omiai.ClientInterface, match biz_omiai.MatchInterface) *Controller {
+func NewController(db *data.DB, client biz_omiai.ClientInterface, match biz_omiai.MatchInterface, notifier notification.Service) *Controller {
 	return &Controller{
-		db:     db,
-		Client: client,
-		Match:  match,
+		db:       db,
+		Client:   client,
+		Match:    match,
+		Notifier: notifier,
 	}
 }
 
@@ -104,6 +108,16 @@ func (c *Controller) Like(ctx *gin.Context) {
 
 			if err := c.Match.Create(ctx, matchRecord); err != nil {
 				log.Errorf("Auto create match record failed: %v", err)
+			}
+
+			// 发送企业微信通知给双方红娘
+			if me.ManagerID != 0 {
+				c.Notifier.NotifyManager(ctx, me.ManagerID, "新互相心动线索",
+					fmt.Sprintf("您的客户【%s】与【%s】在小程序互相心动，请尽快跟进！", me.Name, target.Name))
+			}
+			if target.ManagerID != 0 && target.ManagerID != me.ManagerID {
+				c.Notifier.NotifyManager(ctx, target.ManagerID, "新互相心动线索",
+					fmt.Sprintf("您的客户【%s】与【%s】在小程序互相心动，请尽快跟进！", target.Name, me.Name))
 			}
 		}
 	}

@@ -16,12 +16,14 @@ import (
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/controller/template"
+	"omiai-server/internal/service/notification"
 
 	"github.com/google/wire"
 )
 
 var ProviderController = wire.NewSet(
 	conf.GetConfig,
+	notification.NewNotificationService,
 	ai.NewController,
 	auth.NewController,
 	c_auth.NewController,
