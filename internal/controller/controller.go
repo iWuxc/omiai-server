@@ -18,6 +18,7 @@ import (
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/controller/template"
 	"omiai-server/internal/service/notification"
+	"omiai-server/internal/service/wechatpay"
 
 	"github.com/google/wire"
 )
@@ -25,6 +26,7 @@ import (
 var ProviderController = wire.NewSet(
 	conf.GetConfig,
 	notification.NewNotificationService,
+	wechatpay.NewWechatPayService,
 	ai.NewController,
 	auth.NewController,
 	c_auth.NewController,

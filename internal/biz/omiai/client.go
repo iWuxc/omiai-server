@@ -50,7 +50,10 @@ type Client struct {
 	CandidateCacheJSON  string    `json:"candidate_cache_json" gorm:"column:candidate_cache_json;type:text;comment:算法初筛结果缓存"`
 	WxOpenid            string    `json:"wx_openid" gorm:"column:wx_openid;size:128;uniqueIndex;comment:微信OpenID"`
 	WxUnionid           string    `json:"wx_unionid" gorm:"column:wx_unionid;size:128;comment:微信UnionID"`
-	IsVerified          bool      `json:"is_verified" gorm:"column:is_verified;default:false;comment:是否已实名/审核"`
+	IsVerified          bool      `json:"is_verified" gorm:"column:is_verified;default:false;comment:是否已红娘审核"`
+	IdCardNo            string    `json:"id_card_no" gorm:"column:id_card_no;size:18;comment:身份证号(加密)"`
+	RealName            string    `json:"real_name" gorm:"column:real_name;size:64;comment:真实姓名"`
+	IsRealNameVerified  bool      `json:"is_real_name_verified" gorm:"column:is_real_name_verified;default:false;comment:是否已实名认证"`
 	Coins               int       `json:"coins" gorm:"column:coins;default:0;comment:虚拟币余额(红豆)"`
 	VipExpireAt         time.Time `json:"vip_expire_at" gorm:"column:vip_expire_at;comment:VIP到期时间"`
 	CreatedAt           time.Time `json:"created_at" gorm:"column:created_at"`

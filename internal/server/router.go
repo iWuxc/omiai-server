@@ -60,14 +60,16 @@ func (r *Router) Register() http.Handler {
 		// C端接口 (小程序)
 		cGroup := g.Group("c")
 		{
-			// C端鉴权
+			// C端鉴权与回调
 			cGroup.POST("/auth/wx_login", r.CAuthController.WxLogin)
+			cGroup.POST("/pay/wechat_notify", r.CPayController.WechatNotify)
 
 			// C端需要登录的接口
 			cAuthGroup := cGroup.Group("", middleware.CClientAuthorization(r.DB, r.Redis))
 			{
 				cAuthGroup.GET("/profile/mine", r.CClientController.GetMine)
 				cAuthGroup.POST("/profile/update", r.CClientController.UpdateMine)
+				cAuthGroup.POST("/profile/verify_realname", r.CClientController.VerifyRealName)
 
 				// 推荐流
 				cAuthGroup.GET("/recommend/daily", r.CRecommendController.DailyRecommend)

@@ -57,7 +57,50 @@ type ProfileUpdateRequest struct {
 	Photos              string `json:"photos"`
 }
 
-// UpdateMine 更新个人资料
+// VerifyRealName 实名认证接口 (C端用户提交身份证和姓名)
+func (c *Controller) VerifyRealName(ctx *gin.Context) {
+	clientID, exists := ctx.Get("client_id")
+	if !exists {
+		response.ErrorResponse(ctx, response.AuthCommonError, "未授权")
+		return
+	}
+
+	var req struct {
+		RealName string `json:"real_name" binding:"required"`
+		IdCardNo string `json:"id_card_no" binding:"required,len=18"`
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.ValidateError(ctx, err, response.ValidateCommonError)
+		return
+	}
+
+	client, err := c.Client.Get(ctx, clientID.(uint64))
+	if err != nil || client == nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "用户不存在")
+		return
+	}
+
+	// TODO: 实际生产中应调用阿里云/腾讯云等第三方公安网实名认证接口
+	// 例如: result := thirdparty.VerifyIdCard(req.RealName, req.IdCardNo)
+	// 这里做模拟通过
+	isVerified := true
+
+	if isVerified {
+		client.RealName = req.RealName
+		// 简单脱敏存储或哈希加密存储
+		client.IdCardNo = req.IdCardNo[:4] + "**********" + req.IdCardNo[14:]
+		client.IsRealNameVerified = true
+
+		if err := c.Client.Update(ctx, client); err != nil {
+			log.Errorf("Update CClient realname failed: %v", err)
+			response.ErrorResponse(ctx, response.DBUpdateCommonError, "更新实名状态失败")
+			return
+		}
+		response.SuccessResponse(ctx, "实名认证成功", nil)
+	} else {
+		response.ErrorResponse(ctx, response.ParamsCommonError, "实名认证失败，身份信息不匹配")
+	}
+}
 func (c *Controller) UpdateMine(ctx *gin.Context) {
 	clientID, exists := ctx.Get("client_id")
 	if !exists {

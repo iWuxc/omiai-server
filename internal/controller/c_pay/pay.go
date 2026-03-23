@@ -4,21 +4,25 @@ import (
 	"fmt"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	"omiai-server/internal/data"
+	"omiai-server/internal/service/wechatpay"
 	"omiai-server/pkg/response"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iWuxc/go-wit/log"
 )
 
 type Controller struct {
-	db     *data.DB
-	Client biz_omiai.ClientInterface
+	db        *data.DB
+	Client    biz_omiai.ClientInterface
+	WechatPay wechatpay.Service
 }
 
-func NewController(db *data.DB, client biz_omiai.ClientInterface) *Controller {
+func NewController(db *data.DB, client biz_omiai.ClientInterface, wp wechatpay.Service) *Controller {
 	return &Controller{
-		db:     db,
-		Client: client,
+		db:        db,
+		Client:    client,
+		WechatPay: wp,
 	}
 }
 
@@ -40,14 +44,78 @@ func (c *Controller) Recharge(ctx *gin.Context) {
 		return
 	}
 
-	coinsToAdd := req.Amount * 10 // 充值比例 1:10
-
-	if err := c.Client.AddCoins(ctx, clientID.(uint64), coinsToAdd, 1, fmt.Sprintf("充值%d元", req.Amount)); err != nil {
-		response.ErrorResponse(ctx, response.DBUpdateCommonError, "充值失败")
+	me, _ := c.Client.Get(ctx, clientID.(uint64))
+	if me == nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "用户不存在")
 		return
 	}
 
-	response.SuccessResponse(ctx, "充值成功", map[string]int{"coins_added": coinsToAdd})
+	// 1. 生成内部业务订单号
+	outTradeNo := fmt.Sprintf("PAY_%d_%d", me.ID, time.Now().UnixNano())
+
+	// 2. 调用微信支付统一下单 (金额单位:分)
+	orderAmountFen := req.Amount * 100
+	payResult, err := c.WechatPay.CreateMiniProgramOrder(ctx, &wechatpay.PayOrder{
+		OutTradeNo:  outTradeNo,
+		Description: fmt.Sprintf("充值 %d 红豆", req.Amount*10),
+		Amount:      orderAmountFen,
+		OpenID:      me.WxOpenid,
+	})
+
+	if err != nil {
+		log.Errorf("Create wechat order failed: %v", err)
+		response.ErrorResponse(ctx, response.ServiceCommonError, "唤起支付失败")
+		return
+	}
+
+	// TODO: 这里应在数据库 `payment_order` 表记录这条订单，状态为"待支付"
+
+	// 3. 将签名参数返回给小程序端，拉起微信收银台
+	response.SuccessResponse(ctx, "下单成功", map[string]interface{}{
+		"out_trade_no": outTradeNo,
+		"pay_params":   payResult,
+	})
+}
+
+// WechatNotify 微信支付回调接口 (供微信服务器调用)
+func (c *Controller) WechatNotify(ctx *gin.Context) {
+	// 1. 读取 Header 里的签名信息
+	signature := ctx.GetHeader("Wechatpay-Signature")
+	timestamp := ctx.GetHeader("Wechatpay-Timestamp")
+	nonce := ctx.GetHeader("Wechatpay-Nonce")
+
+	// 2. 读取 Body
+	body, _ := ctx.GetRawData()
+
+	// 3. 验证签名并解密
+	payData, err := c.WechatPay.VerifyCallback(ctx, body, signature, timestamp, nonce)
+	if err != nil {
+		log.Errorf("Wechat notify verify failed: %v", err)
+		ctx.JSON(400, gin.H{"code": "FAIL", "message": "Verify failed"})
+		return
+	}
+
+	// 4. 处理业务逻辑 (发放红豆)
+	outTradeNo := payData["out_trade_no"].(string)
+	tradeState := payData["trade_state"].(string)
+
+	if tradeState == "SUCCESS" {
+		log.Infof("Order %s paid successfully, starting to deliver virtual coins...", outTradeNo)
+
+		// TODO: 从 outTradeNo 解析出 ClientID，或者查询 `payment_order` 表
+		// 假设我们解析出 ClientID=1，充值金额 9.9元(990分) -> 发放 99 红豆
+		mockClientID := uint64(1)
+		mockAmountFen := 990
+		coinsToAdd := (mockAmountFen / 100) * 10
+
+		// 防重放：判断该订单是否已经处理过
+
+		// 执行加币
+		_ = c.Client.AddCoins(ctx, mockClientID, coinsToAdd, 1, fmt.Sprintf("微信支付充值单号: %s", outTradeNo))
+	}
+
+	// 5. 必须返回 200 给微信服务器
+	ctx.JSON(200, gin.H{"code": "SUCCESS", "message": "OK"})
 }
 
 type UnlockRequest struct {

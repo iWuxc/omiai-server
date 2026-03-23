@@ -34,6 +34,7 @@ import (
 	"omiai-server/internal/service/banner"
 	"omiai-server/internal/service/chat_parser"
 	"omiai-server/internal/service/notification"
+	"omiai-server/internal/service/wechatpay"
 )
 
 // Injectors from wire.go:
@@ -60,7 +61,8 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	c_recommendController := c_recommend.NewController(db, clientInterface, matchInterface)
 	service := notification.NewNotificationService()
 	c_interactController := c_interact.NewController(db, clientInterface, matchInterface, service)
-	c_payController := c_pay.NewController(db, clientInterface)
+	wechatpayService := wechatpay.NewWechatPayService()
+	c_payController := c_pay.NewController(db, clientInterface, wechatpayService)
 	bannerInterface := omiai.NewBannerRepo(db)
 	bannerService := banner.NewService(redis)
 	bannerController := banner2.NewController(db, bannerInterface, bannerService)
