@@ -7,6 +7,7 @@ import (
 	"omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/c_auth"
 	"omiai-server/internal/controller/c_client"
+	"omiai-server/internal/controller/c_event"
 	"omiai-server/internal/controller/c_interact"
 	"omiai-server/internal/controller/c_pay"
 	"omiai-server/internal/controller/c_recommend"
@@ -14,6 +15,7 @@ import (
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
 	"omiai-server/internal/controller/dashboard"
+	"omiai-server/internal/controller/event"
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/controller/template"
@@ -37,6 +39,7 @@ type Router struct {
 	CRecommendController  *c_recommend.Controller
 	CInteractController   *c_interact.Controller
 	CPayController        *c_pay.Controller
+	CEventController      *c_event.Controller
 	BannerController      *banner.Controller
 	ChinaRegionController *china_region.Controller
 	ClientController      *client.Controller
@@ -46,6 +49,7 @@ type Router struct {
 	DashboardController   *dashboard.Controller
 	MatchController       *match.Controller
 	TenantController      *tenant.Controller
+	EventController       *event.Controller
 }
 
 func (r *Router) Register() http.Handler {
@@ -86,6 +90,10 @@ func (r *Router) Register() http.Handler {
 				cAuthGroup.POST("/pay/recharge", r.CPayController.Recharge)
 				cAuthGroup.POST("/pay/unlock", r.CPayController.UnlockProfile)
 				cAuthGroup.POST("/pay/vip", r.CPayController.BuyVip)
+
+				// 线下活动
+				cAuthGroup.GET("/event/list", r.CEventController.List)
+				cAuthGroup.POST("/event/register", r.CEventController.Register)
 			}
 		}
 
@@ -107,19 +115,18 @@ func (r *Router) Register() http.Handler {
 			r.match(authGroup.Group("couples")) // Renamed from "match" to "couples" for V2
 			r.reminder(authGroup.Group("reminders"))
 			r.template(authGroup.Group("templates"))
+
+			// B端活动管理
+			eventGroup := authGroup.Group("events")
+			{
+				eventGroup.POST("/publish", r.EventController.Publish)
+				eventGroup.GET("/list", r.EventController.List)
+			}
+
 			// 认证相关接口（需要登录）
 			authGroup.GET("/auth/codes", r.AuthController.GetAccessCodes)
 			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
 			authGroup.POST("/user/change_password", r.AuthController.ChangePassword)
-
-			// 自动提醒
-			// reminderGroup := authGroup.Group("reminder")
-			// reminderGroup.GET("/rules", r.ReminderController.ListRules)
-			// reminderGroup.POST("/rules", r.ReminderController.CreateRule)
-			// reminderGroup.GET("/tasks/pending", r.ReminderController.ListPendingTasks)
-			// reminderGroup.POST("/tasks/:id/complete", r.ReminderController.CompleteTask)
-			// // 手动触发生成任务（测试用）
-			// reminderGroup.POST("/generate", r.ReminderController.CheckAndGenerateTasks)
 		}
 	}
 	// Serve static files for uploads

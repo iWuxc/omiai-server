@@ -2,17 +2,19 @@ package omiai
 
 import (
 	"github.com/google/wire"
+	"omiai-server/internal/data/event"
 	"omiai-server/internal/data/tenant"
 )
 
-var ProviderOmiai = wire.NewSet(
+var ProviderData = wire.NewSet(
 	NewBannerRepo,
+	NewChinaRegionRepo,
 	NewClientRepo,
 	NewMatchRepo,
-	NewUserRepo,
 	NewReminderRepo,
-	NewChinaRegionRepo,
 	NewTemplateRepo,
+	NewUserRepo,
 	NewAIMatchRepo,
 	tenant.NewTenantRepo,
+	event.NewEventRepo,
 )

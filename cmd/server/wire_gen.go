@@ -15,6 +15,7 @@ import (
 	banner2 "omiai-server/internal/controller/banner"
 	"omiai-server/internal/controller/c_auth"
 	"omiai-server/internal/controller/c_client"
+	"omiai-server/internal/controller/c_event"
 	"omiai-server/internal/controller/c_interact"
 	"omiai-server/internal/controller/c_pay"
 	"omiai-server/internal/controller/c_recommend"
@@ -22,12 +23,14 @@ import (
 	"omiai-server/internal/controller/client"
 	"omiai-server/internal/controller/common"
 	"omiai-server/internal/controller/dashboard"
+	event2 "omiai-server/internal/controller/event"
 	"omiai-server/internal/controller/match"
 	"omiai-server/internal/controller/reminder"
 	"omiai-server/internal/controller/template"
 	tenant2 "omiai-server/internal/controller/tenant"
 	"omiai-server/internal/cron"
 	"omiai-server/internal/data"
+	"omiai-server/internal/data/event"
 	"omiai-server/internal/data/omiai"
 	"omiai-server/internal/data/tenant"
 	"omiai-server/internal/middleware"
@@ -65,6 +68,8 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	c_interactController := c_interact.NewController(db, clientInterface, matchInterface, service)
 	wechatpayService := wechatpay.NewWechatPayService()
 	c_payController := c_pay.NewController(db, clientInterface, wechatpayService)
+	eventInterface := event.NewEventRepo(db)
+	c_eventController := c_event.NewController(eventInterface, clientInterface)
 	bannerInterface := omiai.NewBannerRepo(db)
 	bannerService := banner.NewService(redis)
 	bannerController := banner2.NewController(db, bannerInterface, bannerService)
@@ -86,6 +91,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 	matchController := match.NewController(db, matchInterface, clientInterface, userInterface, service)
 	tenantInterface := tenant.NewTenantRepo(db)
 	tenantController := tenant2.NewController(tenantInterface)
+	eventController := event2.NewController(eventInterface)
 	router := &server.Router{
 		Engine:                engine,
 		DB:                    db,
@@ -97,6 +103,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		CRecommendController:  c_recommendController,
 		CInteractController:   c_interactController,
 		CPayController:        c_payController,
+		CEventController:      c_eventController,
 		BannerController:      bannerController,
 		ChinaRegionController: china_regionController,
 		ClientController:      clientController,
@@ -106,6 +113,7 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		DashboardController:   dashboardController,
 		MatchController:       matchController,
 		TenantController:      tenantController,
+		EventController:       eventController,
 	}
 	v2 := server.NewHTTPServer(router)
 	userProductFinalizer := cron.NewUserProductFinalizer(db)

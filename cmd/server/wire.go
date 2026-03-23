@@ -25,8 +25,8 @@ func initApp(ctx context.Context) (*app.App, func(), error) {
 		middleware.ProviderMiddlewareSet,
 		service.ProviderService,
 		data.ProviderDataSet,
+		omiai.ProviderData,
 		server.ProviderServerSet,
 		controller.ProviderController,
-		omiai.ProviderOmiai,
 		newApp))
 }

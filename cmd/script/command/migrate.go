@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	biz_event "omiai-server/internal/biz/event"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	biz_tenant "omiai-server/internal/biz/tenant"
 
@@ -20,6 +21,12 @@ func (s *Script) Migrate() *cobra.Command {
 				&biz_omiai.Client{},
 				&biz_omiai.ClientInteraction{},
 				&biz_omiai.ClientCoinRecord{},
+				&biz_omiai.MatchRecord{},
+				&biz_omiai.MatchStatusHistory{},
+				&biz_omiai.FollowUpRecord{},
+				&biz_omiai.User{},
+				&biz_event.Event{},
+				&biz_event.EventRegistration{},
 			)
 			if err != nil {
 				fmt.Printf("Migration failed: %v\n", err)
