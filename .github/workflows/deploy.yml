@@ -258,6 +258,11 @@ jobs:
             volumes:
               mysql_data:
               redis_data:
+
+            networks:
+              default:
+                name: thinkeng_default
+                external: true
             EOF
             
             # 创建 .env 文件 (从 GitHub Secrets 获取)
