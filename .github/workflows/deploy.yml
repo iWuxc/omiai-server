@@ -137,9 +137,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # 配置 Docker 镜像加速 (腾讯云内网源)
+            # 配置 Docker 镜像加速 (阿里云内网源)
             if [ ! -f /etc/docker/daemon.json ] || ! grep -q "registry-mirrors" /etc/docker/daemon.json; then
-              echo '{"registry-mirrors": ["https://mirror.ccs.tencentyun.com"], "log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}}' > /etc/docker/daemon.json
+              echo '{"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn", "https://hub-mirror.c.163.com"], "log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}}' > /etc/docker/daemon.json
               systemctl daemon-reload
               systemctl restart docker
             fi
