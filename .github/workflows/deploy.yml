@@ -137,11 +137,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # 强制配置 Docker 镜像加速 (阿里云国内源)
-            echo '{"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn", "https://hub-mirror.c.163.com", "https://mirror.ccs.tencentyun.com"], "log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}}' > /etc/docker/daemon.json
-            systemctl daemon-reload
-            systemctl restart docker
-
+            # 登录阿里云镜像仓库（需要配置 ALIYUN_REGISTRY_PASSWORD secret）
+            docker login --username=${{ secrets.ALIYUN_REGISTRY_USERNAME }} --password=${{ secrets.ALIYUN_REGISTRY_PASSWORD }} crpi-r3lmhsy7rkhkdux8.cn-beijing.personal.cr.aliyuncs.com
+            
             # 登录 GHCR
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
@@ -225,7 +223,7 @@ jobs:
                     max-file: "3"
 
               mysql:
-                image: mysql:8.0
+                image: crpi-r3lmhsy7rkhkdux8.cn-beijing.personal.cr.aliyuncs.com/omiai/mysql:8.2
                 container_name: omiai-mysql
                 restart: always
                 environment:
@@ -243,7 +241,7 @@ jobs:
                     max-file: "3"
             
               redis:
-                image: redis:6.2
+                image: crpi-r3lmhsy7rkhkdux8.cn-beijing.personal.cr.aliyuncs.com/omiai/redis:7.2
                 container_name: omiai-redis
                 restart: always
                 command: redis-server --requirepass \${REDIS_PASSWORD}
