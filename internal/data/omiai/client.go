@@ -6,6 +6,7 @@ import (
 	"omiai-server/internal/biz"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	"omiai-server/internal/data"
+	"omiai-server/internal/data/scopes"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,17 +15,17 @@ import (
 var _ biz_omiai.ClientInterface = (*ClientRepo)(nil)
 
 type ClientRepo struct {
-	db *data.DB
+	db *gorm.DB
 	m  *biz_omiai.Client
 }
 
 func NewClientRepo(db *data.DB) biz_omiai.ClientInterface {
-	return &ClientRepo{db: db, m: new(biz_omiai.Client)}
+	return &ClientRepo{db: db.DB, m: new(biz_omiai.Client)}
 }
 
 func (c *ClientRepo) Select(ctx context.Context, clause *biz.WhereClause, fields []string, offset, limit int) ([]*biz_omiai.Client, error) {
 	var clientList []*biz_omiai.Client
-	err := c.db.Model(c.m).WithContext(ctx).Select(fields).Where(clause.Where, clause.Args...).Order(clause.OrderBy).Offset(offset).Limit(limit).Find(&clientList).Error
+	err := c.db.Model(c.m).WithContext(ctx).Scopes(scopes.TenantScope(ctx)).Select(fields).Where(clause.Where, clause.Args...).Order(clause.OrderBy).Offset(offset).Limit(limit).Find(&clientList).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, fmt.Errorf("ClientRepo:Select where:%v err:%w", clause, err)
 	}
@@ -32,22 +33,41 @@ func (c *ClientRepo) Select(ctx context.Context, clause *biz.WhereClause, fields
 }
 
 func (c *ClientRepo) Create(ctx context.Context, client *biz_omiai.Client) error {
-	return c.db.WithContext(ctx).Model(c.m).Create(client).Error
+	// 如果上下文中带有租户ID且客户端未显式设置，则自动注入
+	if tenantID, ok := ctx.Value("tenant_id").(uint64); ok && tenantID > 0 && client.TenantID == 0 {
+		client.TenantID = tenantID
+	}
+	err := c.db.WithContext(ctx).Create(client).Error
+	if err != nil {
+		return fmt.Errorf("ClientRepo:Create client:%v err:%w", client, err)
+	}
+	return nil
 }
 
 func (c *ClientRepo) Update(ctx context.Context, client *biz_omiai.Client) error {
-	return c.db.WithContext(ctx).Model(client).Updates(client).Error
+	err := c.db.WithContext(ctx).Scopes(scopes.TenantScope(ctx)).Save(client).Error
+	if err != nil {
+		return fmt.Errorf("ClientRepo:Update client:%v err:%w", client, err)
+	}
+	return nil
 }
 
 func (c *ClientRepo) Delete(ctx context.Context, id uint64) error {
-	return c.db.WithContext(ctx).Model(c.m).Delete(&biz_omiai.Client{}, id).Error
+	err := c.db.WithContext(ctx).Scopes(scopes.TenantScope(ctx)).Delete(c.m, id).Error
+	if err != nil {
+		return fmt.Errorf("ClientRepo:Delete id:%d err:%w", id, err)
+	}
+	return nil
 }
 
 func (c *ClientRepo) Get(ctx context.Context, id uint64) (*biz_omiai.Client, error) {
 	var client biz_omiai.Client
-	err := c.db.WithContext(ctx).Model(c.m).Preload("Partner").First(&client, id).Error
+	err := c.db.WithContext(ctx).Scopes(scopes.TenantScope(ctx)).Preload("Partner").First(&client, id).Error
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("ClientRepo:Get id:%d err:%w", id, err)
 	}
 	return &client, nil
 }
@@ -57,7 +77,7 @@ func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 
 	// 客户总数
 	var total int64
-	if err := c.db.WithContext(ctx).Model(c.m).Count(&total).Error; err != nil {
+	if err := c.db.WithContext(ctx).Model(c.m).Scopes(scopes.TenantScope(ctx)).Count(&total).Error; err != nil {
 		return nil, err
 	}
 	stats["total"] = total
@@ -66,21 +86,21 @@ func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 	var today int64
 	now := time.Now()
 	todayStartObj := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	if err := c.db.WithContext(ctx).Model(c.m).Where("created_at >= ?", todayStartObj).Count(&today).Error; err != nil {
+	if err := c.db.WithContext(ctx).Model(c.m).Scopes(scopes.TenantScope(ctx)).Where("created_at >= ?", todayStartObj).Count(&today).Error; err != nil {
 		return nil, err
 	}
 	stats["today"] = today
 
 	// 单身待匹配客户
 	var pending int64
-	if err := c.db.WithContext(ctx).Model(c.m).Where("status = ?", biz_omiai.ClientStatusSingle).Count(&pending).Error; err != nil {
+	if err := c.db.WithContext(ctx).Model(c.m).Scopes(scopes.TenantScope(ctx)).Where("status = ?", biz_omiai.ClientStatusSingle).Count(&pending).Error; err != nil {
 		return nil, err
 	}
 	stats["pending"] = pending
 
 	// 已匹配客户数
 	var matched int64
-	if err := c.db.WithContext(ctx).Model(c.m).Where("status = ?", biz_omiai.ClientStatusMatched).Count(&matched).Error; err != nil {
+	if err := c.db.WithContext(ctx).Model(c.m).Scopes(scopes.TenantScope(ctx)).Where("status = ?", biz_omiai.ClientStatusMatched).Count(&matched).Error; err != nil {
 		return nil, err
 	}
 	stats["matched"] = matched
@@ -91,7 +111,7 @@ func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 // GetByWxOpenID 根据微信OpenID查询客户
 func (c *ClientRepo) GetByWxOpenID(ctx context.Context, openID string) (*biz_omiai.Client, error) {
 	var client biz_omiai.Client
-	err := c.db.WithContext(ctx).Model(c.m).Where("wx_openid = ?", openID).First(&client).Error
+	err := c.db.WithContext(ctx).Model(c.m).Scopes(scopes.TenantScope(ctx)).Where("wx_openid = ?", openID).First(&client).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -103,8 +123,11 @@ func (c *ClientRepo) GetByWxOpenID(ctx context.Context, openID string) (*biz_omi
 
 // SaveInteraction 保存或更新互动记录
 func (c *ClientRepo) SaveInteraction(ctx context.Context, interaction *biz_omiai.ClientInteraction) error {
+	if tenantID, ok := ctx.Value("tenant_id").(uint64); ok && tenantID > 0 && interaction.TenantID == 0 {
+		interaction.TenantID = tenantID
+	}
 	if interaction.ID > 0 {
-		return c.db.WithContext(ctx).Model(interaction).Updates(interaction).Error
+		return c.db.WithContext(ctx).Scopes(scopes.TenantScope(ctx)).Model(interaction).Updates(interaction).Error
 	}
 	return c.db.WithContext(ctx).Model(interaction).Create(interaction).Error
 }
@@ -112,7 +135,7 @@ func (c *ClientRepo) SaveInteraction(ctx context.Context, interaction *biz_omiai
 // GetInteraction 获取互动记录
 func (c *ClientRepo) GetInteraction(ctx context.Context, fromID, toID uint64) (*biz_omiai.ClientInteraction, error) {
 	var interaction biz_omiai.ClientInteraction
-	err := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{}).
+	err := c.db.WithContext(ctx).Scopes(scopes.TenantScope(ctx)).Model(&biz_omiai.ClientInteraction{}).
 		Where("from_client_id = ? AND to_client_id = ?", fromID, toID).
 		First(&interaction).Error
 	if err != nil {
@@ -128,8 +151,7 @@ func (c *ClientRepo) GetInteraction(ctx context.Context, fromID, toID uint64) (*
 func (c *ClientRepo) GetInteractionLeads(ctx context.Context, managerID uint64, offset, limit int) ([]*biz_omiai.ClientInteraction, error) {
 	var list []*biz_omiai.ClientInteraction
 
-	// 查询属于该红娘名下客户的互动记录
-	query := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{}).
+	query := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{}).Scopes(scopes.TenantScope(ctx)).
 		Joins("JOIN client as c1 ON c1.id = client_interaction.from_client_id").
 		Joins("JOIN client as c2 ON c2.id = client_interaction.to_client_id").
 		Where("client_interaction.action_type = 3 AND client_interaction.status = 0").
@@ -144,11 +166,10 @@ func (c *ClientRepo) GetInteractionLeads(ctx context.Context, managerID uint64, 
 	return list, nil
 }
 
-// GetClientInteractions 获取C端用户的互动列表 (如：谁喜欢了我)
 func (c *ClientRepo) GetClientInteractions(ctx context.Context, clientID uint64, actionType int8, offset, limit int) ([]*biz_omiai.ClientInteraction, error) {
 	var list []*biz_omiai.ClientInteraction
 
-	query := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{})
+	query := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{}).Scopes(scopes.TenantScope(ctx))
 
 	if actionType == 2 {
 		// 谁喜欢了我 (to_client_id = me, action_type = 2)

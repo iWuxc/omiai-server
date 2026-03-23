@@ -6,13 +6,15 @@ import (
 )
 
 const (
-	RoleAdmin    = "admin"
-	RoleOperator = "operator"
+	RoleSuperAdmin = "super_admin" // 平台超级管理员(唯一能看到所有机构的人)
+	RoleAdmin      = "admin"       // 机构管理员(店长)
+	RoleOperator   = "operator"    // 机构普通红娘
 )
 
-// User 系统用户模型
+// User 系统用户模型 (B端红娘/管理员)
 type User struct {
 	ID        uint64    `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	TenantID  uint64    `json:"tenant_id" gorm:"column:tenant_id;index;default:1;comment:所属租户(机构)ID"`
 	Phone     string    `json:"phone" gorm:"column:phone;size:20;uniqueIndex;comment:手机号"`
 	Password  string    `json:"-" gorm:"column:password;size:128;comment:密码"`
 	Nickname  string    `json:"nickname" gorm:"column:nickname;size:64;comment:昵称"`

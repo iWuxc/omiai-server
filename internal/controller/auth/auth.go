@@ -97,7 +97,7 @@ func (c *Controller) H5Login(ctx *gin.Context) {
 	}
 
 	// 3. 生成 Token
-	token, err := auth.GenerateToken(user.ID, user.Role)
+	token, err := auth.GenerateToken(user.ID, user.Role, user.TenantID)
 	if err != nil {
 		response.ErrorResponse(ctx, response.FuncCommonError, "生成 Token 失败")
 		return
@@ -105,7 +105,7 @@ func (c *Controller) H5Login(ctx *gin.Context) {
 
 	response.SuccessResponse(ctx, "登录成功", map[string]interface{}{
 		"accessToken": token,
-		"user":       user,
+		"user":        user,
 	})
 }
 
@@ -177,7 +177,7 @@ func (c *Controller) WxLogin(ctx *gin.Context) {
 	}
 
 	// 3. 生成 Token
-	token, err := auth.GenerateToken(user.ID, user.Role)
+	token, err := auth.GenerateToken(user.ID, user.Role, user.TenantID)
 	if err != nil {
 		response.ErrorResponse(ctx, response.FuncCommonError, "生成 Token 失败")
 		return
@@ -185,7 +185,7 @@ func (c *Controller) WxLogin(ctx *gin.Context) {
 
 	response.SuccessResponse(ctx, "登录成功", map[string]interface{}{
 		"accessToken": token,
-		"user":       user,
+		"user":        user,
 	})
 }
 

@@ -36,6 +36,9 @@ func Authorization(db *data.DB, redis *redis.Redis) gin.HandlerFunc {
 		// 存入上下文
 		c.Set("user_id", claims.UserID)
 		c.Set("role", claims.Role)
+		if claims.TenantID > 0 {
+			c.Set("tenant_id", claims.TenantID)
+		}
 
 		c.Next()
 	}

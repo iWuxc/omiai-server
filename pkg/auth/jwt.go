@@ -31,12 +31,13 @@ func init() {
 }
 
 type Claims struct {
-	UserID uint64 `json:"user_id"`
-	Role   string `json:"role"`
+	UserID   uint64 `json:"user_id"`
+	Role     string `json:"role"`
+	TenantID uint64 `json:"tenant_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint64, role string) (string, error) {
+func GenerateToken(userID uint64, role string, tenantID ...uint64) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		UserID: userID,
@@ -44,6 +45,10 @@ func GenerateToken(userID uint64, role string) (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
+	}
+	
+	if len(tenantID) > 0 {
+		claims.TenantID = tenantID[0]
 	}
 
 	if signKey != nil {
