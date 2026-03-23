@@ -172,7 +172,7 @@ jobs:
                   - DB_DEBUG=false
                   - DB_PASSWORD=\${DB_PASSWORD}
                   - DB_NAME=omiai
-                  - REDIS_HOST=redis
+                  - REDIS_HOST=omiai-redis
                   - REDIS_PORT=6379
                   - REDIS_PASSWORD=\${REDIS_PASSWORD}
                   - REDIS_DB=0
