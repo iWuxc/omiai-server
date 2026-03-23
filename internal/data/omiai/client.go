@@ -186,6 +186,13 @@ func (c *ClientRepo) GetClientInteractions(ctx context.Context, clientID uint64,
 	return list, nil
 }
 
+func (c *ClientRepo) UpdateInteractionStatus(ctx context.Context, interactionID uint64, status int8) error {
+	return c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{}).
+		Scopes(scopes.TenantScope(ctx)).
+		Where("id = ?", interactionID).
+		Update("status", status).Error
+}
+
 // AddCoins 增加/扣除虚拟币，并记录流水
 func (c *ClientRepo) AddCoins(ctx context.Context, clientID uint64, amount int, recordType int8, remark string) error {
 	tx := c.db.WithContext(ctx).Begin()
@@ -224,30 +231,44 @@ func (c *ClientRepo) IsVip(ctx context.Context, clientID uint64) bool {
 
 func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
-	now := time.Now()
 
-	// 客户总数
+	query := c.db.WithContext(ctx).Model(c.m).Scopes(scopes.TenantScope(ctx))
+
+	// 如果是普通红娘，只看自己的业绩
+	if role, ok := ctx.Value("filter_role").(string); ok && role == "operator" {
+		if managerID, ok := ctx.Value("filter_manager_id").(uint64); ok && managerID > 0 {
+			query = query.Where("manager_id = ?", managerID)
+		}
+	}
+
 	var total int64
-	if err := c.db.WithContext(ctx).Model(c.m).Count(&total).Error; err != nil {
+	if err := query.Count(&total).Error; err != nil {
 		return nil, err
 	}
-	stats["client_total"] = total
+	stats["total_clients"] = total
 
-	// 今日新增
-	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	now := time.Now()
+	todayStartObj := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
 	var today int64
-	if err := c.db.WithContext(ctx).Model(c.m).Where("created_at >= ?", todayStart).Count(&today).Error; err != nil {
+	if err := query.Where("created_at >= ?", todayStartObj).Count(&today).Error; err != nil {
 		return nil, err
 	}
-	stats["client_today"] = today
+	stats["today_new_clients"] = today
 
-	// 本月新增
-	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	var month int64
-	if err := c.db.WithContext(ctx).Model(c.m).Where("created_at >= ?", monthStart).Count(&month).Error; err != nil {
+	var single int64
+	// 注意这里需要重新构造一个干净的 query，不能复用带有 created_at 条件的
+	cleanQuery := c.db.WithContext(ctx).Model(c.m).Scopes(scopes.TenantScope(ctx))
+	if role, ok := ctx.Value("filter_role").(string); ok && role == "operator" {
+		if managerID, ok := ctx.Value("filter_manager_id").(uint64); ok && managerID > 0 {
+			cleanQuery = cleanQuery.Where("manager_id = ?", managerID)
+		}
+	}
+
+	if err := cleanQuery.Where("status = ?", biz_omiai.ClientStatusSingle).Count(&single).Error; err != nil {
 		return nil, err
 	}
-	stats["client_month"] = month
+	stats["single_clients"] = single
 
 	return stats, nil
 }

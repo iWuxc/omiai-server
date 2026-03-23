@@ -131,6 +131,7 @@ type ClientInterface interface {
 	GetInteraction(ctx context.Context, fromID, toID uint64) (*ClientInteraction, error)
 	GetInteractionLeads(ctx context.Context, managerID uint64, offset, limit int) ([]*ClientInteraction, error)
 	GetClientInteractions(ctx context.Context, clientID uint64, actionType int8, offset, limit int) ([]*ClientInteraction, error)
+	UpdateInteractionStatus(ctx context.Context, interactionID uint64, status int8) error
 
 	// 商业化相关
 	AddCoins(ctx context.Context, clientID uint64, amount int, recordType int8, remark string) error

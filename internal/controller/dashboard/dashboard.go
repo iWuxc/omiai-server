@@ -41,21 +41,21 @@ func (c *Controller) GetInteractionLeads(ctx *gin.Context) {
 	for _, lead := range leads {
 		fromClient, _ := c.client.Get(ctx, lead.FromClientID)
 		toClient, _ := c.client.Get(ctx, lead.ToClientID)
-		
+
 		if fromClient != nil && toClient != nil {
 			result = append(result, map[string]interface{}{
 				"interaction_id": lead.ID,
 				"from_client": map[string]interface{}{
-					"id": fromClient.ID,
-					"name": fromClient.Name,
+					"id":     fromClient.ID,
+					"name":   fromClient.Name,
 					"avatar": fromClient.Avatar,
-					"phone": fromClient.Phone,
+					"phone":  fromClient.Phone,
 				},
 				"to_client": map[string]interface{}{
-					"id": toClient.ID,
-					"name": toClient.Name,
+					"id":     toClient.ID,
+					"name":   toClient.Name,
 					"avatar": toClient.Avatar,
-					"phone": toClient.Phone,
+					"phone":  toClient.Phone,
 				},
 				"created_at": lead.CreatedAt.Format("2006-01-02 15:04:05"),
 			})
@@ -86,6 +86,15 @@ type TodoItem struct {
 }
 
 func (c *Controller) Stats(ctx *gin.Context) {
+	// 判断角色是否为店长(admin)，如果是，可以看整个机构的，否则只能看自己的
+	role := ctx.GetString("role")
+	managerID := ctx.GetUint64("user_id")
+
+	// 通过 Context 将筛选条件传给 Repo 层
+	// 如果是普通红娘，可以在 Repo 里面增加 manager_id 过滤
+	ctx.Set("filter_role", role)
+	ctx.Set("filter_manager_id", managerID)
+
 	stats, err := c.client.GetDashboardStats(ctx)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取统计数据失败")
@@ -109,7 +118,7 @@ func (c *Controller) Stats(ctx *gin.Context) {
 	if userID == 0 {
 		userID = 1
 	}
-	
+
 	pendingReminders, err := c.reminder.GetPendingReminders(userID)
 	if err == nil {
 		stats["follow_up_pending"] = int64(len(pendingReminders))
@@ -135,23 +144,43 @@ func (c *Controller) GetTodos(ctx *gin.Context) {
 	todos := make([]TodoItem, 0)
 	for _, task := range pendingTasks {
 		// Priority logic could be complex based on Rule or Content keywords
-		priority := "medium" 
+		priority := "medium"
 		taskType := "reminder"
-		
+
 		// Simple keyword matching for type and priority demo
 		// In production, ReminderTask should probably have Type and Priority fields
-		
+
 		todos = append(todos, TodoItem{
-			ID:        task.ID,
-			Type:      taskType,
-			Title:     task.Content,
-			Priority:  priority,
-			Status:    task.Status,
-			ClientID:  &task.ClientID,
+			ID:       task.ID,
+			Type:     taskType,
+			Title:    task.Content,
+			Priority: priority,
+			Status:   task.Status,
+			ClientID: &task.ClientID,
 			// ClientName: fetch client name if needed, or join in repo
 			CreatedAt: task.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 
 	response.SuccessResponse(ctx, "ok", todos)
+}
+
+// UpdateInteractionStatus 更新线索状态
+func (c *Controller) UpdateInteractionStatus(ctx *gin.Context) {
+	var req struct {
+		InteractionID uint64 `json:"interaction_id" binding:"required"`
+		Status        int8   `json:"status" binding:"required,oneof=1 2"` // 1已跟进 2已忽略
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.ValidateError(ctx, err, response.ValidateCommonError)
+		return
+	}
+
+	// 这里需要单独查询 interaction 并更新状态
+	if err := c.client.UpdateInteractionStatus(ctx, req.InteractionID, req.Status); err != nil {
+		response.ErrorResponse(ctx, response.DBUpdateCommonError, "状态更新失败")
+		return
+	}
+
+	response.SuccessResponse(ctx, "状态更新成功", nil)
 }

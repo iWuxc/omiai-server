@@ -149,6 +149,7 @@ func (r *Router) dashboard(g *gin.RouterGroup) {
 	g.GET("/stats", r.DashboardController.Stats)
 	g.GET("/todos", r.DashboardController.GetTodos)
 	g.GET("/leads", r.DashboardController.GetInteractionLeads)
+	g.POST("/leads/status", r.DashboardController.UpdateInteractionStatus)
 }
 
 func (r *Router) match(g *gin.RouterGroup) {
