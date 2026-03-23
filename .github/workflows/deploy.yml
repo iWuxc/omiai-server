@@ -166,7 +166,7 @@ jobs:
                   - LOG_LEVEL=info
                   - STORAGE_DRIVER=\${STORAGE_DRIVER}
                   - TZ=Asia/Shanghai
-                  - DB_HOST=mysql
+                  - DB_HOST=omiai-mysql
                   - DB_PORT=3306
                   - DB_USER=root
                   - DB_DEBUG=false
