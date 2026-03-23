@@ -55,6 +55,7 @@ type ProfileUpdateRequest struct {
 	WorkCity            string `json:"work_city"`
 	PartnerRequirements string `json:"partner_requirements"`
 	Photos              string `json:"photos"`
+	InterestTags        string `json:"interest_tags"`
 }
 
 // VerifyRealName 实名认证接口 (C端用户提交身份证和姓名)
@@ -165,6 +166,9 @@ func (c *Controller) UpdateMine(ctx *gin.Context) {
 	}
 	if req.Photos != "" {
 		client.Photos = req.Photos
+	}
+	if req.InterestTags != "" {
+		client.InterestTags = req.InterestTags
 	}
 
 	if err := c.Client.Update(ctx, client); err != nil {

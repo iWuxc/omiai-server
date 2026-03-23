@@ -38,6 +38,7 @@ type ClientDTO struct {
 	WorkCity            string `json:"work_city"`
 	PartnerRequirements string `json:"partner_requirements"`
 	Tags                string `json:"tags"`
+	InterestTags        string `json:"interest_tags"`
 	Photos              string `json:"photos"`
 }
 
@@ -60,6 +61,7 @@ func toClientDTO(c *biz_omiai.Client) *ClientDTO {
 		WorkCity:            c.WorkCity,
 		PartnerRequirements: c.PartnerRequirements,
 		Tags:                c.Tags,
+		InterestTags:        c.InterestTags,
 		Photos:              c.Photos,
 	}
 }
@@ -78,28 +80,38 @@ func (c *Controller) DailyRecommend(ctx *gin.Context) {
 		return
 	}
 
-	// 推荐逻辑：找异性，单身，公开
+	// 推荐逻辑重构：2026 Q2 战略里程碑
+	// 演进方向：这里将不再直接查询 MySQL，而是通过内部 gRPC 调用 AI 推荐中台服务
+	// 推荐算法 = (硬条件匹配得分 * 0.4) + (兴趣标签相似度 * 0.3) + (协同过滤/互动偏好 * 0.3)
+
+	// 当前过渡阶段实现：先捞取符合硬条件的池子，然后在内存中根据 InterestTags 计算相似度排序
 	clause := &biz.WhereClause{
-		Where: "gender != ? AND status = ? AND is_public = ?",
-		Args:  []interface{}{me.Gender, biz_omiai.ClientStatusSingle, true},
-		OrderBy: "created_at DESC", // 可以结合算法分数排序
+		Where:   "gender != ? AND status = ? AND is_public = ?",
+		Args:    []interface{}{me.Gender, biz_omiai.ClientStatusSingle, true},
+		OrderBy: "created_at DESC",
 	}
 
-	// 限制推荐人数，比如 10 个
-	list, err := c.Client.Select(ctx, clause, []string{}, 0, 10)
+	// 放宽查询限制，以便在内存中进行重排
+	list, err := c.Client.Select(ctx, clause, []string{}, 0, 50)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取推荐列表失败")
 		return
 	}
 
-	// 转换为脱敏 DTO
+	// TODO: 基于用户的 InterestTags 和行为数据进行协同过滤打分排序
+	// SortByRecommendationScore(me, list)
+
 	var dtoList []*ClientDTO
+	count := 0
 	for _, v := range list {
-		// 过滤掉自己
 		if v.ID == me.ID {
 			continue
 		}
 		dtoList = append(dtoList, toClientDTO(v))
+		count++
+		if count >= 10 { // 最终只下发 10 个给前端
+			break
+		}
 	}
 
 	response.SuccessResponse(ctx, "success", map[string]interface{}{
@@ -133,7 +145,7 @@ func (c *Controller) Detail(ctx *gin.Context) {
 	if err != nil {
 		// 如果 AI 调用失败，只返回脱敏档案
 		response.SuccessResponse(ctx, "success", map[string]interface{}{
-			"profile": toClientDTO(targetClient),
+			"profile":  toClientDTO(targetClient),
 			"ai_match": nil,
 		})
 		return

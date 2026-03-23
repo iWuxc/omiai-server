@@ -42,7 +42,8 @@ type Client struct {
 	Partner             *Client   `json:"partner" gorm:"foreignKey:PartnerID"`
 	ManagerID           uint64    `json:"manager_id" gorm:"column:manager_id;index;default:0;comment:归属红娘ID;-"`
 	IsPublic            bool      `json:"is_public" gorm:"column:is_public;default:true;index;comment:是否公海;-"`
-	Tags                string    `json:"tags" gorm:"column:tags;type:text;comment:标签列表(JSON);-"`
+	Tags                string    `json:"tags" gorm:"column:tags;type:text;comment:系统兴趣标签列表(JSON);-"`
+	InterestTags        string    `json:"interest_tags" gorm:"column:interest_tags;type:text;comment:用户自定义兴趣标签(JSON)"`
 	PartnerRequirements string    `json:"partner_requirements" gorm:"column:partner_requirements;type:text;comment:对另一半要求(JSON)"`
 	ParentsProfession   string    `json:"parents_profession" gorm:"column:parents_profession;size:255;comment:父母工作"`
 	Remark              string    `json:"remark" gorm:"column:remark;type:text;comment:红娘备注"`
