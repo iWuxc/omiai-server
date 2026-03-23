@@ -70,11 +70,11 @@ func (c *Controller) Like(ctx *gin.Context) {
 	if reverseInteraction != nil && reverseInteraction.ActionType >= 2 {
 		// 互相心动！
 		isMatched = true
-		
+
 		// 升级双方互动状态为互相心动
 		interaction.ActionType = 3
 		_ = c.Client.SaveInteraction(ctx, interaction)
-		
+
 		reverseInteraction.ActionType = 3
 		_ = c.Client.SaveInteraction(ctx, reverseInteraction)
 
@@ -101,16 +101,97 @@ func (c *Controller) Like(ctx *gin.Context) {
 				Remark:         "【系统自动生成】双方在小程序互相心动，请红娘尽快介入跟进！",
 				AdminID:        "system",
 			}
-			
+
 			if err := c.Match.Create(ctx, matchRecord); err != nil {
 				log.Errorf("Auto create match record failed: %v", err)
 			}
-			
-			// TODO: 这里可以集成发企业微信通知或短信通知给 me.ManagerID 和 target.ManagerID
 		}
 	}
 
 	response.SuccessResponse(ctx, "操作成功", map[string]interface{}{
 		"is_matched": isMatched,
 	})
+}
+
+// GetReceivedLikes 获取谁喜欢了我 (ActionType = 2)
+func (c *Controller) GetReceivedLikes(ctx *gin.Context) {
+	clientID, exists := ctx.Get("client_id")
+	if !exists {
+		response.ErrorResponse(ctx, response.AuthCommonError, "未授权")
+		return
+	}
+
+	list, err := c.Client.GetClientInteractions(ctx, clientID.(uint64), 2, 0, 50)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取列表失败")
+		return
+	}
+
+	var result []map[string]interface{}
+	for _, item := range list {
+		fromClient, _ := c.Client.Get(ctx, item.FromClientID)
+		if fromClient != nil {
+			result = append(result, map[string]interface{}{
+				"interaction_id": item.ID,
+				"user_id":        fromClient.ID,
+				"name":           string([]rune(fromClient.Name)[0]) + "***", // 脱敏
+				"avatar":         fromClient.Avatar,                          // 可以在前端做高斯模糊
+				"age":            fromClient.RealAge(),
+				"work_city":      fromClient.WorkCity,
+				"created_at":     item.CreatedAt.Format("2006-01-02 15:04"),
+			})
+		}
+	}
+
+	response.SuccessResponse(ctx, "ok", result)
+}
+
+// GetMutualMatches 获取互相心动的列表 (ActionType = 3)
+func (c *Controller) GetMutualMatches(ctx *gin.Context) {
+	clientID, exists := ctx.Get("client_id")
+	if !exists {
+		response.ErrorResponse(ctx, response.AuthCommonError, "未授权")
+		return
+	}
+	myID := clientID.(uint64)
+
+	list, err := c.Client.GetClientInteractions(ctx, myID, 3, 0, 50)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取列表失败")
+		return
+	}
+
+	// 互相心动需要去重（因为双方的记录都会被查出来）
+	seen := make(map[uint64]bool)
+	var result []map[string]interface{}
+
+	for _, item := range list {
+		// 找出对方是谁
+		var targetID uint64
+		if item.FromClientID == myID {
+			targetID = item.ToClientID
+		} else {
+			targetID = item.FromClientID
+		}
+
+		if seen[targetID] {
+			continue
+		}
+		seen[targetID] = true
+
+		targetClient, _ := c.Client.Get(ctx, targetID)
+		if targetClient != nil {
+			result = append(result, map[string]interface{}{
+				"interaction_id": item.ID,
+				"user_id":        targetClient.ID,
+				"name":           targetClient.Name, // 互相心动了，可以展示全名
+				"avatar":         targetClient.Avatar,
+				"age":            targetClient.RealAge(),
+				"phone":          targetClient.Phone, // 也可以直接给联系方式
+				"created_at":     item.CreatedAt.Format("2006-01-02 15:04"),
+			})
+		}
+	}
+
+	response.SuccessResponse(ctx, "ok", result)
 }

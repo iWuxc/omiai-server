@@ -107,6 +107,8 @@ type ClientInterface interface {
 	GetByWxOpenID(ctx context.Context, openID string) (*Client, error)
 	SaveInteraction(ctx context.Context, interaction *ClientInteraction) error
 	GetInteraction(ctx context.Context, fromID, toID uint64) (*ClientInteraction, error)
+	GetInteractionLeads(ctx context.Context, managerID uint64, offset, limit int) ([]*ClientInteraction, error)
+	GetClientInteractions(ctx context.Context, clientID uint64, actionType int8, offset, limit int) ([]*ClientInteraction, error)
 
 	// Dashboard 相关
 	GetDashboardStats(ctx context.Context) (map[string]int64, error)

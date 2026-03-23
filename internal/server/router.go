@@ -73,6 +73,8 @@ func (r *Router) Register() http.Handler {
 
 				// 互动
 				cAuthGroup.POST("/interact/like", r.CInteractController.Like)
+				cAuthGroup.GET("/interact/received_likes", r.CInteractController.GetReceivedLikes)
+				cAuthGroup.GET("/interact/mutual_matches", r.CInteractController.GetMutualMatches)
 			}
 		}
 
@@ -128,6 +130,7 @@ func (r *Router) common(g *gin.RouterGroup) {
 func (r *Router) dashboard(g *gin.RouterGroup) {
 	g.GET("/stats", r.DashboardController.Stats)
 	g.GET("/todos", r.DashboardController.GetTodos)
+	g.GET("/leads", r.DashboardController.GetInteractionLeads)
 }
 
 func (r *Router) match(g *gin.RouterGroup) {
@@ -156,6 +159,7 @@ func (r *Router) client(g *gin.RouterGroup) {
 	g.POST("/create", r.ClientController.Create)
 	g.POST("/update", r.ClientController.Update)
 	g.DELETE("/delete/:id", r.ClientController.Delete)
+	g.POST("/verify/:id", r.ClientController.Verify)
 	g.GET("/list", r.ClientController.List)
 	g.GET("/detail/:id", r.ClientController.Detail)
 	g.GET("/match/:id", r.ClientController.MatchV2) // Upgrade to V2

@@ -21,6 +21,50 @@ func NewController(client biz_omiai.ClientInterface, match biz_omiai.MatchInterf
 	}
 }
 
+// GetInteractionLeads 获取C端高意向线索
+func (c *Controller) GetInteractionLeads(ctx *gin.Context) {
+	managerID := ctx.GetUint64("user_id")
+	if managerID == 0 {
+		response.ErrorResponse(ctx, response.AuthCommonError, "未授权")
+		return
+	}
+
+	// 限制返回最新 20 条线索
+	leads, err := c.client.GetInteractionLeads(ctx, managerID, 0, 20)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取线索失败")
+		return
+	}
+
+	// 组装返回数据，带上客户详情
+	var result []map[string]interface{}
+	for _, lead := range leads {
+		fromClient, _ := c.client.Get(ctx, lead.FromClientID)
+		toClient, _ := c.client.Get(ctx, lead.ToClientID)
+		
+		if fromClient != nil && toClient != nil {
+			result = append(result, map[string]interface{}{
+				"interaction_id": lead.ID,
+				"from_client": map[string]interface{}{
+					"id": fromClient.ID,
+					"name": fromClient.Name,
+					"avatar": fromClient.Avatar,
+					"phone": fromClient.Phone,
+				},
+				"to_client": map[string]interface{}{
+					"id": toClient.ID,
+					"name": toClient.Name,
+					"avatar": toClient.Avatar,
+					"phone": toClient.Phone,
+				},
+				"created_at": lead.CreatedAt.Format("2006-01-02 15:04:05"),
+			})
+		}
+	}
+
+	response.SuccessResponse(ctx, "ok", result)
+}
+
 type DashboardStats struct {
 	ClientTotal     int64 `json:"client_total"`
 	ClientToday     int64 `json:"client_today"`

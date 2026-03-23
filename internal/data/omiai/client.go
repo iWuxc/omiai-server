@@ -124,6 +124,47 @@ func (c *ClientRepo) GetInteraction(ctx context.Context, fromID, toID uint64) (*
 	return &interaction, nil
 }
 
+// GetInteractionLeads 获取B端红娘的高意向线索 (ActionType=3 且未处理)
+func (c *ClientRepo) GetInteractionLeads(ctx context.Context, managerID uint64, offset, limit int) ([]*biz_omiai.ClientInteraction, error) {
+	var list []*biz_omiai.ClientInteraction
+
+	// 查询属于该红娘名下客户的互动记录
+	query := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{}).
+		Joins("JOIN client as c1 ON c1.id = client_interaction.from_client_id").
+		Joins("JOIN client as c2 ON c2.id = client_interaction.to_client_id").
+		Where("client_interaction.action_type = 3 AND client_interaction.status = 0").
+		Where("(c1.manager_id = ? OR c2.manager_id = ?)", managerID, managerID)
+
+	err := query.Order("client_interaction.created_at DESC").
+		Offset(offset).Limit(limit).Find(&list).Error
+
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+	return list, nil
+}
+
+// GetClientInteractions 获取C端用户的互动列表 (如：谁喜欢了我)
+func (c *ClientRepo) GetClientInteractions(ctx context.Context, clientID uint64, actionType int8, offset, limit int) ([]*biz_omiai.ClientInteraction, error) {
+	var list []*biz_omiai.ClientInteraction
+
+	query := c.db.WithContext(ctx).Model(&biz_omiai.ClientInteraction{})
+
+	if actionType == 2 {
+		// 谁喜欢了我 (to_client_id = me, action_type = 2)
+		query = query.Where("to_client_id = ? AND action_type = ?", clientID, actionType)
+	} else if actionType == 3 {
+		// 互相心动
+		query = query.Where("(from_client_id = ? OR to_client_id = ?) AND action_type = ?", clientID, clientID, actionType)
+	}
+
+	err := query.Order("created_at DESC").Offset(offset).Limit(limit).Find(&list).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+	return list, nil
+}
+
 func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
 	now := time.Now()
