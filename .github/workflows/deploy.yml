@@ -227,7 +227,7 @@ jobs:
                     max-file: "3"
 
               mysql:
-                image: mysql:8.0
+                image: registry.cn-hangzhou.aliyuncs.com/library/mysql:8.0
                 container_name: omiai-mysql
                 restart: always
                 environment:
@@ -245,7 +245,7 @@ jobs:
                     max-file: "3"
             
               redis:
-                image: redis:6.2
+                image: registry.cn-hangzhou.aliyuncs.com/library/redis:6.2
                 container_name: omiai-redis
                 restart: always
                 command: redis-server --requirepass \${REDIS_PASSWORD}
