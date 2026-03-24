@@ -6,7 +6,7 @@
 
 set -e
 
-DOMAIN="www.omiai.cn"
+DOMAIN="www.omiai.top"
 EMAIL="your-email@example.com"  # 请修改为你的邮箱
 
 echo "=== 开始配置 Let's Encrypt SSL 证书 ==="
@@ -30,7 +30,7 @@ echo ">>> 配置 Nginx 支持 ACME 验证..."
 cat > /etc/nginx/conf.d/omiai.conf << 'EOF'
 server {
     listen 80;
-    server_name www.omiai.cn;
+    server_name www.omiai.top;
     
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;

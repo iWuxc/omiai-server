@@ -64,10 +64,9 @@
 
 | URL | 服务 |
 |-----|------|
-| `https://www.omiai.cn/` | 重定向到 /h5 |
-| `https://www.omiai.cn/h5` | H5 前端 |
-| `https://www.omiai.cn/web` | Admin 后台 |
-| `https://www.omiai.cn/api` | 后端 API |
+| `https://www.omiai.top/h5` | H5 前端 |
+| `https://www.omiai.top/web` | Admin 后台 |
+| `https://www.omiai.top/api` | 后端 API |
 
 ---
 
@@ -102,7 +101,7 @@ chown -R nginx:nginx /var/www/certbot
 cat > /etc/nginx/conf.d/omiai.conf << 'EOF'
 server {
     listen 80;
-    server_name www.omiai.cn;
+    server_name www.omiai.top;
     
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -119,7 +118,7 @@ nginx -t && nginx -s reload
 # 申请证书
 certbot certonly --webroot \
     -w /var/www/certbot \
-    -d www.omiai.cn \
+    -d www.omiai.top \
     --email your-email@example.com \
     --agree-tos \
     --no-eff-email
@@ -139,7 +138,7 @@ certbot renew --dry-run
 #### 证书文件位置
 
 ```
-/etc/letsencrypt/live/www.omiai.cn/
+/etc/letsencrypt/live/www.omiai.top/
 ├── fullchain.pem  # 证书链
 ├── privkey.pem    # 私钥
 ├── cert.pem       # 证书
@@ -155,11 +154,11 @@ certbot renew --dry-run
 mkdir -p /etc/nginx/ssl
 
 # 上传证书文件
-# scp www.omiai.cn_bundle.crt root@server:/etc/nginx/ssl/
-# scp www.omiai.cn.key root@server:/etc/nginx/ssl/
+# scp www.omiai.top_bundle.crt root@server:/etc/nginx/ssl/
+# scp www.omiai.top.key root@server:/etc/nginx/ssl/
 
 # 设置权限
-chmod 600 /etc/nginx/ssl/www.omiai.cn.key
+chmod 600 /etc/nginx/ssl/www.omiai.top.key
 ```
 
 ---
@@ -263,7 +262,7 @@ REDIS_PASSWORD=YOUR_REDIS_PASSWORD
 ZHIPUAI_API_KEY=YOUR_ZHIPUAI_API_KEY
 
 # 域名配置
-DOMAIN_H5=https://www.omiai.cn/h5
+DOMAIN_H5=https://www.omiai.top/h5
 
 # 存储配置
 STORAGE_DRIVER=cos
@@ -432,7 +431,7 @@ cat > /etc/nginx/conf.d/omiai.conf << 'EOF'
 # HTTP Server - 处理 ACME 验证和重定向
 server {
     listen 80;
-    server_name www.omiai.cn;
+    server_name www.omiai.top;
     client_max_body_size 50m;
     
     # Let's Encrypt ACME 验证路径
@@ -449,12 +448,12 @@ server {
 # HTTPS Server
 server {
     listen 443 ssl http2;
-    server_name www.omiai.cn;
+    server_name www.omiai.top;
     client_max_body_size 50m;
 
     # Let's Encrypt SSL 证书
-    ssl_certificate /etc/letsencrypt/live/www.omiai.cn/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/www.omiai.cn/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/www.omiai.top/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.omiai.top/privkey.pem;
     
     # SSL 安全配置
     ssl_session_timeout 1d;
@@ -711,10 +710,10 @@ curl -I -X OPTIONS http://localhost/api/
 
 ```bash
 # 检查证书文件
-ls -la /etc/letsencrypt/live/www.omiai.cn/
+ls -la /etc/letsencrypt/live/www.omiai.top/
 
 # 检查证书有效期
-openssl x509 -in /etc/letsencrypt/live/www.omiai.cn/fullchain.pem -noout -dates
+openssl x509 -in /etc/letsencrypt/live/www.omiai.top/fullchain.pem -noout -dates
 
 # 检查 Nginx SSL 配置
 nginx -t
@@ -737,7 +736,7 @@ systemctl enable docker && systemctl start docker
 
 # 3. 申请 SSL 证书
 mkdir -p /var/www/certbot
-certbot certonly --webroot -w /var/www/certbot -d www.omiai.cn --email your@email.com --agree-tos
+certbot certonly --webroot -w /var/www/certbot -d www.omiai.top --email your@email.com --agree-tos
 systemctl enable certbot.timer && systemctl start certbot.timer
 
 # 4. 创建项目目录
@@ -753,7 +752,7 @@ docker compose -f docker-compose.prod.yml up -d
 nginx -t && nginx -s reload
 
 # 8. 验证服务
-curl https://www.omiai.cn/api/
+curl https://www.omiai.top/api/
 ```
 
 ---
