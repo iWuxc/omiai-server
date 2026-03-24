@@ -30,7 +30,7 @@ func (j *ReminderCronJob) Run() {
 	if log != nil {
 		log.Infof("Starting daily reminder generation job")
 	}
-	
+
 	if err := j.reminderService.GenerateDailyReminders(ctx); err != nil {
 		if log != nil {
 			log.Errorf("Daily reminder generation job failed: %v", err)

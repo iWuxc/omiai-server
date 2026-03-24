@@ -71,6 +71,51 @@ type ConditionAnalysis struct {
 	Suggestions []string `json:"suggestions"` // 改进建议
 }
 
+type ChatSummaryResult struct {
+	Summary       string   `json:"summary"`        // 聊天总结纪要
+	ExtractedTags []string `json:"extracted_tags"` // 提取到的隐性标签（如：喜欢猫、不喜欢抽烟的）
+	Emotion       string   `json:"emotion"`        // 情感倾向 (积极/中立/消极)
+}
+
+// AnalyzeChatSummary 分析聊天记录提取标签
+func (a *AIAnalyzer) AnalyzeChatSummary(chatContent string) (*ChatSummaryResult, error) {
+	prompt := buildChatSummaryPrompt(chatContent)
+	response, err := a.callZhipuAI(prompt)
+	if err != nil {
+		return nil, err
+	}
+
+	var result ChatSummaryResult
+	// 尝试解析 JSON
+	jsonStr := cleanJSONResponse(response)
+	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
+		return nil, fmt.Errorf("解析AI响应失败: %v, raw: %s", err, response)
+	}
+	return &result, nil
+}
+
+func buildChatSummaryPrompt(chatContent string) string {
+	return fmt.Sprintf(`【角色设定】
+你是一位专业的婚恋分析师，擅长从客户的日常聊天记录中敏锐地捕捉他们的性格偏好和真实需求。
+
+【任务】
+请阅读以下脱敏聊天记录，提取客户的隐性偏好标签，并生成一段简短的跟进纪要。
+
+【聊天记录】
+%s
+
+【输出要求】
+必须严格按以下JSON格式输出，不要添加任何markdown代码块标记，不要有任何解释性文字：
+
+{
+  "summary": "客户今天表达了对上次相亲对象的不满，主要原因是对方迟到。客户比较看重时间观念。",
+  "extracted_tags": ["看重时间观念", "讨厌迟到", "直性子"],
+  "emotion": "消极"
+}
+
+【重要】只输出JSON，不要任何其他文字！`, chatContent)
+}
+
 // AnalyzeMatch 分析两个客户的匹配度
 func (a *AIAnalyzer) AnalyzeMatch(clientA, clientB *ClientProfile) (*MatchAnalysisResult, error) {
 	prompt := buildMatchAnalysisPrompt(clientA, clientB)
@@ -147,7 +192,7 @@ func buildMatchAnalysisPrompt(clientA, clientB *ClientProfile) string {
   "advantages": ["优势1", "优势2"],
   "suggestions": "总体建议和行动方案",
   "ice_breaker_topics": ["话题1", "话题2", "话题3"],
-  "success_probability": "根据分析，预测这对客户的成功概率为70%-80%，建议优先推荐。"
+  "success_probability": "根据分析，预测这对客户的成功概率为70%%-80%%，建议优先推荐。"
 }
 
 【字段说明】

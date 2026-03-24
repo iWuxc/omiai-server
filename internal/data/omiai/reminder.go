@@ -88,7 +88,7 @@ func (r *ReminderRepo) GetTodayReminders(userID uint64) ([]*biz_omiai.ReminderTa
 func (r *ReminderRepo) GetPendingReminders(userID uint64) ([]*biz_omiai.ReminderTask, error) {
 	var tasks []*biz_omiai.ReminderTask
 	now := time.Now()
-	
+
 	// Similar to GetTodayReminders, filtering by userID is needed.
 	if err := r.db.DB.Where("status = ? AND scheduled_at <= ?", "pending", now).Order("scheduled_at asc").Find(&tasks).Error; err != nil {
 		return nil, err
@@ -114,16 +114,16 @@ func (r *ReminderRepo) Delete(id int64) error {
 func (r *ReminderRepo) CountByUser(userID uint64, isDone int) (int64, error) {
 	var count int64
 	db := r.db.DB.Model(&biz_omiai.ReminderTask{})
-	
+
 	// Filter by isDone: 1 for done, 0 for pending, -1 for all
 	if isDone == 1 {
 		db = db.Where("status = ?", "completed")
 	} else if isDone == 0 {
 		db = db.Where("status = ?", "pending")
 	}
-	
+
 	// Filter by userID (TODO: Join with Client)
-	
+
 	if err := db.Count(&count).Error; err != nil {
 		return 0, err
 	}
@@ -132,14 +132,14 @@ func (r *ReminderRepo) CountByUser(userID uint64, isDone int) (int64, error) {
 
 func (r *ReminderRepo) ExistsByClientAndType(clientID uint64, triggerType string, start, end time.Time) (bool, error) {
 	var count int64
-	// ReminderTask doesn't store TriggerType directly, it links to Rule. 
+	// ReminderTask doesn't store TriggerType directly, it links to Rule.
 	// If RuleID is 0 (system generated), we might check Content or add Type to Task.
 	// For now, let's assume we check if any task exists for this client in the time range.
 	// To be precise, we should probably add a Type field to ReminderTask.
-	
+
 	err := r.db.DB.Model(&biz_omiai.ReminderTask{}).
 		Where("client_id = ? AND scheduled_at >= ? AND scheduled_at < ?", clientID, start, end).
 		Count(&count).Error
-	
+
 	return count > 0, err
 }

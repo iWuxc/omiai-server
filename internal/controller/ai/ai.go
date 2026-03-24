@@ -95,6 +95,25 @@ func (c *Controller) GetIceBreaker(ctx *gin.Context) {
 	})
 }
 
+// ChatSummary AI 提取聊天摘要和打标签
+func (c *Controller) ChatSummary(ctx *gin.Context) {
+	var req struct {
+		ChatContent string `json:"chat_content" binding:"required"`
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.ValidateError(ctx, err, response.ValidateCommonError)
+		return
+	}
+
+	result, err := c.aiAnalyzer.AnalyzeChatSummary(req.ChatContent)
+	if err != nil {
+		response.ErrorResponse(ctx, response.FuncCommonError, "生成聊天摘要失败: "+err.Error())
+		return
+	}
+
+	response.SuccessResponse(ctx, "生成成功", result)
+}
+
 // convertToProfile 将Client转换为AI分析用的Profile
 func convertToProfile(client *biz_omiai.Client) *aiservice.ClientProfile {
 	gender := "男"

@@ -1,10 +1,10 @@
 package client
 
 import (
-	"strings"
 	biz_omiai "omiai-server/internal/biz/omiai"
 	"omiai-server/internal/validates"
 	"omiai-server/pkg/response"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/iWuxc/go-wit/log"
@@ -119,7 +119,7 @@ func contains(target interface{}, keywords ...string) bool {
 		// 数值类型无法包含关键词，返回 false
 		return false
 	}
-	
+
 	for _, k := range keywords {
 		if strings.Contains(s, k) {
 			return true

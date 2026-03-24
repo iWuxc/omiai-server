@@ -115,5 +115,14 @@ func (c *ClientRepo) GetDashboardStats(ctx context.Context) (map[string]int64, e
 	}
 	stats["client_month"] = month
 
+	// BI 漏斗转化指标: 单身(未匹配), 匹配中, 已匹配
+	var status1, status2, status3 int64
+	c.db.WithContext(ctx).Model(c.m).Where("status = ?", 1).Count(&status1)
+	c.db.WithContext(ctx).Model(c.m).Where("status = ?", 2).Count(&status2)
+	c.db.WithContext(ctx).Model(c.m).Where("status = ?", 3).Count(&status3)
+	stats["client_single"] = status1
+	stats["client_matching"] = status2
+	stats["client_matched"] = status3
+
 	return stats, nil
 }

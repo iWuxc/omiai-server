@@ -47,21 +47,21 @@ func TestProcessFromBytes(t *testing.T) {
 			name: "small image no resize",
 			data: createTestImage(500, 400).Bytes(),
 			opts: &ProcessOptions{
-				MaxWidth:    1500,
-				MaxHeight:   1500,
-				AutoOrient:  true,
+				MaxWidth:   1500,
+				MaxHeight:  1500,
+				AutoOrient: true,
 			},
 		},
 		{
-			name: "oversize image",
-			data: make([]byte, Limit20MB+1),
-			opts: DefaultOptions,
+			name:    "oversize image",
+			data:    make([]byte, Limit20MB+1),
+			opts:    DefaultOptions,
 			wantErr: true,
 		},
 		{
-			name: "too small image",
-			data: createTestImage(10, 10).Bytes(),
-			opts: DefaultOptions,
+			name:    "too small image",
+			data:    createTestImage(10, 10).Bytes(),
+			opts:    DefaultOptions,
 			wantErr: true,
 		},
 	}
@@ -107,7 +107,7 @@ func TestResize(t *testing.T) {
 
 	resized := Resize(img, 500, 0)
 	bounds := resized.Bounds()
-	
+
 	if bounds.Dx() != 500 {
 		t.Errorf("Expected width 500, got %d", bounds.Dx())
 	}
@@ -125,7 +125,7 @@ func TestThumbnail(t *testing.T) {
 
 	thumb := Thumbnail(img, 100, 100)
 	bounds := thumb.Bounds()
-	
+
 	if bounds.Dx() > 100 {
 		t.Errorf("Thumbnail width exceeds limit: %d", bounds.Dx())
 	}
@@ -143,12 +143,12 @@ func TestGrayscale(t *testing.T) {
 
 	gray := Grayscale(img)
 	bounds := gray.Bounds()
-	
+
 	// 检查中心点是否为灰度
 	center := bounds.Max.X / 2
 	rgba := gray.At(center, center)
 	c := color.RGBAModel.Convert(rgba).(color.RGBA)
-	
+
 	// 灰度图的 R=G=B
 	if c.R != c.G || c.G != c.B {
 		t.Error("Image is not grayscale")
@@ -157,12 +157,12 @@ func TestGrayscale(t *testing.T) {
 
 func TestGetImageInfo(t *testing.T) {
 	testData := createTestImage(800, 600)
-	
+
 	width, height, format, err := GetImageInfo(testData.Bytes())
 	if err != nil {
 		t.Fatalf("GetImageInfo failed: %v", err)
 	}
-	
+
 	if width != 800 {
 		t.Errorf("Expected width 800, got %d", width)
 	}
@@ -176,7 +176,7 @@ func TestGetImageInfo(t *testing.T) {
 
 func BenchmarkProcessFromBytes(b *testing.B) {
 	testData := createTestImage(2000, 1500)
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := ProcessFromBytes(testData.Bytes(), DefaultOptions)

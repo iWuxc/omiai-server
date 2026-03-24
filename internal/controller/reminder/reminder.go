@@ -69,3 +69,33 @@ func (c *Controller) CheckAndGenerateTasks(ctx *gin.Context) {
 
 	response.SuccessResponse(ctx, "任务生成完成", gin.H{"count": count})
 }
+
+// Stats 获取提醒统计数据
+func (c *Controller) Stats(ctx *gin.Context) {
+	// 获取当前用户ID (从上下文获取，这里简化处理为0表示全部)
+	userID := uint64(0)
+
+	pendingCount, err := c.reminderRepo.CountByUser(userID, 0)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取待办统计失败")
+		return
+	}
+
+	completedCount, err := c.reminderRepo.CountByUser(userID, 1)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取已完成统计失败")
+		return
+	}
+
+	allCount, err := c.reminderRepo.CountByUser(userID, -1)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取总数统计失败")
+		return
+	}
+
+	response.SuccessResponse(ctx, "获取成功", gin.H{
+		"pending":   pendingCount,
+		"completed": completedCount,
+		"total":     allCount,
+	})
+}

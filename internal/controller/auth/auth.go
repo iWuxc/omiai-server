@@ -105,7 +105,7 @@ func (c *Controller) H5Login(ctx *gin.Context) {
 
 	response.SuccessResponse(ctx, "登录成功", map[string]interface{}{
 		"accessToken": token,
-		"user":       user,
+		"user":        user,
 	})
 }
 
@@ -185,7 +185,7 @@ func (c *Controller) WxLogin(ctx *gin.Context) {
 
 	response.SuccessResponse(ctx, "登录成功", map[string]interface{}{
 		"accessToken": token,
-		"user":       user,
+		"user":        user,
 	})
 }
 

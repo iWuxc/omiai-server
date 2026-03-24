@@ -35,7 +35,7 @@ func (r *AIMatchRepo) GenerateDailyRecommendations() error {
 
 		// 简单的规则筛选
 		query := r.db.DB.Where("gender = ? AND status = ? AND marital_status = ?", targetGender, 1, 1)
-		
+
 		// 年龄筛选
 		if client.Age > 0 {
 			minAge := client.Age - 5
@@ -58,7 +58,7 @@ func (r *AIMatchRepo) GenerateDailyRecommendations() error {
 			// 检查是否已存在匹配
 			var count int64
 			r.db.DB.Model(&biz_omiai.MatchRecord{}).Where(
-				"(male_client_id = ? AND female_client_id = ?) OR (male_client_id = ? AND female_client_id = ?)", 
+				"(male_client_id = ? AND female_client_id = ?) OR (male_client_id = ? AND female_client_id = ?)",
 				client.ID, candidate.ID, candidate.ID, client.ID,
 			).Count(&count)
 
@@ -78,7 +78,7 @@ func (r *AIMatchRepo) GenerateDailyRecommendations() error {
 					match.MaleClientID = uint64(candidate.ID)
 					match.FemaleClientID = uint64(client.ID)
 				}
-				
+
 				r.db.DB.Create(match)
 			}
 		}

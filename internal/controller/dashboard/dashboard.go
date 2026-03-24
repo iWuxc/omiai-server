@@ -21,10 +21,13 @@ func NewController(client biz_omiai.ClientInterface, match biz_omiai.MatchInterf
 	}
 }
 
-type DashboardStats struct {
+type Stats struct {
 	ClientTotal     int64 `json:"client_total"`
 	ClientToday     int64 `json:"client_today"`
 	ClientMonth     int64 `json:"client_month"`
+	ClientSingle    int64 `json:"client_single"`   // BI 漏斗：单身库
+	ClientMatching  int64 `json:"client_matching"` // BI 漏斗：匹配接触中
+	ClientMatched   int64 `json:"client_matched"`  // BI 漏斗：已牵手
 	MatchTotal      int64 `json:"match_total"`
 	MatchMonth      int64 `json:"match_month"`
 	FollowUpPending int64 `json:"follow_up_pending"`
@@ -65,7 +68,7 @@ func (c *Controller) Stats(ctx *gin.Context) {
 	if userID == 0 {
 		userID = 1
 	}
-	
+
 	pendingReminders, err := c.reminder.GetPendingReminders(userID)
 	if err == nil {
 		stats["follow_up_pending"] = int64(len(pendingReminders))
@@ -91,19 +94,19 @@ func (c *Controller) GetTodos(ctx *gin.Context) {
 	todos := make([]TodoItem, 0)
 	for _, task := range pendingTasks {
 		// Priority logic could be complex based on Rule or Content keywords
-		priority := "medium" 
+		priority := "medium"
 		taskType := "reminder"
-		
+
 		// Simple keyword matching for type and priority demo
 		// In production, ReminderTask should probably have Type and Priority fields
-		
+
 		todos = append(todos, TodoItem{
-			ID:        task.ID,
-			Type:      taskType,
-			Title:     task.Content,
-			Priority:  priority,
-			Status:    task.Status,
-			ClientID:  &task.ClientID,
+			ID:       task.ID,
+			Type:     taskType,
+			Title:    task.Content,
+			Priority: priority,
+			Status:   task.Status,
+			ClientID: &task.ClientID,
 			// ClientName: fetch client name if needed, or join in repo
 			CreatedAt: task.CreatedAt.Format("2006-01-02 15:04:05"),
 		})

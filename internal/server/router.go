@@ -48,7 +48,7 @@ func (r *Router) Register() http.Handler {
 		g.GET("/china_region/search", r.ChinaRegionController.Search)
 
 		// 需要登录的接口
-		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis))
+		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis), middleware.AuditLog())
 		{
 			r.ai(authGroup.Group("ai"))
 			r.banner(authGroup.Group("banner"))
@@ -90,6 +90,7 @@ func (r *Router) auth(g *gin.RouterGroup) {
 func (r *Router) ai(g *gin.RouterGroup) {
 	g.POST("/analyze", r.AIController.AnalyzeMatch)
 	g.POST("/ice-breaker", r.AIController.GetIceBreaker)
+	g.POST("/chat-summary", r.AIController.ChatSummary)
 }
 
 func (r *Router) common(g *gin.RouterGroup) {
@@ -145,12 +146,8 @@ func (r *Router) client(g *gin.RouterGroup) {
 
 func (r *Router) reminder(g *gin.RouterGroup) {
 	g.GET("/list", r.ReminderController.ListPendingTasks) // Default to pending tasks
-	// g.GET("/today", r.ReminderController.TodayList) // Removed
-	// g.GET("/pending", r.ReminderController.PendingList) // Removed
-	// g.GET("/stats", r.ReminderController.Stats) // Removed
-	// g.POST("/read", r.ReminderController.MarkAsRead) // Removed
+	g.GET("/stats", r.ReminderController.Stats)
 	g.POST("/done/:id", r.ReminderController.CompleteTask) // Updated
-	// g.DELETE("/delete", r.ReminderController.Delete) // Removed
 
 	// New routes
 	g.GET("/rules", r.ReminderController.ListRules)
