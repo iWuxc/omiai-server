@@ -12,148 +12,185 @@ import (
 	"github.com/iWuxc/go-wit/log"
 )
 
-// ImportRecord 完整客户导入记录结构
-// 覆盖client表中所有可识别字段（排除系统字段和图片）
 type ImportRecord struct {
-	// 基础信息
-	Name     string `json:"name"`     // 姓名
-	Gender   int8   `json:"gender"`   // 1男 2女
-	Phone    string `json:"phone"`    // 手机号
-	Birthday string `json:"birthday"` // 出生年月 YYYY-MM
-	Age      int    `json:"age"`      // 年龄
-	Zodiac   string `json:"zodiac"`   // 属相
-
-	// 身体特征
-	Height int `json:"height"` // 身高 cm
-	Weight int `json:"weight"` // 体重 kg
-
-	// 教育婚姻
-	Education     int8 `json:"education"`      // 1高中 2大专 3本科 4硕士 5博士
-	MaritalStatus int8 `json:"marital_status"` // 1未婚 2已婚 3离异 4丧偶
-
-	// 工作收入
-	Profession string `json:"profession"` // 职业/工作。识别：职业、工作、职位、干什么、单位、具体工作、做什么工作
-	WorkUnit   string `json:"work_unit"`  // 工作单位。识别：单位、公司、就职于
-	WorkCity   string `json:"work_city"`  // 工作城市/具体工作地点。识别：具体地点、工作地点、在哪上班、工作城市
-	Position   string `json:"position"`   // 职位。识别：职位、头衔、岗位
-	Income     int    `json:"income"`     // 月收入(元)。识别：收入、月薪、工资、X万/月、Xk、税后收入、税后月薪
-
-	// 房产车辆
-	HouseStatus  int8   `json:"house_status"`  // 1无房 2已购房 3贷款购房
-	HouseAddress string `json:"house_address"` // 买房地址
-	CarStatus    int8   `json:"car_status"`    // 1无车 2有车
-
-	// 家庭信息
-	Address           string `json:"address"`            // 家庭住址
-	FamilyDescription string `json:"family_description"` // 家庭成员描述
-
-	// 择偶相关
-	PartnerRequirements string `json:"partner_requirements"` // 对另一半要求
-	ParentsProfession   string `json:"parents_profession"`   // 父母工作
-
-	// 备注
-	Remark string `json:"remark"` // 其他备注信息
-
-	// 元数据
-	RawText     string `json:"raw_text"`     // 原始文本片段
-	ParseStatus string `json:"parse_status"` // success, warning, error
-	ErrorMsg    string `json:"error_msg"`    // 错误信息
+	Name                string `json:"name"`
+	Gender              int8   `json:"gender"`
+	Phone               string `json:"phone"`
+	Birthday            string `json:"birthday"`
+	Age                 int    `json:"age"`
+	Zodiac              string `json:"zodiac"`
+	Height              int    `json:"height"`
+	Weight              int    `json:"weight"`
+	Education           int8   `json:"education"`
+	MaritalStatus       int8   `json:"marital_status"`
+	Profession          string `json:"profession"`
+	WorkUnit            string `json:"work_unit"`
+	WorkCity            string `json:"work_city"`
+	Position            string `json:"position"`
+	Income              int    `json:"income"`
+	HouseStatus         int8   `json:"house_status"`
+	HouseAddress        string `json:"house_address"`
+	CarStatus           int8   `json:"car_status"`
+	Address             string `json:"address"`
+	FamilyDescription   string `json:"family_description"`
+	PartnerRequirements string `json:"partner_requirements"`
+	ParentsProfession   string `json:"parents_profession"`
+	Remark              string `json:"remark"`
+	RawText             string `json:"raw_text"`
+	ParseStatus         string `json:"parse_status"`
+	ErrorMsg            string `json:"error_msg"`
 }
 
-// ChatParser 解析器
 type ChatParser struct {
-	Records []ImportRecord
-	APIKey  string
-	Model   string
+	Records  []ImportRecord
+	provider LLMProvider
+}
+
+type LLMProvider interface {
+	Parse(content string, prompt string) ([]ImportRecord, error)
+	Name() string
 }
 
 func NewChatParser() *ChatParser {
-	// 默认配置
-	apiKey := ""
-	model := "glm-4-flash"
-
-	// 从配置读取
-	if c := conf.GetConfig(); c != nil && c.ZhipuAI != nil {
-		if c.ZhipuAI.APIKey != "" {
-			apiKey = c.ZhipuAI.APIKey
-		}
-		if c.ZhipuAI.Model != "" {
-			model = c.ZhipuAI.Model
-		}
-	}
-
-	fmt.Println("大模型key", apiKey, model)
-
+	provider := getLLMProvider()
 	return &ChatParser{
-		Records: make([]ImportRecord, 0),
-		APIKey:  apiKey,
-		Model:   model,
+		Records:  make([]ImportRecord, 0),
+		provider: provider,
 	}
 }
 
-// GLM Request/Response Structures
-type GLMRequest struct {
-	Model    string       `json:"model"`
-	Messages []GLMMessage `json:"messages"`
-}
-
-type GLMMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-type GLMResponse struct {
-	Choices []struct {
-		Message struct {
-			Content string `json:"content"`
-		} `json:"message"`
-	} `json:"choices"`
-}
-
-// Parse 解析文本块 (Using GLM)
-func (p *ChatParser) Parse(content string) ([]ImportRecord, error) {
-	if p.APIKey == "" {
-		// Fallback to Mock if no key
-		return p.parseMock(content), nil
+func getLLMProvider() LLMProvider {
+	cfg := conf.GetConfig()
+	if cfg == nil || cfg.LLM == nil {
+		log.Warn("LLM config not found, using mock provider")
+		return &MockProvider{}
 	}
 
-	prompt := buildParsePrompt()
+	provider := cfg.LLM.Provider
+	if provider == "" {
+		provider = "volcano"
+	}
+
+	if provider == "volcano" {
+		if cfg.LLM.VolcanoEngine != nil && cfg.LLM.VolcanoEngine.APIKey != "" {
+			log.Infof("Using Volcano Engine provider: %s", cfg.LLM.VolcanoEngine.Model)
+			return &VolcanoProvider{
+				APIKey:   cfg.LLM.VolcanoEngine.APIKey,
+				Model:    cfg.LLM.VolcanoEngine.Model,
+				Endpoint: cfg.LLM.VolcanoEngine.Endpoint,
+			}
+		}
+	}
+
+	log.Warn("No valid LLM provider found, using mock provider")
+	return &MockProvider{}
+}
+
+type VolcanoProvider struct {
+	APIKey   string
+	Model    string
+	Endpoint string
+}
+
+func (p *VolcanoProvider) Name() string {
+	return "volcano"
+}
+
+func (p *VolcanoProvider) Parse(content string, prompt string) ([]ImportRecord, error) {
 	fullPrompt := fmt.Sprintf(prompt, content)
 
-	reqBody := GLMRequest{
-		Model: p.Model,
-		Messages: []GLMMessage{
-			{Role: "user", Content: fullPrompt},
+	endpoint := p.Endpoint
+	if endpoint == "" {
+		endpoint = "https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions"
+	}
+
+	reqBody := map[string]interface{}{
+		"model": p.Model,
+		"messages": []map[string]string{
+			{"role": "user", "content": fullPrompt},
 		},
 	}
 
 	jsonBody, _ := json.Marshal(reqBody)
 
-	// Increase timeout to 180s for slow model responses
 	client := &http.Client{Timeout: 180 * time.Second}
-	req, _ := http.NewRequest("POST", "https://open.bigmodel.cn/api/paas/v4/chat/completions", bytes.NewBuffer(jsonBody))
+	req, _ := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+p.APIKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorf("GLM API request failed: %v", err)
+		log.Errorf("Volcano Engine API request failed: %v", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var glmResp GLMResponse
-	if err := json.NewDecoder(resp.Body).Decode(&glmResp); err != nil {
-		log.Errorf("GLM API response decode failed: %v", err)
+	var volcanoResp map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&volcanoResp); err != nil {
+		log.Errorf("Volcano Engine API response decode failed: %v", err)
 		return nil, err
 	}
 
-	if len(glmResp.Choices) == 0 {
-		return nil, fmt.Errorf("empty response from GLM")
+	choices, ok := volcanoResp["choices"].([]interface{})
+	if !ok || len(choices) == 0 {
+		return nil, fmt.Errorf("empty response from Volcano Engine")
 	}
 
-	contentStr := glmResp.Choices[0].Message.Content
-	// Clean markdown code blocks if present
+	firstChoice, ok := choices[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid choice format from Volcano Engine")
+	}
+
+	message, ok := firstChoice["message"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid message format from Volcano Engine")
+	}
+
+	contentStr, ok := message["content"].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid content format from Volcano Engine")
+	}
+
+	return parseResponse(contentStr)
+}
+
+type MockProvider struct{}
+
+func (p *MockProvider) Name() string {
+	return "mock"
+}
+
+func (p *MockProvider) Parse(content string, prompt string) ([]ImportRecord, error) {
+	log.Warn("Using mock parser - no LLM API key configured")
+	return []ImportRecord{
+		{
+			Name:                "张三(Mock)",
+			Gender:              1,
+			Phone:               "13800138000",
+			Birthday:            "1990-01",
+			Age:                 34,
+			Zodiac:              "马",
+			Height:              175,
+			Weight:              70,
+			Education:           3,
+			MaritalStatus:       1,
+			Profession:          "软件工程师",
+			Income:              20000,
+			HouseStatus:         2,
+			HouseAddress:        "北京市朝阳区",
+			CarStatus:           2,
+			Address:             "北京市海淀区",
+			FamilyDescription:   "父母健在，独生子",
+			PartnerRequirements: "本科以上学历，身高160+",
+			ParentsProfession:   "父亲教师，母亲家庭主妇",
+			Remark:              "不抽烟不喝酒",
+			ParseStatus:         "success",
+			RawText:             "Mock Data",
+		},
+	}, nil
+}
+
+func parseResponse(contentStr string) ([]ImportRecord, error) {
 	contentStr = strings.TrimPrefix(contentStr, "```json")
 	contentStr = strings.TrimPrefix(contentStr, "```")
 	contentStr = strings.TrimSuffix(contentStr, "```")
@@ -162,10 +199,9 @@ func (p *ChatParser) Parse(content string) ([]ImportRecord, error) {
 	var records []ImportRecord
 	if err := json.Unmarshal([]byte(contentStr), &records); err != nil {
 		log.Errorf("JSON parse failed: %v, content: %s", err, contentStr)
-		return nil, fmt.Errorf("failed to parse JSON from GLM")
+		return nil, fmt.Errorf("failed to parse JSON from LLM")
 	}
 
-	// Post-processing
 	for i := range records {
 		records[i].ParseStatus = "success"
 		if records[i].Name == "" {
@@ -173,7 +209,6 @@ func (p *ChatParser) Parse(content string) ([]ImportRecord, error) {
 			records[i].ParseStatus = "warning"
 			records[i].ErrorMsg = "未识别到姓名"
 		}
-		// 补充年龄计算（如果只有birthday没有age）
 		if records[i].Age == 0 && records[i].Birthday != "" && len(records[i].Birthday) >= 7 {
 			if age := calculateAge(records[i].Birthday); age > 0 {
 				records[i].Age = age
@@ -184,7 +219,24 @@ func (p *ChatParser) Parse(content string) ([]ImportRecord, error) {
 	return records, nil
 }
 
-// buildParsePrompt 构建解析Prompt
+func (p *ChatParser) Parse(content string) ([]ImportRecord, error) {
+	prompt := buildParsePrompt()
+	return p.provider.Parse(content, prompt)
+}
+
+func calculateAge(birthday string) int {
+	if len(birthday) < 7 {
+		return 0
+	}
+	birthYear := 0
+	fmt.Sscanf(birthday[:4], "%d", &birthYear)
+	if birthYear == 0 {
+		return 0
+	}
+	currentYear := time.Now().Year()
+	return currentYear - birthYear
+}
+
 func buildParsePrompt() string {
 	return `【角色】
 你是一位专业的婚恋信息录入助手，擅长从聊天记录中提取客户详细信息。
@@ -273,46 +325,9 @@ func buildParsePrompt() string {
 """`
 }
 
-// calculateAge 根据生日计算年龄
-func calculateAge(birthday string) int {
-	if len(birthday) < 7 {
-		return 0
-	}
-	birthYear := 0
-	fmt.Sscanf(birthday[:4], "%d", &birthYear)
-	if birthYear == 0 {
-		return 0
-	}
-	currentYear := time.Now().Year()
-	return currentYear - birthYear
-}
-
-// Mock implementation for testing without API Key
-func (p *ChatParser) parseMock(content string) []ImportRecord {
-	return []ImportRecord{
-		{
-			Name:                "张三(Mock)",
-			Gender:              1,
-			Phone:               "13800138000",
-			Birthday:            "1990-01",
-			Age:                 34,
-			Zodiac:              "马",
-			Height:              175,
-			Weight:              70,
-			Education:           3,
-			MaritalStatus:       1,
-			Profession:          "软件工程师",
-			Income:              20000,
-			HouseStatus:         2,
-			HouseAddress:        "北京市朝阳区",
-			CarStatus:           2,
-			Address:             "北京市海淀区",
-			FamilyDescription:   "父母健在，独生子",
-			PartnerRequirements: "本科以上学历，身高160+",
-			ParentsProfession:   "父亲教师，母亲家庭主妇",
-			Remark:              "不抽烟不喝酒",
-			ParseStatus:         "success",
-			RawText:             "Mock Data",
-		},
-	}
-}
+// llm:
+//   provider: "volcano"  # volcano
+//   volcano_engine:
+//     api_key: "5e47477b-73ed-43b4-b9a0-c58f1bbecab2"
+//     model: "ep-20260327175716-s5bz9"
+//     endpoint: "https://ark.cn-beijing.volces.com/api/v3/chat/completions"

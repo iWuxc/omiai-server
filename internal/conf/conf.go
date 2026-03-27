@@ -35,12 +35,18 @@ type Config struct {
 	Track    track.ManagerConf `json:"track"`
 	Storage  *Storage          `json:"storage"`
 	CronConf *Cron             `json:"cron_conf" mapstructure:"cron_conf"`
-	ZhipuAI  *ZhipuAI          `json:"zhipuai" mapstructure:"zhipuai"`
+	LLM      *LLM              `json:"llm" mapstructure:"llm"`
 }
 
-type ZhipuAI struct {
-	APIKey string `json:"api_key" mapstructure:"api_key"`
-	Model  string `json:"model" mapstructure:"model"`
+type VolcanoEngine struct {
+	APIKey   string `json:"api_key" mapstructure:"api_key"`
+	Model    string `json:"model" mapstructure:"model"`
+	Endpoint string `json:"endpoint" mapstructure:"endpoint"`
+}
+
+type LLM struct {
+	Provider      string         `json:"provider" mapstructure:"provider"`
+	VolcanoEngine *VolcanoEngine `json:"volcano_engine"`
 }
 
 type Storage struct {

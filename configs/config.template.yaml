@@ -75,6 +75,9 @@ cron_conf:
   db: 2
   cron_name: omiai-server-cron
 
-zhipuai:
-  api_key: "${ZHIPUAI_API_KEY}"
-  model: "${ZHIPUAI_MODEL}"
+llm:
+  provider: "${LLM_PROVIDER}"  # volcano
+  volcano_engine:
+    api_key: "${VOLCANO_API_KEY}"
+    model: "${VOLCANO_MODEL}"
+    endpoint: "${VOLCANO_ENDPOINT}"

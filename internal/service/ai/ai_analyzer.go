@@ -8,30 +8,136 @@ import (
 	"net/http"
 	"omiai-server/internal/conf"
 	"strings"
+	"time"
+
+	"github.com/iWuxc/go-wit/log"
 )
 
-// AIAnalyzer AI分析服务
 type AIAnalyzer struct {
-	apiKey string
-	model  string
+	provider LLMProvider
 }
 
-// NewAIAnalyzer 创建AI分析器
+type LLMProvider interface {
+	Call(prompt string) (string, error)
+	Name() string
+}
+
 func NewAIAnalyzer() *AIAnalyzer {
-	cfg := conf.GetConfig().ZhipuAI
 	return &AIAnalyzer{
-		apiKey: cfg.APIKey,
-		model:  cfg.Model,
+		provider: getAIProvider(),
 	}
 }
 
-// MatchAnalysisRequest AI匹配分析请求
+func getAIProvider() LLMProvider {
+	cfg := conf.GetConfig()
+	if cfg == nil {
+		log.Warn("AI config is nil")
+		return &MockAIProvider{}
+	}
+	if cfg.LLM == nil {
+		log.Warn("AI LLM config is nil")
+		return &MockAIProvider{}
+	}
+	log.Infof("LLM config: provider=%s, volcano_api_key=%s, model=%s",
+		cfg.LLM.Provider, cfg.LLM.VolcanoEngine.APIKey, cfg.LLM.VolcanoEngine.Model)
+
+	if cfg.LLM.VolcanoEngine != nil && cfg.LLM.VolcanoEngine.APIKey != "" {
+		return &VolcanoAIProvider{
+			APIKey:   cfg.LLM.VolcanoEngine.APIKey,
+			Model:    cfg.LLM.VolcanoEngine.Model,
+			Endpoint: cfg.LLM.VolcanoEngine.Endpoint,
+		}
+	}
+
+	return &MockAIProvider{}
+}
+
+type VolcanoAIProvider struct {
+	APIKey   string
+	Model    string
+	Endpoint string
+}
+
+func (p *VolcanoAIProvider) Name() string {
+	return "volcano"
+}
+
+func (p *VolcanoAIProvider) Call(prompt string) (string, error) {
+	endpoint := p.Endpoint
+	if endpoint == "" {
+		endpoint = "https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions"
+	}
+
+	requestBody := map[string]interface{}{
+		"model": p.Model,
+		"messages": []map[string]string{
+			{"role": "user", "content": prompt},
+		},
+		"temperature": 0.7,
+		"max_tokens":  2000,
+	}
+
+	jsonData, _ := json.Marshal(requestBody)
+
+	client := &http.Client{Timeout: 180 * time.Second}
+	req, _ := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+p.APIKey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	log.Infof("Volcano AI raw response: %s", string(body))
+
+	var result struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", err
+	}
+
+	if result.Error.Message != "" {
+		return "", fmt.Errorf("AI API error: %s", result.Error.Message)
+	}
+
+	if len(result.Choices) == 0 {
+		return "", fmt.Errorf("no response from AI")
+	}
+
+	return result.Choices[0].Message.Content, nil
+}
+
+type MockAIProvider struct{}
+
+func (p *MockAIProvider) Name() string {
+	return "mock"
+}
+
+func (p *MockAIProvider) Call(prompt string) (string, error) {
+	return `{"summary": "Mock summary", "extracted_tags": ["mock"], "emotion": "中立"}`, nil
+}
+
 type MatchAnalysisRequest struct {
 	ClientA *ClientProfile `json:"client_a"`
 	ClientB *ClientProfile `json:"client_b"`
 }
 
-// ClientProfile 客户档案（用于AI分析）
 type ClientProfile struct {
 	Name                string `json:"name"`
 	Gender              string `json:"gender"`
@@ -50,43 +156,39 @@ type ClientProfile struct {
 	Tags                string `json:"tags"`
 }
 
-// MatchAnalysisResult AI匹配分析结果
 type MatchAnalysisResult struct {
-	OverallScore       int                `json:"overall_score"`       // 总体匹配度 0-100
-	Level              string             `json:"level"`               // 匹配等级
-	HardConditions     *ConditionAnalysis `json:"hard_conditions"`     // 硬性条件分析
-	SoftConditions     *ConditionAnalysis `json:"soft_conditions"`     // 软性条件分析
-	RiskPoints         []string           `json:"risk_points"`         // 风险点
-	Advantages         []string           `json:"advantages"`          // 优势点
-	Suggestions        string             `json:"suggestions"`         // 建议
-	IceBreakerTopics   []string           `json:"ice_breaker_topics"`  // 破冰话题
-	SuccessProbability string             `json:"success_probability"` // 成功概率预测
+	OverallScore       int                `json:"overall_score"`
+	Level              string             `json:"level"`
+	HardConditions     *ConditionAnalysis `json:"hard_conditions"`
+	SoftConditions     *ConditionAnalysis `json:"soft_conditions"`
+	RiskPoints         []string           `json:"risk_points"`
+	Advantages         []string           `json:"advantages"`
+	Suggestions        string             `json:"suggestions"`
+	IceBreakerTopics   []string           `json:"ice_breaker_topics"`
+	SuccessProbability string             `json:"success_probability"`
 }
 
-// ConditionAnalysis 条件分析
 type ConditionAnalysis struct {
-	Score       int      `json:"score"`       // 单项得分 0-100
-	MatchLevel  string   `json:"match_level"` // 匹配程度
-	Analysis    string   `json:"analysis"`    // 分析说明
-	Suggestions []string `json:"suggestions"` // 改进建议
+	Score       int      `json:"score"`
+	MatchLevel  string   `json:"match_level"`
+	Analysis    string   `json:"analysis"`
+	Suggestions []string `json:"suggestions"`
 }
 
 type ChatSummaryResult struct {
-	Summary       string   `json:"summary"`        // 聊天总结纪要
-	ExtractedTags []string `json:"extracted_tags"` // 提取到的隐性标签（如：喜欢猫、不喜欢抽烟的）
-	Emotion       string   `json:"emotion"`        // 情感倾向 (积极/中立/消极)
+	Summary       string   `json:"summary"`
+	ExtractedTags []string `json:"extracted_tags"`
+	Emotion       string   `json:"emotion"`
 }
 
-// AnalyzeChatSummary 分析聊天记录提取标签
 func (a *AIAnalyzer) AnalyzeChatSummary(chatContent string) (*ChatSummaryResult, error) {
 	prompt := buildChatSummaryPrompt(chatContent)
-	response, err := a.callZhipuAI(prompt)
+	response, err := a.provider.Call(prompt)
 	if err != nil {
 		return nil, err
 	}
 
 	var result ChatSummaryResult
-	// 尝试解析 JSON
 	jsonStr := cleanJSONResponse(response)
 	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
 		return nil, fmt.Errorf("解析AI响应失败: %v, raw: %s", err, response)
@@ -116,11 +218,10 @@ func buildChatSummaryPrompt(chatContent string) string {
 【重要】只输出JSON，不要任何其他文字！`, chatContent)
 }
 
-// AnalyzeMatch 分析两个客户的匹配度
 func (a *AIAnalyzer) AnalyzeMatch(clientA, clientB *ClientProfile) (*MatchAnalysisResult, error) {
 	prompt := buildMatchAnalysisPrompt(clientA, clientB)
 
-	response, err := a.callZhipuAI(prompt)
+	response, err := a.provider.Call(prompt)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +229,6 @@ func (a *AIAnalyzer) AnalyzeMatch(clientA, clientB *ClientProfile) (*MatchAnalys
 	return parseAIResponse(response)
 }
 
-// buildMatchAnalysisPrompt 构建匹配分析Prompt
 func buildMatchAnalysisPrompt(clientA, clientB *ClientProfile) string {
 	return fmt.Sprintf(`【角色设定】
 你是一位资深的婚恋顾问，拥有20年的红娘经验，擅长分析客户的匹配度。
@@ -218,96 +318,25 @@ func buildMatchAnalysisPrompt(clientA, clientB *ClientProfile) string {
 	)
 }
 
-// callZhipuAI 调用智谱AI API
-func (a *AIAnalyzer) callZhipuAI(prompt string) (string, error) {
-	url := "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-
-	requestBody := map[string]interface{}{
-		"model": a.model,
-		"messages": []map[string]string{
-			{"role": "user", "content": prompt},
-		},
-		"temperature": 0.7,
-		"max_tokens":  2000,
-	}
-
-	jsonData, err := json.Marshal(requestBody)
-	if err != nil {
-		return "", err
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+a.apiKey)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var result struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
-		Error struct {
-			Message string `json:"message"`
-		} `json:"error"`
-	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return "", err
-	}
-
-	if result.Error.Message != "" {
-		return "", fmt.Errorf("AI API error: %s", result.Error.Message)
-	}
-
-	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("no response from AI")
-	}
-
-	return result.Choices[0].Message.Content, nil
-}
-
-// parseAIResponse 解析AI返回的JSON
 func parseAIResponse(response string) (*MatchAnalysisResult, error) {
-	// 清理可能的Markdown代码块标记
-	response = cleanJSONResponse(response)
+	cleaned := cleanJSONResponse(response)
+	log.Infof("AI cleaned response: %s", cleaned)
 
 	var result MatchAnalysisResult
-	if err := json.Unmarshal([]byte(response), &result); err != nil {
+	if err := json.Unmarshal([]byte(cleaned), &result); err != nil {
 		return nil, fmt.Errorf("parse AI response failed: %v", err)
 	}
 
 	return &result, nil
 }
 
-// cleanJSONResponse 清理AI返回的JSON字符串
 func cleanJSONResponse(response string) string {
 	response = strings.TrimSpace(response)
-
-	// 移除Markdown代码块标记（多种格式）
 	response = strings.ReplaceAll(response, "```json", "")
 	response = strings.ReplaceAll(response, "```JSON", "")
 	response = strings.ReplaceAll(response, "```", "")
-
-	// 移除可能的 "json" 前缀
 	response = strings.TrimPrefix(response, "json")
 
-	// 找到JSON开始的位置（第一个 { 或 [）
 	startIdx := strings.Index(response, "{")
 	if startIdx == -1 {
 		startIdx = strings.Index(response, "[")
@@ -316,7 +345,6 @@ func cleanJSONResponse(response string) string {
 		response = response[startIdx:]
 	}
 
-	// 找到JSON结束的位置（最后一个 } 或 ]）
 	endIdx := strings.LastIndex(response, "}")
 	if endIdx == -1 {
 		endIdx = strings.LastIndex(response, "]")
@@ -328,7 +356,6 @@ func cleanJSONResponse(response string) string {
 	return strings.TrimSpace(response)
 }
 
-// GenerateIceBreaker 生成破冰话题
 func (a *AIAnalyzer) GenerateIceBreaker(clientA, clientB *ClientProfile) ([]string, error) {
 	prompt := fmt.Sprintf(`作为资深红娘，为以下两位客户推荐3-5个破冰话题，帮助他们初次交流时打破尴尬。
 
@@ -340,14 +367,13 @@ func (a *AIAnalyzer) GenerateIceBreaker(clientA, clientB *ClientProfile) ([]stri
 		clientB.Name, clientB.Age, clientB.Profession, clientB.Tags,
 	)
 
-	response, err := a.callZhipuAI(prompt)
+	response, err := a.provider.Call(prompt)
 	if err != nil {
 		return nil, err
 	}
 
 	var topics []string
 	if err := json.Unmarshal([]byte(cleanJSONResponse(response)), &topics); err != nil {
-		// 如果解析失败，返回默认话题
 		return []string{
 			"最近工作怎么样？",
 			"平时周末喜欢做什么？",
