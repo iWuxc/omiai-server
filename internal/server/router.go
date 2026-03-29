@@ -62,6 +62,7 @@ func (r *Router) Register() http.Handler {
 			authGroup.GET("/auth/codes", r.AuthController.GetAccessCodes)
 			authGroup.GET("/user/info", r.AuthController.GetUserInfo)
 			authGroup.POST("/user/change_password", r.AuthController.ChangePassword)
+			authGroup.POST("/user/update", r.AuthController.UpdateUserInfo)
 
 			// 自动提醒
 			// reminderGroup := authGroup.Group("reminder")

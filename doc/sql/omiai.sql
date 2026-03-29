@@ -3677,6 +3677,26 @@ BEGIN;
 COMMIT;
 
 -- ----------------------------
+-- Table structure for reminder_task
+-- ----------------------------
+DROP TABLE IF EXISTS `reminder_task`;
+CREATE TABLE `reminder_task` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `client_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '关联客户ID',
+  `rule_id` bigint unsigned DEFAULT '0' COMMENT '关联规则ID',
+  `content` text COMMENT '提醒内容/建议话术',
+  `scheduled_at` datetime NOT NULL COMMENT '计划提醒时间',
+  `status` varchar(20) NOT NULL DEFAULT 'pending' COMMENT '状态(pending, completed, cancelled)',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_client_id` (`client_id`),
+  KEY `idx_rule_id` (`rule_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_scheduled_at` (`scheduled_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='提醒任务表';
+
+-- ----------------------------
 -- Table structure for user
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
