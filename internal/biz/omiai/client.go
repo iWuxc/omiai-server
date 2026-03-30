@@ -83,6 +83,7 @@ type ClientInterface interface {
 	Update(ctx context.Context, client *Client) error
 	Delete(ctx context.Context, id uint64) error
 	Get(ctx context.Context, id uint64) (*Client, error)
+	GetByPhone(ctx context.Context, phone string) (*Client, error)
 	Stats(ctx context.Context) (map[string]int64, error)
 
 	// Dashboard 相关

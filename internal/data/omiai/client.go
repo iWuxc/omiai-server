@@ -52,6 +52,18 @@ func (c *ClientRepo) Get(ctx context.Context, id uint64) (*biz_omiai.Client, err
 	return &client, nil
 }
 
+func (c *ClientRepo) GetByPhone(ctx context.Context, phone string) (*biz_omiai.Client, error) {
+	var client biz_omiai.Client
+	err := c.db.WithContext(ctx).Model(c.m).Where("phone = ?", phone).First(&client).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &client, nil
+}
+
 func (c *ClientRepo) Stats(ctx context.Context) (map[string]int64, error) {
 	stats := make(map[string]int64)
 

@@ -47,6 +47,11 @@ func (r *Router) Register() http.Handler {
 		g.GET("/china_region/hot", r.ChinaRegionController.GetHotCities)
 		g.GET("/china_region/search", r.ChinaRegionController.Search)
 
+		// 邀请页面上传接口（不需要鉴权）
+		g.POST("/invite/common/upload", r.CommonController.Upload)
+		// 邀请页面表单提交接口（不需要鉴权）
+		g.POST("/invite/clients/create", r.ClientController.Create)
+
 		// 需要登录的接口
 		authGroup := g.Group("", middleware.Authorization(r.DB, r.Redis), middleware.AuditLog())
 		{

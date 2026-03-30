@@ -18,6 +18,18 @@ func (c *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
+	// 检查手机号唯一性
+	existingClient, err := c.client.GetByPhone(ctx, req.Phone)
+	if err != nil {
+		log.WithContext(ctx).Errorf("Check phone uniqueness failed: %v", err)
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "系统错误")
+		return
+	}
+	if existingClient != nil {
+		response.ErrorResponse(ctx, response.CommonCode+9, "该手机号已提交过档案，请勿重复提交")
+		return
+	}
+
 	log.Infof("Creating client: %s, gender: %d", req.Name, req.Gender)
 	client := &biz_omiai.Client{
 		Name:                req.Name,

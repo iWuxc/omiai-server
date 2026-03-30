@@ -324,10 +324,3 @@ func buildParsePrompt() string {
 %s
 """`
 }
-
-// llm:
-//   provider: "volcano"  # volcano
-//   volcano_engine:
-//     api_key: "5e47477b-73ed-43b4-b9a0-c58f1bbecab2"
-//     model: "ep-20260327175716-s5bz9"
-//     endpoint: "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
