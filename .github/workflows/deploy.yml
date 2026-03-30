@@ -176,8 +176,10 @@ jobs:
                   - REDIS_PORT=6379
                   - REDIS_PASSWORD=\${REDIS_PASSWORD}
                   - REDIS_DB=0
-                  - ZHIPUAI_API_KEY=\${ZHIPUAI_API_KEY}
-                  - ZHIPUAI_MODEL=glm-4-flash
+                  - LLM_PROVIDER=volcano
+                  - VOLCANO_API_KEY=\${VOLCANO_API_KEY}
+                  - VOLCANO_MODEL=\${VOLCANO_MODEL}
+                  - VOLCANO_ENDPOINT=\${VOLCANO_ENDPOINT}
                   - DOMAIN_H5=\${DOMAIN_H5}
                   - OSS_ENDPOINT=
                   - OSS_ACCESS_KEY_ID=
@@ -276,7 +278,9 @@ jobs:
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             REDIS_PORT=${{ secrets.REDIS_PORT }}
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-            ZHIPUAI_API_KEY=${{ secrets.ZHIPUAI_API_KEY }}
+            VOLCANO_API_KEY=${{ secrets.VOLCANO_API_KEY }}
+            VOLCANO_MODEL=${{ secrets.VOLCANO_MODEL }}
+            VOLCANO_ENDPOINT=${{ secrets.VOLCANO_ENDPOINT }}
             DOMAIN_H5=${{ secrets.DOMAIN_H5 }}
             STORAGE_DRIVER=${{ secrets.STORAGE_DRIVER }}
             COS_BUCKET_URL=${{ secrets.COS_BUCKET_URL }}
@@ -299,3 +303,7 @@ jobs:
             
             # 清理旧镜像
             docker image prune -f
+
+            # 重载nginx 
+            docker exec liuyao-nginx nginx -s reload
+          

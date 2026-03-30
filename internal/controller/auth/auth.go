@@ -38,6 +38,11 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
 
+type UpdateUserInfoRequest struct {
+	Nickname string `json:"nickname"`
+	Avatar   string `json:"avatar"`
+}
+
 type SendSmsRequest struct {
 	Phone string `json:"phone" binding:"required"`
 }
@@ -140,6 +145,36 @@ func (c *Controller) ChangePassword(ctx *gin.Context) {
 	}
 
 	response.SuccessResponse(ctx, "密码修改成功", nil)
+}
+
+// UpdateUserInfo 更新用户信息
+func (c *Controller) UpdateUserInfo(ctx *gin.Context) {
+	var req UpdateUserInfoRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.ValidateError(ctx, err, response.ValidateCommonError)
+		return
+	}
+
+	userID := ctx.GetUint64("user_id")
+	user, err := c.User.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "用户不存在")
+		return
+	}
+
+	if req.Nickname != "" {
+		user.Nickname = req.Nickname
+	}
+	if req.Avatar != "" {
+		user.Avatar = req.Avatar
+	}
+
+	if err := c.User.Update(ctx, user); err != nil {
+		response.ErrorResponse(ctx, response.DBUpdateCommonError, "更新用户信息失败")
+		return
+	}
+
+	response.SuccessResponse(ctx, "更新成功", user)
 }
 
 type WxLoginRequest struct {

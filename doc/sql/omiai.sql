@@ -1,7 +1,7 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 阿里云-红娘
+ Source Server         : 红娘系统
  Source Server Type    : MySQL
  Source Server Version : 80034 (8.0.34)
  Source Host           : 39.102.51.47:13018
@@ -11,7 +11,7 @@
  Target Server Version : 80034 (8.0.34)
  File Encoding         : 65001
 
- Date: 24/03/2026 18:30:04
+ Date: 29/03/2026 22:01:30
 */
 
 SET NAMES utf8mb4;
@@ -3558,13 +3558,14 @@ CREATE TABLE `client` (
   KEY `idx_phone` (`phone`),
   KEY `idx_client_phone` (`phone`),
   KEY `idx_client_manager` (`manager_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=358 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
+) ENGINE=InnoDB AUTO_INCREMENT=360 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客户档案表';
 
 -- ----------------------------
 -- Records of client
 -- ----------------------------
 BEGIN;
-INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `work_city`, `house_status`, `car_status`, `partner_requirements`, `parents_profession`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `work_province_code`, `work_city_code`, `work_district_code`, `position`, `house_address`, `house_province_code`, `house_city_code`, `house_district_code`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (357, '武晓晨', 1, '18612571940', '1993-03', '鸡', 178, 75, 3, 1, '河北省张家口市蔚县北水泉镇', '爸爸妈妈和我', 2000, 'php程序员', '北京市北京市丰台区', 2, 1, '温柔大气，能够有共同话题，共同爱好，不抽烟', '父亲在北京，母亲在家', '这娃家里有钱，经济条件好，对男性要求有点高', '[\"https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260324/07a0b468-7f71-4065-9bd2-402f44a33d6d.png\",\"https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260324/fad4ddcc-33a7-4b82-8829-0cdb2fbc9792.png\",\"https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260324/7b9525ec-6832-4120-aa6b-b343f183ca05.png\"]', '2026-03-24 17:42:01.179', '2026-03-24 18:10:07.663', 'https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260324/6a6df52d-813e-43aa-a21f-bf37b7f84330.png', 1, 33, '互联网科技公司', '110000', '110100', '110106', '无', '河北省张家口市深泽县', '130000', '130700', '130128', '', NULL, 0);
+INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `work_city`, `house_status`, `car_status`, `partner_requirements`, `parents_profession`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `work_province_code`, `work_city_code`, `work_district_code`, `position`, `house_address`, `house_province_code`, `house_city_code`, `house_district_code`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (357, '武晓晨', 2, '18612571940', '1993-03', '鸡', 178, 75, 3, 1, '河北省张家口市蔚县北水泉镇', '爸爸妈妈和我', 2000, 'php程序员', '北京市北京市丰台区', 2, 1, '温柔大气，能够有共同话题，共同爱好，不抽烟', '父亲在北京，母亲在家', '这娃家里有钱，经济条件好，对男性要求有点高', '[\"https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260324/07a0b468-7f71-4065-9bd2-402f44a33d6d.png\",\"https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260324/fad4ddcc-33a7-4b82-8829-0cdb2fbc9792.png\",\"https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260324/7b9525ec-6832-4120-aa6b-b343f183ca05.png\"]', '2026-03-24 17:42:01.179', '2026-03-27 23:17:17.559', 'https://omiai-server-1252902619.cos.ap-beijing.myqcloud.com/uploads/20260325/aa5fe4ae-d677-4ecb-abc7-fd393cb00cfe.jpg', 3, 33, '互联网科技公司', '110000', '110100', '110106', '无', '河北省张家口市深泽县', '130000', '130700', '130128', '[{\"candidate_id\":359,\"name\":\"贺鑫龙\",\"avatar\":\"\",\"match_score\":100,\"tags\":[\"都有房产\",\"婚史相同\"],\"age\":25,\"height\":175,\"education\":0}]', 359, 0);
+INSERT INTO `client` (`id`, `name`, `gender`, `phone`, `birthday`, `zodiac`, `height`, `weight`, `education`, `marital_status`, `address`, `family_description`, `income`, `profession`, `work_city`, `house_status`, `car_status`, `partner_requirements`, `parents_profession`, `remark`, `photos`, `created_at`, `updated_at`, `avatar`, `status`, `age`, `work_unit`, `work_province_code`, `work_city_code`, `work_district_code`, `position`, `house_address`, `house_province_code`, `house_city_code`, `house_district_code`, `candidate_cache_json`, `partner_id`, `manager_id`) VALUES (359, '贺鑫龙', 1, '15127324882', '2001-10', '蛇', 175, 70, 0, 1, '南留庄', '爸爸妈妈姐姐', 9000, '', '北京海淀', 2, 1, '正经过日子，三观正，孝敬父母', '农民', '', '', '2026-03-27 22:57:40.067', '2026-03-27 23:17:17.592', '', 3, 25, '', '', '', '', '', '中央公园', '', '', '', '', 357, 0);
 COMMIT;
 
 -- ----------------------------
@@ -3611,12 +3612,13 @@ CREATE TABLE `match_record` (
   PRIMARY KEY (`id`),
   KEY `idx_male_client` (`male_client_id`),
   KEY `idx_female_client` (`female_client_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='情侣档案表';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='情侣档案表';
 
 -- ----------------------------
 -- Records of match_record
 -- ----------------------------
 BEGIN;
+INSERT INTO `match_record` (`id`, `male_client_id`, `female_client_id`, `match_date`, `status`, `match_score`, `remark`, `admin_id`, `created_at`, `updated_at`) VALUES (1, 359, 357, '2026-03-27 23:17:18', 1, 85, '', '1', '2026-03-27 23:17:17.526', '2026-03-27 23:17:17.526');
 COMMIT;
 
 -- ----------------------------
@@ -3677,6 +3679,32 @@ BEGIN;
 COMMIT;
 
 -- ----------------------------
+-- Table structure for reminder_task
+-- ----------------------------
+DROP TABLE IF EXISTS `reminder_task`;
+CREATE TABLE `reminder_task` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `client_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '关联客户ID',
+  `rule_id` bigint unsigned DEFAULT '0' COMMENT '关联规则ID',
+  `content` text COMMENT '提醒内容/建议话术',
+  `scheduled_at` datetime NOT NULL COMMENT '计划提醒时间',
+  `status` varchar(20) NOT NULL DEFAULT 'pending' COMMENT '状态(pending, completed, cancelled)',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_client_id` (`client_id`),
+  KEY `idx_rule_id` (`rule_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_scheduled_at` (`scheduled_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='提醒任务表';
+
+-- ----------------------------
+-- Records of reminder_task
+-- ----------------------------
+BEGIN;
+COMMIT;
+
+-- ----------------------------
 -- Table structure for user
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
@@ -3693,13 +3721,14 @@ CREATE TABLE `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_user_phone` (`phone`),
   KEY `idx_user_wx_open_id` (`wx_openid`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of user
 -- ----------------------------
 BEGIN;
-INSERT INTO `user` (`id`, `phone`, `password`, `nickname`, `avatar`, `role`, `wx_openid`, `created_at`, `updated_at`) VALUES (1, '18612571940', 'e10adc3949ba59abbe56e057f20f883e', '管理员', '', 'admin', '', '2026-02-01 18:05:02.005', '2026-02-01 18:05:02.005');
+INSERT INTO `user` (`id`, `phone`, `password`, `nickname`, `avatar`, `role`, `wx_openid`, `created_at`, `updated_at`) VALUES (1, '18612571940', 'e10adc3949ba59abbe56e057f20f883e', '管理员', '', 'admin', '', '2026-02-01 18:05:02.005', '2026-03-29 19:38:02.893');
+INSERT INTO `user` (`id`, `phone`, `password`, `nickname`, `avatar`, `role`, `wx_openid`, `created_at`, `updated_at`) VALUES (2, '15100339010', 'e10adc3949ba59abbe56e057f20f883e', '红娘', NULL, 'admin', NULL, '2026-03-27 18:10:32.000', '2026-03-27 18:10:36.000');
 COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;
