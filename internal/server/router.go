@@ -79,10 +79,6 @@ func (r *Router) Register() http.Handler {
 			// reminderGroup.POST("/generate", r.ReminderController.CheckAndGenerateTasks)
 		}
 	}
-	// Serve static files for uploads
-	r.Static("/uploads", "./runtime/uploads")
-	// Serve H5 frontend
-	r.Static("/h5", "./web")
 
 	return r
 }
