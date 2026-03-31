@@ -10,6 +10,9 @@ omiai-server is a Go-based matchmaking server using Gin web framework, GORM for 
 
 ### Running the Application
 ```bash
+# Initialize project (first time setup)
+make init
+
 # Build the binary
 make build
 
