@@ -32,13 +32,79 @@ func (c *Controller) ListRules(ctx *gin.Context) {
 }
 
 // Task Handlers
+func (c *Controller) List(ctx *gin.Context) {
+	var req struct {
+		Status string `form:"status"`
+	}
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.ErrorResponse(ctx, response.ValidateCommonError, err.Error())
+		return
+	}
+
+	var tasks []*biz_omiai.ReminderTask
+	var err error
+
+	if req.Status != "" {
+		tasks, err = c.reminderRepo.GetTasksByStatus(req.Status)
+	} else {
+		tasks, err = c.reminderRepo.GetAllTasks()
+	}
+
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取提醒列表失败")
+		return
+	}
+	response.SuccessResponse(ctx, "获取成功", tasks)
+}
+
+func (c *Controller) TodayList(ctx *gin.Context) {
+	userID := uint64(0)
+	tasks, err := c.reminderRepo.GetTodayReminders(userID)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取今日提醒失败")
+		return
+	}
+	response.SuccessResponse(ctx, "获取成功", tasks)
+}
+
 func (c *Controller) ListPendingTasks(ctx *gin.Context) {
-	tasks, err := c.reminderRepo.ListPendingTasks()
+	userID := uint64(0)
+	tasks, err := c.reminderRepo.GetPendingReminders(userID)
 	if err != nil {
 		response.ErrorResponse(ctx, response.DBSelectCommonError, "获取待办任务失败")
 		return
 	}
 	response.SuccessResponse(ctx, "获取成功", tasks)
+}
+
+func (c *Controller) MarkAsRead(ctx *gin.Context) {
+	var req struct {
+		ID int64 `json:"id" binding:"required"`
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.ErrorResponse(ctx, response.ValidateCommonError, err.Error())
+		return
+	}
+	if err := c.reminderRepo.MarkAsRead(req.ID); err != nil {
+		response.ErrorResponse(ctx, response.DBUpdateCommonError, "标记已读失败")
+		return
+	}
+	response.SuccessResponse(ctx, "操作成功", nil)
+}
+
+func (c *Controller) MarkAsDone(ctx *gin.Context) {
+	var req struct {
+		ID int64 `json:"id" binding:"required"`
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.ErrorResponse(ctx, response.ValidateCommonError, err.Error())
+		return
+	}
+	if err := c.reminderRepo.MarkAsDone(req.ID); err != nil {
+		response.ErrorResponse(ctx, response.DBUpdateCommonError, "标记完成失败")
+		return
+	}
+	response.SuccessResponse(ctx, "操作成功", nil)
 }
 
 func (c *Controller) CompleteTask(ctx *gin.Context) {
@@ -48,6 +114,21 @@ func (c *Controller) CompleteTask(ctx *gin.Context) {
 		return
 	}
 	response.SuccessResponse(ctx, "操作成功", nil)
+}
+
+func (c *Controller) Delete(ctx *gin.Context) {
+	var req struct {
+		ID int64 `form:"id" binding:"required"`
+	}
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.ErrorResponse(ctx, response.ValidateCommonError, err.Error())
+		return
+	}
+	if err := c.reminderRepo.Delete(req.ID); err != nil {
+		response.ErrorResponse(ctx, response.DBDeleteCommonError, "删除失败")
+		return
+	}
+	response.SuccessResponse(ctx, "删除成功", nil)
 }
 
 // CheckAndGenerateTasks 定时任务入口：检查规则并生成任务

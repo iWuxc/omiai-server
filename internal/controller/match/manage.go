@@ -193,3 +193,21 @@ func (c *Controller) Stats(ctx *gin.Context) {
 	}
 	response.SuccessResponse(ctx, "ok", stats)
 }
+
+func (c *Controller) Get(ctx *gin.Context) {
+	var req struct {
+		ID uint64 `uri:"id" binding:"required"`
+	}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		response.ValidateError(ctx, err, response.ParamsCommonError)
+		return
+	}
+
+	record, err := c.match.Get(ctx, req.ID)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "记录不存在")
+		return
+	}
+
+	response.SuccessResponse(ctx, "ok", record)
+}

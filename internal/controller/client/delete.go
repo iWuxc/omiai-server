@@ -37,8 +37,19 @@ func (c *Controller) Delete(ctx *gin.Context) {
 		return
 	}
 
-	// 执行删除
-	if err := c.client.Delete(ctx, id); err != nil {
+	// 检查是否有未分手的匹配记录
+	hasActiveMatch, err := c.client.HasActiveMatch(ctx, id)
+	if err != nil {
+		response.ErrorResponse(ctx, response.DBSelectCommonError, "检查匹配关系失败")
+		return
+	}
+	if hasActiveMatch {
+		response.ErrorResponse(ctx, response.ParamsCommonError, "该客户存在未解除的匹配关系，无法删除")
+		return
+	}
+
+	// 执行删除（使用事务）
+	if err := c.client.DeleteWithTx(ctx, id); err != nil {
 		response.ErrorResponse(ctx, response.DBDeleteCommonError, "删除客户失败")
 		return
 	}

@@ -43,6 +43,8 @@ type ReminderInterface interface {
 	CompleteTask(id int64) error
 	GetTasksByClient(clientID int64) ([]*ReminderTask, error)
 
+	GetAllTasks() ([]*ReminderTask, error)
+	GetTasksByStatus(status string) ([]*ReminderTask, error)
 	GetTodayReminders(userID uint64) ([]*ReminderTask, error)
 	GetPendingReminders(userID uint64) ([]*ReminderTask, error)
 	MarkAsRead(id int64) error

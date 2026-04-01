@@ -88,4 +88,8 @@ type ClientInterface interface {
 
 	// Dashboard 相关
 	GetDashboardStats(ctx context.Context) (map[string]int64, error)
+
+	// 删除相关
+	HasActiveMatch(ctx context.Context, clientID uint64) (bool, error)
+	DeleteWithTx(ctx context.Context, id uint64) error
 }

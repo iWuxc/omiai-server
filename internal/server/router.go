@@ -106,6 +106,7 @@ func (r *Router) dashboard(g *gin.RouterGroup) {
 
 func (r *Router) match(g *gin.RouterGroup) {
 	g.GET("/list", r.MatchController.List)
+	g.GET("/detail/:id", r.MatchController.Get)
 	g.POST("/create", r.MatchController.Create)
 	g.POST("/confirm", r.MatchController.Confirm)   // V2: Direct Confirm
 	g.POST("/dissolve", r.MatchController.Dissolve) // V2: Dissolve Match
@@ -147,9 +148,14 @@ func (r *Router) client(g *gin.RouterGroup) {
 }
 
 func (r *Router) reminder(g *gin.RouterGroup) {
-	g.GET("/list", r.ReminderController.ListPendingTasks) // Default to pending tasks
+	g.GET("/list", r.ReminderController.List)
+	g.GET("/today", r.ReminderController.TodayList)
+	g.GET("/pending", r.ReminderController.ListPendingTasks)
+	g.POST("/read", r.ReminderController.MarkAsRead)
+	g.POST("/done", r.ReminderController.MarkAsDone)
+	g.DELETE("/delete", r.ReminderController.Delete)
 	g.GET("/stats", r.ReminderController.Stats)
-	g.POST("/done/:id", r.ReminderController.CompleteTask) // Updated
+	g.POST("/done/:id", r.ReminderController.CompleteTask)
 
 	// New routes
 	g.GET("/rules", r.ReminderController.ListRules)

@@ -43,6 +43,56 @@ func (c *ClientRepo) Delete(ctx context.Context, id uint64) error {
 	return c.db.WithContext(ctx).Model(c.m).Delete(&biz_omiai.Client{}, id).Error
 }
 
+// HasActiveMatch 检查客户是否有未解除的匹配关系
+func (c *ClientRepo) HasActiveMatch(ctx context.Context, clientID uint64) (bool, error) {
+	var count int64
+	err := c.db.WithContext(ctx).Model(&biz_omiai.MatchRecord{}).
+		Where("((male_client_id = ? OR female_client_id = ?) AND status != ?)",
+			clientID, clientID, biz_omiai.MatchStatusBroken).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// DeleteWithTx 使用事务删除客户，并处理关联数据
+func (c *ClientRepo) DeleteWithTx(ctx context.Context, id uint64) error {
+	return c.db.Transaction(func(tx *gorm.DB) error {
+		// 1. 删除客户的跟进记录（如果有）
+		if err := tx.WithContext(ctx).Where("match_record_id IN (SELECT id FROM match_record WHERE male_client_id = ? OR female_client_id = ?)", id, id).
+			Delete(&biz_omiai.FollowUpRecord{}).Error; err != nil {
+			return err
+		}
+
+		// 2. 删除客户的匹配状态历史记录
+		if err := tx.WithContext(ctx).Where("match_record_id IN (SELECT id FROM match_record WHERE male_client_id = ? OR female_client_id = ?)", id, id).
+			Delete(&biz_omiai.MatchStatusHistory{}).Error; err != nil {
+			return err
+		}
+
+		// 3. 删除客户的匹配记录
+		if err := tx.WithContext(ctx).Where("male_client_id = ? OR female_client_id = ?", id, id).
+			Delete(&biz_omiai.MatchRecord{}).Error; err != nil {
+			return err
+		}
+
+		// 4. 如果客户有 partner，清除 partner 的 partner_id
+		if err := tx.WithContext(ctx).Model(&biz_omiai.Client{}).
+			Where("partner_id = ?", id).
+			Update("partner_id", nil).Error; err != nil {
+			return err
+		}
+
+		// 5. 最后删除客户
+		if err := tx.WithContext(ctx).Model(c.m).Delete(&biz_omiai.Client{}, id).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (c *ClientRepo) Get(ctx context.Context, id uint64) (*biz_omiai.Client, error) {
 	var client biz_omiai.Client
 	err := c.db.WithContext(ctx).Model(c.m).Preload("Partner").First(&client, id).Error

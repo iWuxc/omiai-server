@@ -130,6 +130,22 @@ func (r *ReminderRepo) CountByUser(userID uint64, isDone int) (int64, error) {
 	return count, nil
 }
 
+func (r *ReminderRepo) GetAllTasks() ([]*biz_omiai.ReminderTask, error) {
+	var tasks []*biz_omiai.ReminderTask
+	if err := r.db.DB.Order("scheduled_at desc").Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
+func (r *ReminderRepo) GetTasksByStatus(status string) ([]*biz_omiai.ReminderTask, error) {
+	var tasks []*biz_omiai.ReminderTask
+	if err := r.db.DB.Where("status = ?", status).Order("scheduled_at desc").Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
 func (r *ReminderRepo) ExistsByClientAndType(clientID uint64, triggerType string, start, end time.Time) (bool, error) {
 	var count int64
 	// ReminderTask doesn't store TriggerType directly, it links to Rule.
